@@ -67,7 +67,7 @@ export default async function NewProjectPage() {
         progress: 0,
         lastActivityAt: new Date(),
       },
-      select: { slug: true },
+      select: { id: true, slug: true },
     });
 
     // Log activity
@@ -77,7 +77,7 @@ export default async function NewProjectPage() {
         actorUserId: actor.userId,
         type: "PROJECT_CREATED",
         subjectKind: "PROJECT",
-        subjectId: project.slug,
+        subjectId: project.id,
         summary: `Created project "${name}"`,
       },
     });

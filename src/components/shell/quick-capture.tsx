@@ -43,13 +43,14 @@ export function QuickCapture({ open, onOpenChange, projects = [] }: QuickCapture
           <form className="space-y-4" onSubmit={async (e) => {
             e.preventDefault();
             const formData = new FormData(e.currentTarget as HTMLFormElement);
+            const formEl = e.currentTarget as HTMLFormElement;
             setPending(true);
             const result = await quickCapture(formData);
             setPending(false);
             if (result.ok) {
               toast.success("Captured to inbox");
               onOpenChange(false);
-              (e.currentTarget as HTMLFormElement).reset();
+              formEl.reset();
             } else {
               toast.error(result.error ?? "Failed to capture");
             }
