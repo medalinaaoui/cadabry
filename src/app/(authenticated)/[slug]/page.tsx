@@ -150,6 +150,9 @@ export default async function ProjectPage({ params }: Props) {
           { href: `/${project.slug}/features`, label: "Features", active: false },
           { href: `/${project.slug}/decisions`, label: "Decisions", active: false },
           { href: `/${project.slug}/bugs`, label: `Bugs${project._count.bugs > 0 ? ` · ${project._count.bugs}` : ""}`, active: false },
+          { href: `/${project.slug}/notes`, label: "Notes", active: false },
+          { href: `/${project.slug}/inspirations`, label: "Inspirations", active: false },
+          { href: `/${project.slug}/sessions`, label: "Sessions", active: false },
           { href: `/${project.slug}/timeline`, label: "Timeline", active: false },
         ].map((tab) => (
           <Link
