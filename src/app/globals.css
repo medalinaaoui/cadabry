@@ -1,0 +1,291 @@
+@import "tailwindcss";
+
+/* ============================================================================
+   Cadabry design tokens — "Apple workspace inside The Starry Night"
+   Full specification: docs/design-system.md
+   Dark, sophisticated navy canvas; moonlight gold + cobalt reserved for
+   energy, active state, progress, and calls to action.
+   All tokens are additive. Existing slate and amber utilities still resolve;
+   see the migration map in docs/design-system.md.
+   ========================================================================== */
+:root {
+  color-scheme: dark;
+
+  /* --- Ink: blue-tinted neutral ramp (surfaces → text) ------------------- */
+  --ink-950: #050a17; /* void / deepest canvas behind the universe */
+  --ink-900: #080e1f; /* app background */
+  --ink-850: #0c1428; /* sunken wells, code blocks */
+  --ink-800: #101c35; /* base surface / cards */
+  --ink-750: #16223f; /* raised surface, hover fill */
+  --ink-700: #1c2b4d; /* overlay / popover / dialog */
+  --ink-600: #26355a; /* strong border, dividers on raised */
+  --ink-500: #35477a; /* scrollbar hover, hairlines (see --line) */
+  --ink-400: #4a5d82; /* disabled control border */
+  --ink-300: #6b7d9e; /* tertiary text / placeholder */
+  --ink-200: #9eabc4; /* muted / secondary text (cloudy blue-gray) */
+  --ink-100: #c7d0e0; /* high-emphasis secondary */
+  --ink-50:  #e8edf8; /* primary foreground */
+
+  /* --- Cobalt: ultramarine energy (links, focus, "moving" projects) ------ */
+  --cobalt-700: #2a4fa8; /* pressed / deep ultramarine */
+  --cobalt-600: #3a67c9;
+  --cobalt-500: #497fe3; /* base interactive blue */
+  --cobalt-400: #6c9bef; /* link text on dark (AA) */
+  --cobalt-300: #93b8f6; /* highlight text */
+  --cobalt-glow: color-mix(in oklab, #497fe3 38%, transparent);
+
+  /* --- Cyan: subtle starlight highlight ---------------------------------- */
+  --cyan-400: #58c8dc;
+  --cyan-300: #86dcec;
+  --cyan-glow: color-mix(in oklab, #58c8dc 30%, transparent);
+
+  /* --- Gold: moonlight accent (CTA, progress, stars, active) ------------- */
+  --gold-600: #d9a94e; /* pressed / muted golden */
+  --gold-500: #e9be63;
+  --gold-400: #f3cf77; /* base moonlight yellow */
+  --gold-300: #f8dd97; /* hover / bright star */
+  --gold-glow: color-mix(in oklab, #f3cf77 30%, transparent);
+
+  /* --- Status ------------------------------------------------------------ */
+  --success-500: #4cbf94; /* moving / shipped */
+  --success-400: #6fd3ab;
+  --warning-500: #f3cf77; /* needs attention (aligns with gold) */
+  --danger-600: #cf4d55; /* blocked / destructive */
+  --danger-500: #e5686a;
+  --danger-400: #f28b8c;
+  --info-500: #497fe3;
+
+  /* --- Semantic surfaces ------------------------------------------------- */
+  --background: var(--ink-900);
+  --surface: var(--ink-800);
+  --surface-raised: var(--ink-750);
+  --overlay: var(--ink-700);
+  --well: var(--ink-850);
+
+  /* --- Semantic text ----------------------------------------------------- */
+  --foreground: var(--ink-50);
+  --muted: var(--ink-200);
+  --subtle: var(--ink-300);
+  --on-accent: #1a1305; /* text on gold fills */
+  --on-cobalt: #061024; /* text on cobalt fills */
+
+  /* --- Lines ------------------------------------------------------------- */
+  --line: color-mix(in oklab, #35477a 55%, transparent); /* default border */
+  --line-strong: var(--ink-600);
+  --line-subtle: color-mix(in oklab, #35477a 30%, transparent);
+
+  /* --- Accent aliases (back-compat + intent) ----------------------------- */
+  --accent: var(--gold-400);
+  --accent-strong: var(--gold-300);
+  --accent-muted: var(--gold-600);
+  --blue: var(--cobalt-500);
+
+  /* --- Radius ------------------------------------------------------------ */
+  --radius-xs: 6px;
+  --radius-sm: 8px;
+  --radius-md: 12px; /* inputs, buttons (matches rounded-xl) */
+  --radius-lg: 16px;
+  --radius-xl: 24px; /* panels, cards (matches rounded-3xl) */
+  --radius-2xl: 32px;
+  --radius-full: 9999px;
+
+  /* --- Elevation: subtle black + top highlight; glow carries "energy" ---- */
+  --shadow-xs: 0 1px 2px rgb(3 7 18 / 0.4);
+  --shadow-sm: 0 2px 6px rgb(3 7 18 / 0.45), inset 0 1px 0 rgb(255 255 255 / 0.03);
+  --shadow-md: 0 8px 20px -6px rgb(3 7 18 / 0.55), inset 0 1px 0 rgb(255 255 255 / 0.04);
+  --shadow-lg: 0 20px 44px -12px rgb(3 7 18 / 0.65), inset 0 1px 0 rgb(255 255 255 / 0.05);
+  --shadow-xl: 0 32px 70px -20px rgb(2 5 14 / 0.75), inset 0 1px 0 rgb(255 255 255 / 0.06);
+  --glow-gold: 0 0 0 1px color-mix(in oklab, #f3cf77 45%, transparent), 0 0 28px -4px var(--gold-glow);
+  --glow-cobalt: 0 0 0 1px color-mix(in oklab, #497fe3 45%, transparent), 0 0 28px -4px var(--cobalt-glow);
+  --glow-cyan: 0 0 24px -6px var(--cyan-glow);
+
+  /* --- Motion ------------------------------------------------------------ */
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 320ms;
+  --duration-spatial: 520ms; /* universe / view transitions */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* --- Layout ------------------------------------------------------------ */
+  --page-max: 80rem;      /* 1280px content ceiling */
+  --reading-max: 46rem;   /* long-form prose / prompt bodies */
+  --gutter: 1.5rem;       /* mobile page padding */
+  --gutter-lg: 3rem;      /* desktop page padding */
+  --header-h: 3.5rem;
+
+  /* --- Z-index scale ----------------------------------------------------- */
+  --z-base: 0;
+  --z-raised: 10;
+  --z-sticky: 20;
+  --z-header: 30;
+  --z-overlay: 40;
+  --z-dialog: 50;
+  --z-toast: 60;
+  --z-command: 70;
+
+  /* --- Typography -------------------------------------------------------- */
+  --font-sans: ui-sans-serif, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+    "Segoe UI", Roboto, Inter, system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", "Fira Code",
+    Menlo, Consolas, monospace;
+}
+
+/* Map curated tokens into Tailwind's theme so the frontend can use
+   utilities like bg-surface, text-muted, border-line, text-accent,
+   bg-cobalt-500, font-sans, etc. Additive — does not remove defaults. */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-overlay: var(--overlay);
+  --color-well: var(--well);
+
+  --color-muted: var(--muted);
+  --color-subtle: var(--subtle);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-muted: var(--accent-muted);
+  --color-on-accent: var(--on-accent);
+
+  --color-cobalt-300: var(--cobalt-300);
+  --color-cobalt-400: var(--cobalt-400);
+  --color-cobalt-500: var(--cobalt-500);
+  --color-cobalt-600: var(--cobalt-600);
+  --color-cobalt-700: var(--cobalt-700);
+  --color-on-cobalt: var(--on-cobalt);
+
+  --color-cyan: var(--cyan-400);
+  --color-success: var(--success-500);
+  --color-warning: var(--warning-500);
+  --color-danger: var(--danger-500);
+  --color-info: var(--info-500);
+
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+}
+
+/* ============================================================================
+   Base
+   ========================================================================== */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button,
+a,
+input,
+textarea,
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+a {
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+code,
+kbd,
+pre,
+samp {
+  font-family: var(--font-mono);
+}
+
+::selection {
+  background: var(--gold-glow);
+  color: var(--foreground);
+}
+
+/* Focus: always visible, gold ring with dark offset so it reads on any surface */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: var(--radius-xs);
+}
+
+/* Scrollbars tuned to the navy canvas (progressive enhancement) */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ink-600) transparent;
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--ink-600);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  border-radius: var(--radius-full);
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--ink-500);
+  background-clip: padding-box;
+}
+
+/* ============================================================================
+   Utilities
+   ========================================================================== */
+.skip-link {
+  position: fixed;
+  top: -100px;
+  left: 1rem;
+  z-index: var(--z-command);
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 600;
+}
+.skip-link:focus {
+  top: 1rem;
+}
+
+/* Starlight twinkle — universe accents only. Disabled under reduced motion. */
+@keyframes cadabry-twinkle {
+  0%, 100% { opacity: 0.35; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

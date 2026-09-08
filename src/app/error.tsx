@@ -1,0 +1,2 @@
+"use client";
+export default function ErrorBoundary({reset}:{error:Error & {digest?:string};reset:()=>void}) {return <main id="main" className="mx-auto max-w-xl px-6 py-32"><h1 className="text-3xl">Something interrupted your workspace.</h1><p className="my-5 text-slate-400">Your saved work is still there. Try loading this view again.</p><button onClick={reset} className="rounded-xl bg-amber-200 px-5 py-3 text-slate-950">Try again</button></main>;}

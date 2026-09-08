@@ -1,0 +1,3 @@
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+export function Markdown({children}:{children:string}) {return <div className="space-y-4 leading-relaxed text-slate-300 [&_h1]:text-3xl [&_h2]:mt-8 [&_h2]:text-xl [&_h3]:text-lg [&_h1]:text-slate-100 [&_h2]:text-slate-100 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_pre]:overflow-auto [&_pre]:rounded-xl [&_pre]:bg-slate-950 [&_pre]:p-4 [&_code]:font-mono [&_a]:text-amber-200 [&_a]:underline"><ReactMarkdown remarkPlugins={[remarkGfm]} skipHtml components={{a:({children,href})=><a href={href} target="_blank" rel="noopener noreferrer">{children}</a>}}>{children}</ReactMarkdown></div>;}

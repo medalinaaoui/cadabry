@@ -1,0 +1,784 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/server/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  OWNER
+  USER
+}
+
+enum ProjectStatus {
+  IDEA
+  PLANNING
+  BUILDING
+  BLOCKED
+  PAUSED
+  SHIPPED
+  ARCHIVED
+}
+
+enum BoundaryKind {
+  GOAL
+  NON_GOAL
+  ASSUMPTION
+  CONSTRAINT
+  FUTURE_IDEA
+}
+
+enum WorkStatus {
+  PLANNED
+  IN_PROGRESS
+  BLOCKED
+  DONE
+  CANCELLED
+}
+
+enum PromptStatus {
+  DRAFT
+  READY
+  ARCHIVED
+}
+
+enum QueueStatus {
+  QUEUED
+  SENT
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum MemoryStatus {
+  INBOX
+  PLANNED
+  ACTIVE
+  RESOLVED
+  ARCHIVED
+}
+
+enum DecisionStatus {
+  PROPOSED
+  ACCEPTED
+  SUPERSEDED
+  REJECTED
+}
+
+enum SessionStatus {
+  ACTIVE
+  COMPLETED
+  ABANDONED
+}
+
+enum InspirationKind {
+  LINK
+  IMAGE
+  SCREENSHOT
+  VIDEO
+  TEXT
+  OTHER
+}
+
+enum AttachmentStatus {
+  PENDING
+  READY
+  FAILED
+  DELETED
+}
+
+model User {
+  id             String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email          String
+  displayName    String            @map("display_name")
+  passwordHash   String            @map("password_hash")
+  role           UserRole          @default(USER)
+  disabledAt     DateTime?         @map("disabled_at") @db.Timestamptz
+  createdAt      DateTime          @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt      DateTime          @updatedAt @map("updated_at") @db.Timestamptz
+  installations  AppInstallation[]
+  authSessions   AuthSession[]
+  projects       Project[]         @relation("ProjectOwner")
+  activities     Activity[]        @relation("ActivityActor")
+  promptVersions PromptVersion[]   @relation("PromptVersionCreator")
+
+  @@map("users")
+}
+
+model AppInstallation {
+  key              String    @id @default("primary")
+  ownerUserId      String?   @unique @map("owner_user_id") @db.Uuid
+  setupCompletedAt DateTime? @map("setup_completed_at") @db.Timestamptz
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  owner            User?     @relation(fields: [ownerUserId], references: [id], onDelete: Restrict)
+
+  @@map("app_installation")
+}
+
+model AuthSession {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId        String    @map("user_id") @db.Uuid
+  tokenDigest   String    @unique @map("token_digest")
+  expiresAt     DateTime  @map("expires_at") @db.Timestamptz
+  lastSeenAt    DateTime  @default(now()) @map("last_seen_at") @db.Timestamptz
+  revokedAt     DateTime? @map("revoked_at") @db.Timestamptz
+  userAgentHash String?   @map("user_agent_hash")
+  ipHash        String?   @map("ip_hash")
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+  @@map("auth_sessions")
+}
+
+model Project {
+  id                   String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId              String                @map("owner_id") @db.Uuid
+  name                 String
+  slug                 String
+  oneLineDescription   String?               @map("one_line_description")
+  description          String?
+  icon                 String?
+  color                String?
+  projectType          String?               @map("project_type")
+  repositoryUrl        String?               @map("repository_url")
+  productionUrl        String?               @map("production_url")
+  stagingUrl           String?               @map("staging_url")
+  localFolderPath      String?               @map("local_folder_path")
+  productStatement     String?               @map("product_statement")
+  problem              String?
+  targetUser           String?               @map("target_user")
+  desiredOutcome       String?               @map("desired_outcome")
+  valueProposition     String?               @map("value_proposition")
+  whatWorks            String?               @map("what_works")
+  partiallyBuilt       String?               @map("partially_built")
+  whatIsBroken         String?               @map("what_is_broken")
+  currentBlocker       String?               @map("current_blocker")
+  currentTask          String?               @map("current_task")
+  nextTask             String?               @map("next_task")
+  status               ProjectStatus         @default(IDEA)
+  importance           Int                   @default(0)
+  progress             Int                   @default(0)
+  healthOverride       String?               @map("health_override")
+  lastActivityAt       DateTime?             @map("last_activity_at") @db.Timestamptz
+  archivedAt           DateTime?             @map("archived_at") @db.Timestamptz
+  createdAt            DateTime              @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt            DateTime              @updatedAt @map("updated_at") @db.Timestamptz
+  owner                User                  @relation("ProjectOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+  technologies         ProjectTechnology[]
+  rules                ProjectRule[]
+  boundaries           ProjectBoundary[]
+  milestones           Milestone[]
+  features             Feature[]
+  prompts              Prompt[]
+  queueItems           PromptQueueItem[]
+  packs                ContextPack[]
+  ideas                Idea[]
+  notes                Note[]
+  bugs                 Bug[]
+  decisions            Decision[]            @relation("ProjectDecisions")
+  codingSessions       CodingSession[]
+  inspirations         Inspiration[]
+  commands             Command[]
+  environmentVariables EnvironmentVariable[]
+  activities           Activity[]
+
+  @@unique([ownerId, id])
+  @@unique([ownerId, slug])
+  @@index([ownerId, status, archivedAt])
+  @@map("projects")
+}
+
+model Technology {
+  id           String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId      String                  @map("owner_id") @db.Uuid
+  name         String
+  category     String?
+  createdAt    DateTime                @default(now()) @map("created_at") @db.Timestamptz
+  projectLinks ProjectTechnology[]
+  presetLinks  StackPresetTechnology[]
+  skillLinks   SkillTechnology[]
+
+  @@unique([ownerId, id])
+  @@index([ownerId])
+  @@map("technologies")
+}
+
+model ProjectTechnology {
+  ownerId      String     @map("owner_id") @db.Uuid
+  projectId    String     @map("project_id") @db.Uuid
+  technologyId String     @map("technology_id") @db.Uuid
+  category     String
+  version      String?
+  note         String?
+  sortOrder    Int        @default(0) @map("sort_order")
+  project      Project    @relation(fields: [ownerId, projectId], references: [ownerId, id], onDelete: Cascade)
+  technology   Technology @relation(fields: [ownerId, technologyId], references: [ownerId, id], onDelete: Restrict)
+
+  @@id([projectId, technologyId, category])
+  @@index([ownerId, technologyId])
+  @@map("project_technologies")
+}
+
+model ProjectRule {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId   String   @map("owner_id") @db.Uuid
+  projectId String   @map("project_id") @db.Uuid
+  category  String
+  content   String
+  priority  Int      @default(0)
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+  project   Project  @relation(fields: [ownerId, projectId], references: [ownerId, id], onDelete: Cascade)
+
+  @@index([ownerId, projectId, enabled])
+  @@map("project_rules")
+}
+
+model ProjectBoundary {
+  id        String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId   String       @map("owner_id") @db.Uuid
+  projectId String       @map("project_id") @db.Uuid
+  kind      BoundaryKind
+  content   String
+  sortOrder Int          @default(0) @map("sort_order")
+  project   Project      @relation(fields: [ownerId, projectId], references: [ownerId, id], onDelete: Cascade)
+
+  @@index([ownerId, projectId, kind, sortOrder])
+  @@map("project_boundaries")
+}
+
+model Milestone {
+  id          String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId     String            @map("owner_id") @db.Uuid
+  projectId   String            @map("project_id") @db.Uuid
+  name        String
+  description String?
+  status      WorkStatus        @default(PLANNED)
+  targetDate  DateTime?         @map("target_date") @db.Date
+  sortOrder   Int               @default(0) @map("sort_order")
+  createdAt   DateTime          @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime          @updatedAt @map("updated_at") @db.Timestamptz
+  project     Project           @relation(fields: [ownerId, projectId], references: [ownerId, id], onDelete: Cascade)
+  features    Feature[]
+  queueItems  PromptQueueItem[]
+
+  @@unique([ownerId, id])
+  @@index([ownerId, projectId, status])
+  @@map("milestones")
+}
+
+model Feature {
+  id                 String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId            String                 @map("owner_id") @db.Uuid
+  projectId          String                 @map("project_id") @db.Uuid
+  milestoneId        String?                @map("milestone_id") @db.Uuid
+  title              String
+  body               String?
+  reason             String?
+  acceptanceCriteria String?                @map("acceptance_criteria")
+  status             WorkStatus             @default(PLANNED)
+  priority           Int                    @default(0)
+  difficulty         Int?
+  impact             Int?
+  sortOrder          Int                    @default(0) @map("sort_order")
+  createdAt          DateTime               @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime               @updatedAt @map("updated_at") @db.Timestamptz
+  project            Project                @relation(fields: [ownerId, projectId], references: [ownerId, id], onDelete: Cascade)
+  milestone          Milestone?             @relation(fields: [ownerId, milestoneId], references: [ownerId, id], onDelete: Restrict)
+  dependencies       FeatureDependency[]    @relation("FeatureDepends")
+  dependents         FeatureDependency[]    @relation("FeatureRequiredBy")
+  prompts            Prompt[]
+  queueItems         PromptQueueItem[]
+  bugs               Bug[]
+  codingSessions     CodingSessionFeature[]
+
+  @@unique([ownerId, id])
+  @@index([ownerId, projectId, status, sortOrder])
+  @@index([ownerId, milestoneId])
+  @@map("features")
+}
+
+model FeatureDependency {
+  ownerId            String  @map("owner_id") @db.Uuid
+  featureId          String  @map("feature_id") @db.Uuid
+  dependsOnFeatureId String  @map("depends_on_feature_id") @db.Uuid
+  feature            Feature @relation("FeatureDepends", fields: [ownerId, featureId], references: [ownerId, id], onDelete: Cascade)
+  dependsOn          Feature @relation("FeatureRequiredBy", fields: [ownerId, dependsOnFeatureId], references: [ownerId, id], onDelete: Restrict)
+
+  @@id([featureId, dependsOnFeatureId])
+  @@index([ownerId, dependsOnFeatureId])
+  @@map("feature_dependencies")
+}
+
+model Prompt {
+  id               String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId          String                @map("owner_id") @db.Uuid
+  projectId        String?               @map("project_id") @db.Uuid
+  featureId        String?               @map("feature_id") @db.Uuid
+  title            String
+  category         String?
+  status           PromptStatus          @default(DRAFT)
+  favorite         Boolean               @default(false)
+  reusable         Boolean               @default(false)
+  notes            String?
+  currentVersionId String?               @unique @map("current_version_id") @db.Uuid
+  lastUsedAt       DateTime?             @map("last_used_at") @db.Timestamptz
+  archivedAt       DateTime?             @map("archived_at") @db.Timestamptz
+  createdAt        DateTime              @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime              @updatedAt @map("updated_at") @db.Timestamptz
+  project          Project?              @relation(fields: [ownerId, projectId], references: [ownerId, id], onDelete: Cascade)
+  feature          Feature?              @relation(fields: [ownerId, featureId], references: [ownerId, id], onDelete: Restrict)
+  versions         PromptVersion[]       @relation("PromptVersions")
+  currentVersion   PromptVersion?        @relation("CurrentPromptVersion", fields: [currentVersionId], references: [id], onDelete: Restrict)
+  queueItems       PromptQueueItem[]
+  codingSessions   CodingSessionPrompt[]
+
+  @@unique([ownerId, id])
+  @@index([ownerId, projectId, status])
+  @@index([ownerId, featureId])
+  @@map("prompts")
+}
+
+model PromptVersion {
+  id            String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId       String            @map("owner_id") @db.Uuid
+  promptId      String            @map("prompt_id") @db.Uuid
+  versionNumber Int               @map("version_number")
+  content       String
+  changeNote    String?           @map("change_note")
+  createdById   String            @map("created_by_id") @db.Uuid
+  createdAt     DateTime          @default(now()) @map("created_at") @db.Timestamptz
+  prompt        Prompt            @relation("PromptVersions", fields: [ownerId, promptId], references: [ownerId, id], onDelete: Cascade)
+  currentFor    Prompt?           @relation("CurrentPromptVersion")
+  createdBy     User              @relation("PromptVersionCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  queueItems    PromptQueueItem[]
+
+  @@unique([ownerId, id])
+  @@unique([promptId, versionNumber])
+  @@index([ownerId, promptId])
+  @@index([createdById])
+  @@map("prompt_versions")
+}
+
+model PromptQueueItem {
+  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId         String        @map("owner_id") @db.Uuid
+  projectId       String        @map("project_id") @db.Uuid
+  promptId        String        @map("prompt_id") @db.Uuid
+  promptVersionId String        @map("prompt_version_id") @db.Uuid
+  featureId       String?       @map("feature_id") @db.Uuid
+  milestoneId     String?       @map("milestone_id") @db.Uuid
+  ideaId          String?       @map("idea_id") @db.Uuid
+  bugId           String?       @map("bug_id") @db.Uuid
+  status          QueueStatus   @default(QUEUED)
+  position        Int
+  sentAt          DateTime?     @map("sent_at") @db.Timestamptz
+  completedAt     DateTime?     @map("completed_at") @db.Timestamptz
+  note            String?
+  createdAt       DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime      @updatedAt @map("updated_at") @db.Timestamptz
+  project         Project       @relation(fields: [ownerId, projectId], references: [ownerId, id], onDelete: Cascade)
+  prompt          Prompt        @relation(fields: [ownerId, promptId], references: [ownerId, id], onDelete: Restrict)
+  promptVersion   PromptVersion @relation(fields: [ownerId, promptVersionId], references: [ownerId, id], onDelete: Restrict)
+  feature         Feature?      @relation(fields: [ownerId, featureId], references: [ownerId, id], onDelete: Restrict)
+  milestone       Milestone?    @relation(fields: [ownerId, milestoneId], references: [ownerId, id], onDelete: Restrict)
+  idea            Idea?         @relation(fields: [ownerId, ideaId], references: [ownerId, id], onDelete: Restrict)
+  bug             Bug?          @relation(fields: [ownerId, bugId], references: [ownerId, id], onDelete: Restrict)
+
+  @@index([ownerId, projectId, status, position])
+  @@index([ownerId, promptId])
+  @@index([ownerId, promptVersionId])
+  @@index([ownerId, featureId])
+  @@index([ownerId, milestoneId])
+  @@index([ownerId, ideaId])
+  @@index([ownerId, bugId])
+  @@map("prompt_queue_items")
+}
+
+model BuilderProfile {
+  id           String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId      String        @unique @map("owner_id") @db.Uuid
+  displayName  String?       @map("display_name")
+  defaultAgent String?       @map("default_agent")
+  createdAt    DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime      @updatedAt @map("updated_at") @db.Timestamptz
+  rules        BuilderRule[]
+
+  @@map("builder_profiles")
+}
+
+model BuilderRule {
+  id        String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId   String         @map("owner_id") @db.Uuid
+  profileId String         @map("profile_id") @db.Uuid
+  category  String
+  content   String
+  enabled   Boolean        @default(true)
+  priority  Int            @default(0)
+  profile   BuilderProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([ownerId, profileId, enabled])
+  @@map("builder_rules")
+}
+
+model ContextPack {
+  id          String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId     String            @map("owner_id") @db.Uuid
+  projectId   String?           @map("project_id") @db.Uuid
+  name        String
+  description String?
+  favorite    Boolean           @default(false)
+  archivedAt  DateTime?         @map("archived_at") @db.Timestamptz
+  createdAt   DateTime          @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime          @updatedAt @map("updated_at") @db.Timestamptz
+  project     Project?          @relation(fields: [ownerId, projectId], references: [ownerId, id], onDelete: Cascade)
+  rules       ContextPackRule[]
+
+  @@unique([ownerId, id])
+  @@index([ownerId, projectId, archivedAt])
+  @@map("context_packs")
+}
+
+model ContextPackRule {
+  id        String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId   String      @map("owner_id") @db.Uuid
+  packId    String      @map("pack_id") @db.Uuid
+  content   String
+  priority  Int         @default(0)
+  enabled   Boolean     @default(true)
+  sortOrder Int         @default(0) @map("sort_order")
+  pack      ContextPack @relation(fields: [ownerId, packId], references: [ownerId, id], onDelete: Cascade)
+
+  @@index([ownerId, packId, enabled, sortOrder])
+  @@map("context_pack_rules")
+}
+
+model Skill {
+  id                       String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId                  String             @map("owner_id") @db.Uuid
+  name                     String
+  description              String?
+  category                 String?
+  whenToUse                String?            @map("when_to_use")
+  installationInstructions String?            @map("installation_instructions")
+  command                  String?
+  url                      String?
+  agentInstructions        String?            @map("agent_instructions")
+  notes                    String?
+  favorite                 Boolean            @default(false)
+  createdAt                DateTime           @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                DateTime           @updatedAt @map("updated_at") @db.Timestamptz
+  projectTypes             SkillProjectType[]
+  technologies             SkillTechnology[]
+  useCases                 SkillUseCase[]
+
+  @@unique([ownerId, id])
+  @@index([ownerId, name])
+  @@map("skills")
+}
+
+model SkillProjectType {
+  ownerId     String @map("owner_id") @db.Uuid
+  skillId     String @map("skill_id") @db.Uuid
+  projectType String @map("project_type")
+  skill       Skill  @relation(fields: [ownerId, skillId], references: [ownerId, id], onDelete: Cascade)
+
+  @@id([skillId, projectType])
+  @@map("skill_project_types")
+}
+
+model SkillTechnology {
+  ownerId      String     @map("owner_id") @db.Uuid
+  skillId      String     @map("skill_id") @db.Uuid
+  technologyId String     @map("technology_id") @db.Uuid
+  skill        Skill      @relation(fields: [ownerId, skillId], references: [ownerId, id], onDelete: Cascade)
+  technology   Technology @relation(fields: [ownerId, technologyId], references: [ownerId, id], onDelete: Cascade)
+
+  @@id([skillId, technologyId])
+  @@index([ownerId, technologyId])
+  @@map("skill_technologies")
+}
+
+model SkillUseCase {
+  ownerId String @map("owner_id") @db.Uuid
+  skillId String @map("skill_id") @db.Uuid
+  useCase String @map("use_case")
+  skill   Skill  @relation(fields: [ownerId, skillId], references: [ownerId, id], onDelete: Cascade)
+
+  @@id([skillId, useCase])
+  @@map("skill_use_cases")
+}
+
+model StackPreset {
+  id           String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId      String                  @map("owner_id") @db.Uuid
+  name         String
+  description  String?
+  favorite     Boolean                 @default(false)
+  createdAt    DateTime                @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime                @updatedAt @map("updated_at") @db.Timestamptz
+  technologies StackPresetTechnology[]
+
+  @@unique([ownerId, id])
+  @@unique([ownerId, name])
+  @@map("stack_presets")
+}
+
+model StackPresetTechnology {
+  ownerId      String      @map("owner_id") @db.Uuid
+  presetId     String      @map("preset_id") @db.Uuid
+  technologyId String      @map("technology_id") @db.Uuid
+  category     String
+  version      String?
+  note         String?
+  sortOrder    Int         @default(0) @map("sort_order")
+  preset       StackPreset @relation(fields: [ownerId, presetId], references: [ownerId, id], onDelete: Cascade)
+  technology   Technology  @relation(fields: [ownerId, technologyId], references: [ownerId, id], onDelete: Restrict)
+
+  @@id([presetId, technologyId, category])
+  @@index([ownerId, technologyId])
+  @@map("stack_preset_technologies")
+}
+
+model Idea {
+  id         String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId    String            @map("owner_id") @db.Uuid
+  projectId  String?           @map("project_id") @db.Uuid
+  title      String
+  body       String?
+  status     MemoryStatus      @default(INBOX)
+  priority   Int               @default(0)
+  createdAt  DateTime          @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt  DateTime          @updatedAt @map("updated_at") @db.Timestamptz
+  project    Project?          @relation(fields: [ownerId, projectId], references: [ownerId, id], onDelete: Cascade)
+  queueItems PromptQueueItem[]
+
+  @@unique([ownerId, id])
+  @@index([ownerId, projectId, status])
+  @@map("ideas")
+}
+
+model Note {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId   String   @map("owner_id") @db.Uuid
+  projectId String?  @map("project_id") @db.Uuid
+  title     String
+  body      String
+  kind      String?
+  pinned    Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+  project   Project? @relation(fields: [ownerId, projectId], references: [ownerId, id], onDelete: Cascade)
+
+  @@unique([ownerId, id])
+  @@index([ownerId, projectId, pinned])
+  @@map("notes")
+}
+
+model Bug {
+  id               String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId          String            @map("owner_id") @db.Uuid
+  projectId        String            @map("project_id") @db.Uuid
+  featureId        String?           @map("feature_id") @db.Uuid
+  codingSessionId  String?           @map("coding_session_id") @db.Uuid
+  title            String
+  symptoms         String?
+  expectedBehavior String?           @map("expected_behavior")
+  actualBehavior   String?           @map("actual_behavior")
+  reproduction     String?
+  suspectedCause   String?           @map("suspected_cause")
+  status           MemoryStatus      @default(ACTIVE)
+  severity         Int               @default(0)
+  resolution       String?
+  rootCause        String?           @map("root_cause")
+  createdAt        DateTime          @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime          @updatedAt @map("updated_at") @db.Timestamptz
+  project          Project           @relation(fields: [ownerId, projectId], references: [ownerId, id], onDelete: Cascade)
+  feature          Feature?          @relation(fields: [ownerId, featureId], references: [ownerId, id], onDelete: Restrict)
+  codingSession    CodingSession?    @relation(fields: [ownerId, codingSessionId], references: [ownerId, id], onDelete: Restrict)
+  queueItems       PromptQueueItem[]
+
+  @@unique([ownerId, id])
+  @@index([ownerId, projectId, status, severity])
+  @@index([ownerId, featureId])
+  @@index([ownerId, codingSessionId])
+  @@map("bugs")
+}
+
+model Decision {
+  id              String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId         String         @map("owner_id") @db.Uuid
+  projectId       String         @map("project_id") @db.Uuid
+  codingSessionId String?        @map("coding_session_id") @db.Uuid
+  supersededById  String?        @map("superseded_by_id") @db.Uuid
+  title           String
+  decision        String
+  reasoning       String?
+  alternatives    String?
+  affectedSystem  String?        @map("affected_system")
+  reversible      Boolean        @default(true)
+  status          DecisionStatus @default(PROPOSED)
+  decidedAt       DateTime?      @map("decided_at") @db.Timestamptz
+  createdAt       DateTime       @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime       @updatedAt @map("updated_at") @db.Timestamptz
+  project         Project        @relation("ProjectDecisions", fields: [ownerId, projectId], references: [ownerId, id], onDelete: Cascade)
+  codingSession   CodingSession? @relation(fields: [ownerId, codingSessionId], references: [ownerId, id], onDelete: Restrict)
+  supersededBy    Decision?      @relation("DecisionSupersession", fields: [ownerId, supersededById], references: [ownerId, id], onDelete: Restrict)
+  supersedes      Decision[]     @relation("DecisionSupersession")
+
+  @@unique([ownerId, id])
+  @@index([ownerId, projectId, status, decidedAt])
+  @@index([ownerId, codingSessionId])
+  @@index([ownerId, supersededById])
+  @@map("decisions")
+}
+
+model CodingSession {
+  id          String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId     String                 @map("owner_id") @db.Uuid
+  projectId   String                 @map("project_id") @db.Uuid
+  objective   String
+  status      SessionStatus          @default(ACTIVE)
+  startedAt   DateTime               @default(now()) @map("started_at") @db.Timestamptz
+  endedAt     DateTime?              @map("ended_at") @db.Timestamptz
+  notes       String?
+  discoveries String?
+  whatChanged String?                @map("what_changed")
+  nextTask    String?                @map("next_task")
+  project     Project                @relation(fields: [ownerId, projectId], references: [ownerId, id], onDelete: Cascade)
+  prompts     CodingSessionPrompt[]
+  features    CodingSessionFeature[]
+  bugs        Bug[]
+  decisions   Decision[]
+  activities  Activity[]
+
+  @@unique([ownerId, id])
+  @@index([ownerId, projectId, startedAt])
+  @@map("coding_sessions")
+}
+
+model CodingSessionPrompt {
+  ownerId         String        @map("owner_id") @db.Uuid
+  codingSessionId String        @map("coding_session_id") @db.Uuid
+  promptId        String        @map("prompt_id") @db.Uuid
+  codingSession   CodingSession @relation(fields: [ownerId, codingSessionId], references: [ownerId, id], onDelete: Cascade)
+  prompt          Prompt        @relation(fields: [ownerId, promptId], references: [ownerId, id], onDelete: Restrict)
+
+  @@id([codingSessionId, promptId])
+  @@index([ownerId, promptId])
+  @@map("coding_session_prompts")
+}
+
+model CodingSessionFeature {
+  ownerId         String        @map("owner_id") @db.Uuid
+  codingSessionId String        @map("coding_session_id") @db.Uuid
+  featureId       String        @map("feature_id") @db.Uuid
+  codingSession   CodingSession @relation(fields: [ownerId, codingSessionId], references: [ownerId, id], onDelete: Cascade)
+  feature         Feature       @relation(fields: [ownerId, featureId], references: [ownerId, id], onDelete: Restrict)
+
+  @@id([codingSessionId, featureId])
+  @@index([ownerId, featureId])
+  @@map("coding_session_features")
+}
+
+model Inspiration {
+  id                String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId           String                  @map("owner_id") @db.Uuid
+  projectId         String?                 @map("project_id") @db.Uuid
+  kind              InspirationKind
+  title             String
+  canonicalUrl      String?                 @map("canonical_url")
+  textSnippet       String?                 @map("text_snippet")
+  note              String?
+  inspiredDetail    String?                 @map("inspired_detail")
+  externalMediaType String?                 @map("external_media_type")
+  externalMediaUrl  String?                 @map("external_media_url")
+  createdAt         DateTime                @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime                @updatedAt @map("updated_at") @db.Timestamptz
+  project           Project?                @relation(fields: [ownerId, projectId], references: [ownerId, id], onDelete: Cascade)
+  attachments       InspirationAttachment[]
+
+  @@unique([ownerId, id])
+  @@index([ownerId, projectId, createdAt])
+  @@map("inspirations")
+}
+
+model InspirationAttachment {
+  id               String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId          String           @map("owner_id") @db.Uuid
+  inspirationId    String           @map("inspiration_id") @db.Uuid
+  storageKey       String           @unique @map("storage_key")
+  originalFilename String           @map("original_filename")
+  mediaType        String           @map("media_type")
+  byteSize         BigInt           @map("byte_size")
+  checksumSha256   String?          @map("checksum_sha256")
+  width            Int?
+  height           Int?
+  status           AttachmentStatus @default(PENDING)
+  createdAt        DateTime         @default(now()) @map("created_at") @db.Timestamptz
+  inspiration      Inspiration      @relation(fields: [ownerId, inspirationId], references: [ownerId, id], onDelete: Cascade)
+
+  @@index([ownerId, inspirationId])
+  @@map("inspiration_attachments")
+}
+
+model Command {
+  id          String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId     String  @map("owner_id") @db.Uuid
+  projectId   String  @map("project_id") @db.Uuid
+  name        String
+  commandText String  @map("command_text")
+  description String?
+  category    String?
+  sortOrder   Int     @default(0) @map("sort_order")
+  project     Project @relation(fields: [ownerId, projectId], references: [ownerId, id], onDelete: Cascade)
+
+  @@index([ownerId, projectId, sortOrder])
+  @@map("commands")
+}
+
+model EnvironmentVariable {
+  id              String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId         String  @map("owner_id") @db.Uuid
+  projectId       String  @map("project_id") @db.Uuid
+  name            String
+  description     String?
+  required        Boolean @default(false)
+  environment     String
+  configured      Boolean @default(false)
+  acquisitionNote String? @map("acquisition_note")
+  note            String?
+  project         Project @relation(fields: [ownerId, projectId], references: [ownerId, id], onDelete: Cascade)
+
+  @@unique([projectId, environment, name])
+  @@index([ownerId, projectId])
+  @@map("environment_variables")
+}
+
+model Activity {
+  id              String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId         String         @map("owner_id") @db.Uuid
+  projectId       String?        @map("project_id") @db.Uuid
+  actorUserId     String         @map("actor_user_id") @db.Uuid
+  codingSessionId String?        @map("coding_session_id") @db.Uuid
+  type            String
+  subjectKind     String         @map("subject_kind")
+  subjectId       String?        @map("subject_id") @db.Uuid
+  summary         String
+  metadata        Json           @default("{}") @db.JsonB
+  correlationId   String?        @map("correlation_id")
+  occurredAt      DateTime       @default(now()) @map("occurred_at") @db.Timestamptz
+  project         Project?       @relation(fields: [ownerId, projectId], references: [ownerId, id], onDelete: Restrict)
+  actor           User           @relation("ActivityActor", fields: [actorUserId], references: [id], onDelete: Restrict)
+  codingSession   CodingSession? @relation(fields: [ownerId, codingSessionId], references: [ownerId, id], onDelete: Restrict)
+
+  @@index([ownerId, occurredAt, id])
+  @@index([ownerId, projectId, occurredAt, id])
+  @@index([actorUserId])
+  @@index([ownerId, codingSessionId])
+  @@map("activities")
+}

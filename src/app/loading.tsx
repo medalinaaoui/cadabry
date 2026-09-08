@@ -1,0 +1,1 @@
+export default function Loading(){return <main id="main" className="p-12" aria-busy="true" aria-label="Loading workspace"><div className="h-9 w-60 animate-pulse rounded-lg bg-slate-800"/><div className="mt-8 h-64 animate-pulse rounded-3xl bg-slate-900"/></main>;}

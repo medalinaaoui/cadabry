@@ -1,0 +1,3 @@
+import { clsx } from "clsx";
+import type { ButtonHTMLAttributes } from "react";
+export function Button({className,variant="primary",...props}:ButtonHTMLAttributes<HTMLButtonElement> & {variant?:"primary"|"secondary"|"danger"}) {return <button className={clsx("inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-medium transition-colors disabled:opacity-50",variant==="primary"&&"bg-[var(--accent)] text-slate-950 hover:bg-amber-100",variant==="secondary"&&"border border-slate-700 bg-slate-900 text-slate-200 hover:bg-slate-800",variant==="danger"&&"border border-red-800 bg-red-950 text-red-100 hover:bg-red-900",className)} {...props}/>;}
