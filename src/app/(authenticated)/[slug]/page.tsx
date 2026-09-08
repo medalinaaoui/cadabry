@@ -130,7 +130,15 @@ export default async function ProjectPage({ params }: Props) {
           </div>
 
           {/* Resume Building action */}
-          <ResumeBuildingButton project={project} />
+          <div className="flex items-center gap-3">
+            <Link
+              href={`/${project.slug}/edit`}
+              className="inline-flex items-center gap-2 rounded-xl border border-line bg-surface px-4 py-2.5 text-sm font-medium text-muted transition-colors hover:bg-surface-raised hover:text-foreground"
+            >
+              Edit
+            </Link>
+            <ResumeBuildingButton project={project} />
+          </div>
         </div>
       </div>
 
