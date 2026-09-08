@@ -2,65 +2,55 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import {
-  BookOpen,
-  ChevronDown,
-  FileText,
-  Inbox,
-  Layers,
-  LogOut,
-  Plus,
-  Search,
-  Settings,
-  Wand2,
-  Zap,
-} from "lucide-react";
+import * as DialogPrimitive from "@radix-ui/react-dialog";
+import { Menu as MenuIcon, Search, X, Zap } from "lucide-react";
 import { Wordmark } from "./brand";
-import { ThemeToggle } from "./theme-toggle";
 import { CommandMenu, type CommandProject } from "./command-menu";
 import { QuickCapture } from "./quick-capture";
-import { Button, IconButton } from "@/components/ui/button";
-import { Kbd } from "@/components/ui/badge";
-import {
-  Menu,
-  MenuContent,
-  MenuItem,
-  MenuLabel,
-  MenuSeparator,
-  MenuTrigger,
-  TooltipProvider,
-} from "@/components/ui/menu";
-import { logout } from "@/features/auth/actions";
+import { Sidebar, type SidebarProject } from "./sidebar";
+import { IconButton } from "@/components/ui/button";
+import { TooltipProvider } from "@/components/ui/menu";
+import { cn } from "@/lib/cn";
 
-const LIBRARY = [
-  { href: "/prompts", label: "Prompt Library", icon: FileText },
-  { href: "/starter", label: "Starter Builder", icon: Wand2 },
-  { href: "/packs", label: "Context Packs", icon: Layers },
-  { href: "/skills", label: "Skills", icon: BookOpen },
-  { href: "/inbox", label: "Idea Inbox", icon: Inbox },
-];
+const SIDEBAR_COOKIE = "cadabry:sidebar";
 
 /**
- * The shell is deliberately thin: one floating bar, and ⌘K for everything
- * else. A permanent sidebar would eat a fifth of the screen to show links
- * that the command menu already surfaces faster.
+ * The shell: a persistent left rail, a mobile drawer that shares the exact
+ * same nav, and ⌘K over the top of both. The rail is the app's spine — every
+ * project is one click away — while ⌘K stays the fast path for people who
+ * already know where they are going.
  */
 export function AppShell({
   children,
   userDisplayName,
   projects = [],
+  archivedCount = 0,
+  defaultCollapsed = false,
 }: {
   children: React.ReactNode;
   userDisplayName: string;
-  projects?: CommandProject[];
+  projects?: SidebarProject[];
+  archivedCount?: number;
+  defaultCollapsed?: boolean;
 }) {
   const [commandOpen, setCommandOpen] = useState(false);
   const [captureOpen, setCaptureOpen] = useState(false);
-  const pathname = usePathname();
-  const onUniverse = pathname === "/";
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(defaultCollapsed);
 
   const openCapture = useCallback(() => setCaptureOpen(true), []);
+  const openCommand = useCallback(() => setCommandOpen(true), []);
+  const closeDrawer = useCallback(() => setDrawerOpen(false), []);
+
+  // The width preference is a cookie, not localStorage, so the server renders
+  // the correct rail width and the layout never jumps on first paint.
+  const toggleCollapsed = useCallback(() => {
+    setCollapsed((previous) => {
+      const next = !previous;
+      document.cookie = `${SIDEBAR_COOKIE}=${next ? "1" : "0"}; path=/; max-age=31536000; samesite=lax`;
+      return next;
+    });
+  }, []);
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -76,6 +66,12 @@ export function AppShell({
         return;
       }
 
+      if (event.key === "\\" && (event.metaKey || event.ctrlKey)) {
+        event.preventDefault();
+        toggleCollapsed();
+        return;
+      }
+
       // Bare "c" captures a thought — but never while someone is typing.
       if (event.key === "c" && !typing && !event.metaKey && !event.ctrlKey && !event.altKey) {
         event.preventDefault();
@@ -85,131 +81,109 @@ export function AppShell({
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
+  }, [toggleCollapsed]);
+
+  const sidebarProps = {
+    userDisplayName,
+    projects,
+    archivedCount,
+    collapsed,
+    onToggleCollapsed: toggleCollapsed,
+    onOpenCommand: openCommand,
+    onOpenCapture: openCapture,
+  };
 
   return (
     <TooltipProvider delayDuration={300}>
-      <div className="relative flex min-h-dvh flex-col bg-background">
-        <header
-          className="sticky top-0 z-(--z-header) border-b border-line-subtle
-            bg-background/80 backdrop-blur-xl backdrop-saturate-150"
+      <div className="flex min-h-dvh bg-background">
+        {/* ------------------------------------------------------- rail --- */}
+        <aside
+          aria-label="Sidebar"
+          data-collapsed={collapsed ? "true" : "false"}
+          className={cn(
+            "sticky top-0 hidden h-dvh shrink-0 border-r border-line-subtle",
+            "bg-surface/50 backdrop-blur-xl lg:block",
+            "transition-[width] duration-(--duration-base) ease-(--ease-out)",
+            collapsed ? "w-[4.5rem]" : "w-[17rem]",
+          )}
         >
-          <div
-            className="mx-auto flex h-(--header-h) max-w-(--page-max) items-center gap-2
-              px-(--gutter) md:px-(--gutter-lg)"
+          <Sidebar {...sidebarProps} />
+        </aside>
+
+        <div className="flex min-w-0 flex-1 flex-col">
+          {/* ------------------------------------------ mobile top bar --- */}
+          <header
+            className="sticky top-0 z-(--z-header) flex h-(--header-h) items-center gap-2
+              border-b border-line-subtle bg-background/80 px-(--gutter) backdrop-blur-xl
+              backdrop-saturate-150 lg:hidden"
           >
+            <IconButton
+              aria-label="Open navigation"
+              size="sm"
+              onClick={() => setDrawerOpen(true)}
+            >
+              <MenuIcon className="h-4 w-4" />
+            </IconButton>
+
             <Link
               href="/"
-              className="mr-1 shrink-0 rounded-lg transition-opacity hover:opacity-80"
+              className="min-w-0 shrink rounded-lg transition-opacity hover:opacity-80"
               aria-label="Cadabry — project universe"
-              aria-current={onUniverse ? "page" : undefined}
             >
               <Wordmark />
             </Link>
 
-            <Menu>
-              <MenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="hidden gap-1 sm:inline-flex">
-                  Library
-                  <ChevronDown className="h-3.5 w-3.5" />
-                </Button>
-              </MenuTrigger>
-              <MenuContent align="start">
-                <MenuLabel>Library</MenuLabel>
-                {LIBRARY.map((item) => (
-                  <MenuItem key={item.href} asChild>
-                    <Link href={item.href}>
-                      <item.icon className="h-4 w-4 text-subtle" />
-                      {item.label}
-                    </Link>
-                  </MenuItem>
-                ))}
-              </MenuContent>
-            </Menu>
-
             <div className="flex-1" />
 
-            {/* Search doubles as the discoverable entry point for ⌘K. */}
-            <button
-              type="button"
-              onClick={() => setCommandOpen(true)}
-              className="press hidden h-9 items-center gap-2 rounded-full border border-line
-                bg-surface/70 pl-3 pr-2 text-caption text-muted transition-colors
-                hover:border-line-strong hover:text-muted sm:inline-flex"
-            >
-              <Search className="h-3.5 w-3.5" />
-              Jump to…
-              <Kbd>⌘K</Kbd>
-            </button>
-
-            <IconButton
-              aria-label="Search and jump to"
-              size="sm"
-              onClick={() => setCommandOpen(true)}
-              className="sm:hidden"
-            >
+            <IconButton aria-label="Search and jump to" size="sm" onClick={openCommand}>
               <Search className="h-4 w-4" />
             </IconButton>
-
-            <ThemeToggle />
-
             <IconButton aria-label="Capture a thought" size="sm" onClick={openCapture}>
               <Zap className="h-4 w-4" />
             </IconButton>
+          </header>
 
-            <Menu>
-              <MenuTrigger asChild>
-                <button
-                  type="button"
-                  aria-label={`Account: ${userDisplayName}`}
-                  className="press ml-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-full
-                    border border-line bg-surface-raised text-micro font-semibold text-ink-100
-                    transition-colors hover:border-line-strong"
-                >
-                  {userDisplayName.slice(0, 1).toUpperCase()}
-                </button>
-              </MenuTrigger>
-              <MenuContent>
-                <MenuLabel>{userDisplayName}</MenuLabel>
-                <MenuItem asChild>
-                  <Link href="/projects/new">
-                    <Plus className="h-4 w-4 text-subtle" />
-                    New project
-                  </Link>
-                </MenuItem>
-                <MenuItem asChild>
-                  <Link href="/settings">
-                    <Settings className="h-4 w-4 text-subtle" />
-                    Settings
-                  </Link>
-                </MenuItem>
-                <MenuSeparator />
-                <MenuItem asChild>
-                  {/* A form POST, not a link: signing out should never be
-                      reachable by a prefetch or a crawler. */}
-                  <form action={logout}>
-                    <button type="submit" className="flex w-full items-center gap-2.5">
-                      <LogOut className="h-4 w-4 text-subtle" />
-                      Sign out
-                    </button>
-                  </form>
-                </MenuItem>
-              </MenuContent>
-            </Menu>
-          </div>
-        </header>
+          <main
+            id="main"
+            className="flex-1 px-(--gutter) py-7 md:px-(--gutter-lg) md:py-10"
+          >
+            {children}
+          </main>
+        </div>
 
-        <main
-          id="main"
-          className="flex-1 px-(--gutter) py-7 md:px-(--gutter-lg) md:py-10"
-        >
-          {children}
-        </main>
+        {/* ---------------------------------------------- mobile drawer --- */}
+        <DialogPrimitive.Root open={drawerOpen} onOpenChange={setDrawerOpen}>
+          <DialogPrimitive.Portal>
+            <DialogPrimitive.Overlay
+              className="fixed inset-0 z-(--z-overlay) bg-veil backdrop-blur-sm lg:hidden
+                data-[state=open]:animate-[cadabry-overlay-in_var(--duration-base)_var(--ease-out)]"
+            />
+            <DialogPrimitive.Content
+              className="fixed inset-y-0 left-0 z-(--z-dialog) flex w-[18rem] max-w-[86vw] flex-col
+                border-r border-line-strong bg-overlay shadow-[var(--shadow-xl)] lg:hidden
+                data-[state=open]:animate-[cadabry-drawer-in_var(--duration-base)_var(--ease-out)]"
+            >
+              <DialogPrimitive.Title className="sr-only">Navigation</DialogPrimitive.Title>
+              <DialogPrimitive.Description className="sr-only">
+                Projects, library, and account.
+              </DialogPrimitive.Description>
+              <DialogPrimitive.Close
+                aria-label="Close navigation"
+                className="press absolute right-2 top-2.5 z-10 grid h-8 w-8 place-items-center
+                  rounded-lg text-subtle transition-colors hover:bg-surface-raised
+                  hover:text-foreground"
+              >
+                <X className="h-4 w-4" />
+              </DialogPrimitive.Close>
+              <Sidebar {...sidebarProps} collapsed={false} variant="drawer" onNavigate={closeDrawer} />
+            </DialogPrimitive.Content>
+          </DialogPrimitive.Portal>
+        </DialogPrimitive.Root>
 
         <CommandMenu
           open={commandOpen}
           onOpenChange={setCommandOpen}
-          projects={projects}
+          projects={projects as CommandProject[]}
           onQuickCapture={openCapture}
         />
         <QuickCapture

@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import Link from "next/link";
@@ -7,18 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Field, TextField } from "@/components/ui/field";
 import { PageHeader, PageShell } from "@/components/ui/page";
 import { Panel, PanelHeader } from "@/components/ui/panel";
+import { uniqueSlug } from "@/features/projects/slug";
 
 export const metadata = { title: "New project" };
-
-function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .replace(/[^\w\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
-    .trim()
-    .slice(0, 100) || "untitled";
-}
 
 export default async function NewProjectPage() {
   const cookieStore = await cookies();
@@ -46,15 +38,7 @@ export default async function NewProjectPage() {
 
     if (!name) redirect("/projects/new?error=Name+is+required");
 
-    let slug = slugify(name);
-    // Ensure unique slug
-    const existing = await db.project.findFirst({
-      where: { ownerId: actor.userId, slug },
-      select: { id: true },
-    });
-    if (existing) {
-      slug = `${slug}-${Date.now().toString(36)}`;
-    }
+    const slug = await uniqueSlug(actor.userId, name);
 
     const project = await db.project.create({
       data: {
@@ -85,6 +69,11 @@ export default async function NewProjectPage() {
         summary: `Created project "${name}"`,
       },
     });
+
+    // The shell renders the project list from the shared layout, so the layout
+    // has to be revalidated or the new project is missing from the sidebar
+    // until a full reload.
+    revalidatePath("/", "layout");
 
     redirect(`/${project.slug}`);
   }

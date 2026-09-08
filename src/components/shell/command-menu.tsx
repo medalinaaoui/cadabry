@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import {
+  Archive,
   BookOpen,
   Bug,
   FileText,
@@ -52,12 +53,14 @@ const GLOBAL_PAGES = [
   { href: "/packs", label: "Context Packs", icon: Layers },
   { href: "/skills", label: "Skills", icon: BookOpen },
   { href: "/inbox", label: "Idea Inbox", icon: Inbox },
+  { href: "/archive", label: "Archive", icon: Archive },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
 /**
- * ⌘K navigation. This is the primary way around the app — it replaces a
- * sidebar, so it has to cover every destination, not just search.
+ * ⌘K navigation. The sidebar covers the same ground by pointing; this is the
+ * fast path for people who already know where they are going, so it has to
+ * cover every destination, not just search.
  */
 export function CommandMenu({
   open,

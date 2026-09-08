@@ -42,6 +42,7 @@ export const getProjectSummary = cache(async (ownerId: string, slug: string) => 
       currentTask: true,
       currentBlocker: true,
       lastActivityAt: true,
+      archivedAt: true,
       _count: {
         select: {
           features: true,

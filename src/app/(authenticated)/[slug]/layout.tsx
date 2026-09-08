@@ -1,7 +1,9 @@
 import Link from "next/link";
-import { AlertTriangle, ArrowRight, ChevronLeft, Pencil } from "lucide-react";
+import { AlertTriangle, Archive, ArrowRight, ChevronLeft, Pencil } from "lucide-react";
 import { requireProject } from "@/features/projects/queries";
 import { ProjectNav } from "@/components/shell/project-nav";
+import { ProjectActions } from "@/components/shell/project-actions";
+import { RestoreProjectButton } from "@/components/shell/restore-project-button";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { projectStatus, timeAgo } from "@/features/projects/display";
@@ -113,8 +115,28 @@ export default async function ProjectLayout({
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
+            <ProjectActions
+              slug={project.slug}
+              name={project.name}
+              status={project.status}
+              archived={project.archivedAt !== null}
+            />
           </div>
         </div>
+
+        {project.archivedAt && (
+          <div
+            className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border
+              border-line bg-well px-4 py-3"
+          >
+            <p className="flex items-center gap-2 text-caption text-muted">
+              <Archive className="h-4 w-4 shrink-0 text-subtle" aria-hidden="true" />
+              Archived {timeAgo(project.archivedAt)}. It stays out of the universe and the sidebar
+              until you restore it.
+            </p>
+            <RestoreProjectButton slug={project.slug} />
+          </div>
+        )}
 
         <ProjectNav slug={project.slug} sections={sections} />
       </div>
