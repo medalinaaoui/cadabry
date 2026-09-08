@@ -21,39 +21,53 @@ const DEMO_PASSWORD = "demo-password-2026!";
 async function seed() {
   console.log("Seeding Cadabry demo data...");
 
-  const existing = await db.user.findFirst({ where: { email: DEMO_EMAIL }, select: { id: true } });
-  if (existing) {
-    await db.appInstallation.deleteMany({ where: { ownerUserId: existing.id } });
-    await db.user.delete({ where: { id: existing.id } });
-    console.log("Cleared previous demo data");
+  // Owner-aware seeding: if a real owner exists, seed under them.
+  // Otherwise (fresh install) create a demo owner.
+  const existingOwner = await db.user.findFirst({ where: { role: "OWNER" }, select: { id: true } });
+
+  // Remove any non-owner demo users from previous seed runs
+  const staleUsers = await db.user.findMany({ where: { role: { not: "OWNER" } }, select: { id: true } });
+  for (const u of staleUsers) {
+    await db.project.deleteMany({ where: { ownerId: u.id } });
+    await db.stackPreset.deleteMany({ where: { ownerId: u.id } });
+    await db.contextPack.deleteMany({ where: { ownerId: u.id } });
+    await db.builderProfile.deleteMany({ where: { ownerId: u.id } });
+    await db.idea.deleteMany({ where: { ownerId: u.id } });
+    await db.technology.deleteMany({ where: { ownerId: u.id } });
+    await db.activity.deleteMany({ where: { ownerId: u.id } });
+    await db.user.delete({ where: { id: u.id } });
   }
+  if (staleUsers.length > 0) console.log(`Removed ${staleUsers.length} stale non-owner user(s)`);
 
-  const passwordHash = await hashPassword(DEMO_PASSWORD);
+  let user: { id: string };
 
-  // Does an owner already exist? (e.g. a real user set up the app first)
-  const existingOwner = await db.user.findFirst({
-    where: { role: "OWNER" },
-    select: { id: true },
-  });
-
-  const user = await db.user.create({
-    data: {
-      email: DEMO_EMAIL,
-      displayName: "Demo Builder",
-      passwordHash,
-      role: existingOwner ? "USER" : "OWNER",
-    },
-  });
-
-  if (!existingOwner) {
+  if (existingOwner) {
+    user = existingOwner;
+    // Wipe the owner's existing demo-ish data so the seed is idempotent
+    await db.project.deleteMany({ where: { ownerId: user.id } });
+    await db.stackPreset.deleteMany({ where: { ownerId: user.id } });
+    await db.contextPack.deleteMany({ where: { ownerId: user.id } });
+    await db.builderProfile.deleteMany({ where: { ownerId: user.id } });
+    await db.idea.deleteMany({ where: { ownerId: user.id } });
+    await db.technology.deleteMany({ where: { ownerId: user.id } });
+    console.log(`Seeding under existing owner ${user.id} (cleared previous owned data)`);
+  } else {
+    const passwordHash = await hashPassword(DEMO_PASSWORD);
+    const demoUser = await db.user.create({
+      data: {
+        email: DEMO_EMAIL,
+        displayName: "Demo Builder",
+        passwordHash,
+        role: "OWNER",
+      },
+    });
     await db.appInstallation.upsert({
       where: { key: "primary" },
-      create: { key: "primary", ownerUserId: user.id, setupCompletedAt: new Date() },
-      update: { ownerUserId: user.id, setupCompletedAt: new Date() },
+      create: { key: "primary", ownerUserId: demoUser.id, setupCompletedAt: new Date() },
+      update: { ownerUserId: demoUser.id, setupCompletedAt: new Date() },
     });
-    console.log("Demo owner created (no owner existed)");
-  } else {
-    console.log("Demo user created (owner already exists elsewhere)");
+    user = { id: demoUser.id };
+    console.log("Demo owner created (fresh install)");
   }
 
   await db.builderProfile.create({
