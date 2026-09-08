@@ -175,3 +175,50 @@ Never a bare "No data".
 `e2e/a11y.spec.ts` scans every route — 8 global, 15 project sections, plus the
 signed-out screens — for WCAG 2.1 A/AA violations with axe, and fails on any.
 Run it with `npm run test:e2e` against a running dev server.
+
+---
+
+## The two skies (v2 — "The Observatory")
+
+Cadabry now ships **two themes**, switched by the header toggle and stored in
+`localStorage["cadabry:theme"]`. An inline script in the root layout replays the
+stored choice before first paint, so a reload never flashes the wrong sky.
+
+- **Night sky (default, dark).** The original concept, deepened: indigo void,
+  nebula washes, gold as moonlight. Unchanged rules apply.
+- **Star chart (light).** The astronomer's desk at dawn: warm chart paper
+  (`#f6f2e7` family), ink-navy text, antique gold and cobalt ink. The universe
+  metaphor survives translation — the sky becomes paper, stars become plotted
+  points, glows become precise lines and solid inks. **Never** "invert the dark
+  palette"; light-mode stops are re-chosen for contrast on paper (e.g. link
+  cobalt `#2d55ad`, accent gold `#a2761a`).
+
+### Theme plumbing rules
+
+1. Every colour in a component resolves through a semantic token
+   (`--surface`, `--muted`, `--line`, `--accent`…). Raw hex in a component is a
+   bug; if a token is missing, add it to both theme blocks in `globals.css`.
+2. `[data-theme="light"]` on `<html>` overrides the token values only. Layout,
+   spacing, and components are theme-blind.
+3. Decorative marks that cannot be tokenized by colour alone read dedicated
+   vars: `--star` (star-field fill), `--veil` (dialog scrim),
+   `--track` (meter tracks), `--constellation` (connector lines).
+4. Theme transitions animate (`.theme-ready` on `<html>`, added after first
+   paint) but respect `prefers-reduced-motion`.
+
+### Type voices (v2)
+
+- **Fraunces** — display voice: wordmark, page titles (`h1`), node names.
+- **Instrument Sans** — UI voice: everything read and clicked all day.
+- **JetBrains Mono** — chart-label voice: `.eyebrow`, keycaps, metadata.
+  The eyebrow class is deliberately mono + uppercase + wide tracking; it is
+  the "instrument label on a star chart" and must not regress to sans.
+
+### Layout fixes (v2)
+
+- Constellation node centers clamp to `18–74%` of field height so labels never
+  crop at the canvas edge; the field height formula accounts for label space.
+- `.node-detail` is `display: block` so `text-overflow: ellipsis` applies
+  (mobile description clipping bug).
+- Project brain page aside carries an "At a glance" stat grid plus a
+  "Recent activity" feed — no dead rail.

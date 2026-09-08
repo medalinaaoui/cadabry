@@ -94,7 +94,7 @@ export function CommandMenu({
   return (
     <DialogPrimitive.Root open={open} onOpenChange={setOpen}>
       <DialogPrimitive.Portal>
-        <DialogPrimitive.Overlay className="fixed inset-0 z-(--z-overlay) bg-ink-980/70 backdrop-blur-sm" />
+        <DialogPrimitive.Overlay className="fixed inset-0 z-(--z-overlay) bg-veil backdrop-blur-sm" />
         <DialogPrimitive.Content
           aria-label="Command menu"
           className="fixed left-1/2 top-[12vh] z-(--z-command) w-[calc(100vw-2rem)] max-w-xl

@@ -1,39 +1,47 @@
 @import "tailwindcss";
 
 /* ============================================================================
-   Cadabry design tokens — "Apple workspace inside The Starry Night"
+   Cadabry design tokens — "The Observatory"
    Full specification: docs/design-system.md
+
+   One system, two skies:
+   · Night sky (dark): deep indigo void, nebula light, gold as moonlight.
+   · Star chart (light): warm chart paper, ink-navy lettering, antique gold
+     and cobalt ink — the astronomer's desk at dawn.
 
    Three ideas govern this file:
    1. Depth comes from surface change and light, not from drop shadows.
    2. Gold is the only "act on this" signal. Cobalt is energy and place.
    3. Motion describes spatial relationships. Never decoration.
    ========================================================================== */
-:root {
+
+/* ----------------------------------------------------------- night sky ---- */
+:root,
+[data-theme="dark"] {
   color-scheme: dark;
 
   /* --- Ink: blue-tinted neutral ramp (surfaces → text) ------------------- */
   --ink-980: #02050f; /* deep void, behind the star field */
   --ink-950: #050a17; /* void / deepest canvas */
-  --ink-900: #080e1f; /* app background */
-  --ink-850: #0c1428; /* sunken wells, code blocks */
-  --ink-800: #101c35; /* base surface / panels */
-  --ink-750: #16223f; /* raised surface, hover fill */
-  --ink-700: #1c2b4d; /* overlay / popover / dialog */
+  --ink-900: #070b17; /* app background */
+  --ink-850: #0b1226; /* sunken wells, code blocks */
+  --ink-800: #0f1a31; /* base surface / panels */
+  --ink-750: #15213e; /* raised surface, hover fill */
+  --ink-700: #1b2a4b; /* overlay / popover / dialog / tracks */
   --ink-600: #26355a; /* strong border, dividers on raised */
   --ink-500: #35477a; /* scrollbar hover, hairlines */
   --ink-400: #4a5d82; /* disabled control border */
-  --ink-300: #8794ae; /* tertiary text / placeholder — 5.1:1 on the lightest panel */
-  --ink-200: #9eabc4; /* muted / secondary text (cloudy blue-gray) */
-  --ink-100: #c7d0e0; /* high-emphasis secondary */
-  --ink-50:  #e8edf8; /* primary foreground */
+  --ink-300: #8e9cba; /* tertiary text / placeholder */
+  --ink-200: #a9b5cd; /* muted / secondary text */
+  --ink-100: #cdd5e5; /* high-emphasis secondary */
+  --ink-50:  #eef2fa; /* primary foreground */
 
   /* --- Cobalt: ultramarine energy (place, selection, live projects) ------ */
   --cobalt-700: #2a4fa8;
   --cobalt-600: #3a67c9;
   --cobalt-500: #497fe3;
-  --cobalt-400: #6c9bef; /* link text on dark (AA) */
-  --cobalt-300: #93b8f6;
+  --cobalt-400: #7aa4f2; /* link text on dark (AA) */
+  --cobalt-300: #a3c2f9;
   --cobalt-glow: color-mix(in oklab, #497fe3 38%, transparent);
 
   /* --- Cyan: distant starlight ------------------------------------------ */
@@ -78,24 +86,21 @@
   --on-cobalt: #061024;
 
   /* --- Lines ------------------------------------------------------------- */
-  --line: color-mix(in oklab, #35477a 55%, transparent);
+  --line: color-mix(in oklab, #3a4d80 62%, transparent);
   --line-strong: var(--ink-600);
-  --line-subtle: color-mix(in oklab, #35477a 30%, transparent);
+  --line-subtle: color-mix(in oklab, #3a4d80 34%, transparent);
+
+  /* --- Scrims and marks --------------------------------------------------- */
+  --veil: rgb(2 5 15 / 0.72); /* dialog scrim */
+  --star: var(--ink-50); /* star-field fill */
+  --track: var(--ink-700); /* progress meter track, ring baseline */
+  --constellation: color-mix(in oklab, var(--cobalt-400) 46%, transparent);
 
   /* --- Accent aliases ---------------------------------------------------- */
   --accent: var(--gold-400);
   --accent-strong: var(--gold-300);
   --accent-muted: var(--gold-600);
   --blue: var(--cobalt-500);
-
-  /* --- Radius: four steps, no in-between --------------------------------- */
-  --radius-xs: 6px;
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
-  --radius-2xl: 32px;
-  --radius-full: 9999px;
 
   /* --- Elevation --------------------------------------------------------- */
   --shadow-xs: 0 1px 2px rgb(3 7 18 / 0.4);
@@ -106,65 +111,92 @@
   --glow-gold: 0 0 0 1px color-mix(in oklab, #f3cf77 45%, transparent), 0 0 28px -4px var(--gold-glow);
   --glow-cobalt: 0 0 0 1px color-mix(in oklab, #497fe3 45%, transparent), 0 0 28px -4px var(--cobalt-glow);
   --glow-cyan: 0 0 24px -6px var(--cyan-glow);
+}
 
-  /* --- Motion ------------------------------------------------------------ */
-  --duration-fast: 120ms;
-  --duration-base: 200ms;
-  --duration-slow: 320ms;
-  --duration-spatial: 520ms;
-  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
-  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
-  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+/* --------------------------------------------------------- star chart ----- */
+[data-theme="light"] {
+  color-scheme: light;
 
-  /* --- Layout ------------------------------------------------------------ */
-  --page-max: 78rem;
-  --reading-max: 44rem;
-  --gutter: 1.25rem;
-  --gutter-lg: 2.5rem;
-  --header-h: 3.25rem;
+  /* Warm paper ramp. Same stop roles as the night ramp: 980 is the deepest
+     paper shadow, 50 the darkest ink. Components that mix stops keep working. */
+  --ink-980: #e7dfc9;
+  --ink-950: #ebe4d0;
+  --ink-900: #f6f2e7;
+  --ink-850: #eee7d5;
+  --ink-800: #faf6eb;
+  --ink-750: #fffdf6;
+  --ink-700: #ddd4bd;
+  --ink-600: #ccc2a7;
+  --ink-500: #b0a68b;
+  --ink-400: #968c74;
+  --ink-300: #837b67;
+  --ink-200: #5f5a48;
+  --ink-100: #322f20;
+  --ink-50:  #201d10;
 
-  /* --- Z-index scale ----------------------------------------------------- */
-  --z-base: 0;
-  --z-raised: 10;
-  --z-sticky: 20;
-  --z-header: 30;
-  --z-overlay: 40;
-  --z-dialog: 50;
-  --z-toast: 60;
-  --z-command: 70;
+  --cobalt-700: #1e3a7d;
+  --cobalt-600: #27478f;
+  --cobalt-500: #2d55ad;
+  --cobalt-400: #2d55ad; /* link text on paper (AA) */
+  --cobalt-300: #1e3a7d;
+  --cobalt-glow: color-mix(in oklab, #2d55ad 24%, transparent);
 
-  /* --- Typography -------------------------------------------------------- */
-  /* system-ui resolves to SF Pro on Apple platforms; Inter carries the rest. */
-  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
-    var(--font-inter, Inter), "Segoe UI", Roboto, sans-serif;
-  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", "Fira Code",
-    Menlo, Consolas, monospace;
+  --cyan-400: #0e7c92;
+  --cyan-300: #0a6376;
+  --cyan-glow: color-mix(in oklab, #0e7c92 22%, transparent);
 
-  /* Weight ladder is 300 / 400 / 600 / 700. 500 is deliberately absent. */
-  --weight-light: 300;
-  --weight-normal: 400;
-  --weight-semibold: 600;
-  --weight-bold: 700;
+  --gold-600: #7c5a10;
+  --gold-500: #8a6414;
+  --gold-400: #a2761a;
+  --gold-300: #7c5a10;
+  --gold-glow: color-mix(in oklab, #a2761a 26%, transparent);
 
-  /* App-scale ramp. Display sizes carry negative tracking ("Apple tight");
-     nothing at or below 12px is ever tightened. */
-  --text-display: 2.75rem;  /* 44px — universe hero, empty states */
-  --text-title-1: 1.75rem;  /* 28px — page titles */
-  --text-title-2: 1.3125rem;/* 21px — section heads */
-  --text-title-3: 1.0625rem;/* 17px — card titles, strong body */
-  --text-body: 0.9375rem;   /* 15px — default app body */
-  --text-caption: 0.8125rem;/* 13px — secondary captions */
-  --text-micro: 0.6875rem;  /* 11px — eyebrow, meta, keycaps */
+  --success-500: #176b4c;
+  --success-400: #12593f;
+  --warning-500: #a2761a;
+  --danger-600: #932830;
+  --danger-500: #b23840;
+  --danger-400: #c94f56;
+  --info-500: #2d55ad;
 
-  --tracking-display: -0.022em;
-  --tracking-title: -0.014em;
-  --tracking-body: -0.006em;
-  --tracking-eyebrow: 0.09em;
+  --background: var(--ink-900);
+  --surface: var(--ink-800);
+  --surface-raised: var(--ink-750);
+  --overlay: #fffef9;
+  --well: var(--ink-850);
+  --void: var(--ink-980);
 
-  --leading-display: 1.06;
-  --leading-title: 1.2;
-  --leading-body: 1.5;
+  --glass: color-mix(in oklab, #fffdf6 68%, transparent);
+  --glass-strong: color-mix(in oklab, #fffdf6 88%, transparent);
+
+  --foreground: var(--ink-50);
+  --muted: #54503f;
+  --subtle: #615c4a;
+  --on-accent: #fffdf4;
+  --on-cobalt: #f5f7fd;
+
+  --line: color-mix(in oklab, #7a7057 48%, transparent);
+  --line-strong: #ab9f7e;
+  --line-subtle: color-mix(in oklab, #7a7057 26%, transparent);
+
+  --veil: rgb(32 29 16 / 0.4);
+  --star: #3f3a2c;
+  --track: #d0c5a8;
+  --constellation: color-mix(in oklab, #6f6549 72%, transparent);
+
+  --accent: #a2761a;
+  --accent-strong: #7c5a10;
+  --accent-muted: #8a6414;
+  --blue: var(--cobalt-500);
+
+  --shadow-xs: 0 1px 2px rgb(60 52 30 / 0.08);
+  --shadow-sm: 0 2px 6px rgb(60 52 30 / 0.1);
+  --shadow-md: 0 8px 20px -6px rgb(60 52 30 / 0.16);
+  --shadow-lg: 0 20px 44px -12px rgb(60 52 30 / 0.22);
+  --shadow-xl: 0 32px 70px -20px rgb(60 52 30 / 0.3);
+  --glow-gold: 0 0 0 1px color-mix(in oklab, #a2761a 40%, transparent);
+  --glow-cobalt: 0 0 0 1px color-mix(in oklab, #2d55ad 40%, transparent);
+  --glow-cyan: none;
 }
 
 /* Map curated tokens into Tailwind's theme so utilities like bg-surface,
@@ -179,6 +211,7 @@
   --color-void: var(--void);
   --color-glass: var(--glass);
   --color-glass-strong: var(--glass-strong);
+  --color-veil: var(--veil);
 
   --color-muted: var(--muted);
   --color-subtle: var(--subtle);
@@ -191,6 +224,7 @@
   --color-accent-muted: var(--accent-muted);
   --color-on-accent: var(--on-accent);
 
+  --color-ink-980: var(--ink-980);
   --color-ink-950: var(--ink-950);
   --color-ink-900: var(--ink-900);
   --color-ink-850: var(--ink-850);
@@ -226,6 +260,7 @@
   --color-info: var(--info-500);
 
   --font-sans: var(--font-sans);
+  --font-display: var(--font-display);
   --font-mono: var(--font-mono);
 
   --text-display: var(--text-display);
@@ -248,6 +283,81 @@
 }
 
 /* ============================================================================
+   Shared structural tokens (theme-independent)
+   ========================================================================== */
+:root {
+  /* --- Radius: four steps, no in-between --------------------------------- */
+  --radius-xs: 6px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-2xl: 32px;
+  --radius-full: 9999px;
+
+  /* --- Motion ------------------------------------------------------------ */
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 320ms;
+  --duration-spatial: 520ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* --- Layout ------------------------------------------------------------ */
+  --page-max: 78rem;
+  --reading-max: 44rem;
+  --gutter: 1.25rem;
+  --gutter-lg: 2.5rem;
+  --header-h: 3.25rem;
+
+  /* --- Z-index scale ----------------------------------------------------- */
+  --z-base: 0;
+  --z-raised: 10;
+  --z-sticky: 20;
+  --z-header: 30;
+  --z-overlay: 40;
+  --z-dialog: 50;
+  --z-toast: 60;
+  --z-command: 70;
+
+  /* --- Typography -------------------------------------------------------- */
+  /* Fraunces carries display voice (wordmark, page titles). Instrument Sans
+     is the UI voice. JetBrains Mono labels the chart. */
+  --font-sans: var(--font-instrument, "Instrument Sans"), system-ui, -apple-system,
+    "Segoe UI", Roboto, sans-serif;
+  --font-display: var(--font-fraunces, Fraunces), "Iowan Old Style", Georgia, serif;
+  --font-mono: var(--font-jetbrains, "JetBrains Mono"), ui-monospace, "SF Mono",
+    Menlo, Consolas, monospace;
+
+  /* Weight ladder: 400 / 500 / 600 / 700 for sans; 500 / 600 for display. */
+  --weight-normal: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  /* App-scale ramp. Display sizes carry negative tracking; nothing at or
+     below 12px is ever tightened. */
+  --text-display: 3rem;     /* 48px — universe hero, empty states */
+  --text-title-1: 1.875rem; /* 30px — page titles */
+  --text-title-2: 1.3125rem;/* 21px — section heads */
+  --text-title-3: 1.0625rem;/* 17px — card titles, strong body */
+  --text-body: 0.9375rem;   /* 15px — default app body */
+  --text-caption: 0.8125rem;/* 13px — secondary captions */
+  --text-micro: 0.6875rem;  /* 11px — eyebrow, meta, keycaps */
+
+  --tracking-display: -0.022em;
+  --tracking-title: -0.014em;
+  --tracking-body: -0.006em;
+  --tracking-eyebrow: 0.09em;
+
+  --leading-display: 1.04;
+  --leading-title: 1.18;
+  --leading-body: 1.55;
+}
+
+/* ============================================================================
    Base
    ========================================================================== */
 
@@ -265,7 +375,21 @@
 
   body {
     margin: 0;
-    background: var(--background);
+    background-color: var(--background);
+    /* A faint permanent wash so the canvas is never flat — nebula at night,
+       sun-warmed paper by day. */
+    background-image:
+      radial-gradient(
+        72rem 44rem at 14% -6%,
+        color-mix(in oklab, var(--cobalt-700) 12%, transparent),
+        transparent 62%
+      ),
+      radial-gradient(
+        56rem 36rem at 88% 104%,
+        color-mix(in oklab, var(--gold-600) 7%, transparent),
+        transparent 68%
+      );
+    background-attachment: fixed;
     color: var(--foreground);
     font-family: var(--font-sans);
     font-size: var(--text-body);
@@ -283,6 +407,15 @@
     letter-spacing: var(--tracking-title);
     line-height: var(--leading-title);
     text-wrap: balance;
+  }
+
+  /* Page titles speak in the display voice. Section heads stay in the UI
+     voice so dense screens don't get noisy. */
+  h1 {
+    font-family: var(--font-display);
+    font-weight: 560;
+    font-size: var(--text-title-1);
+    letter-spacing: var(--tracking-display);
   }
 
   p {
@@ -330,28 +463,28 @@
   }
 
   ::selection {
-    background: var(--gold-glow);
+    background: color-mix(in oklab, var(--gold-400) 32%, transparent);
     color: var(--foreground);
   }
 
-  /* Focus: always visible, gold ring with dark offset so it reads on any surface */
+  /* Focus: always visible, gold ring so it reads on any surface */
   :focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: 3px;
     border-radius: var(--radius-xs);
   }
 
-  /* Scrollbars tuned to the navy canvas (progressive enhancement) */
+  /* Scrollbars tuned to the canvas (progressive enhancement) */
   * {
     scrollbar-width: thin;
-    scrollbar-color: var(--ink-600) transparent;
+    scrollbar-color: var(--line-strong) transparent;
   }
   *::-webkit-scrollbar {
     width: 10px;
     height: 10px;
   }
   *::-webkit-scrollbar-thumb {
-    background: var(--ink-600);
+    background: var(--line-strong);
     border: 2px solid transparent;
     background-clip: padding-box;
     border-radius: var(--radius-full);
@@ -361,6 +494,20 @@
     background-clip: padding-box;
   }
 
+  /* Theme transition: smooth the swap without animating the whole page on
+     first paint. Applied only once the app is interactive. */
+  html.theme-ready,
+  html.theme-ready body,
+  html.theme-ready * {
+    transition:
+      background-color var(--duration-slow) var(--ease-out),
+      border-color var(--duration-slow) var(--ease-out),
+      color var(--duration-slow) var(--ease-out) !important;
+  }
+  html.theme-ready *::before,
+  html.theme-ready *::after {
+    transition-duration: 0.01ms !important;
+  }
 }
 
 @layer components {
@@ -382,10 +529,12 @@
     top: 1rem;
   }
 
-  /* Eyebrow: small uppercase label above a group. Positive tracking, never tight. */
+  /* Eyebrow: chart label. Mono, uppercase, positive tracking — never tight.
+     This is the "instrument label on a star chart" voice. */
   .eyebrow {
+    font-family: var(--font-mono);
     font-size: var(--text-micro);
-    font-weight: var(--weight-semibold);
+    font-weight: var(--weight-medium);
     letter-spacing: var(--tracking-eyebrow);
     text-transform: uppercase;
     color: var(--subtle);
@@ -402,6 +551,7 @@
     backdrop-filter: blur(var(--glass-blur)) saturate(150%);
     -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
     border: 1px solid var(--line);
+    box-shadow: var(--shadow-md);
   }
 
   /* Press feedback, applied system-wide to actionable elements. */
@@ -420,18 +570,33 @@
     background-image:
       radial-gradient(
         68rem 40rem at 18% 12%,
-        color-mix(in oklab, var(--cobalt-700) 26%, transparent),
+        color-mix(in oklab, var(--cobalt-700) 28%, transparent),
         transparent 70%
       ),
       radial-gradient(
         52rem 34rem at 84% 78%,
-        color-mix(in oklab, var(--cobalt-600) 16%, transparent),
+        color-mix(in oklab, var(--cobalt-600) 18%, transparent),
         transparent 72%
       ),
       radial-gradient(
         30rem 24rem at 70% 8%,
-        color-mix(in oklab, var(--gold-600) 7%, transparent),
+        color-mix(in oklab, var(--gold-600) 8%, transparent),
         transparent 70%
+      );
+  }
+
+  [data-theme="light"] .sky {
+    background-color: var(--ink-850);
+    background-image:
+      radial-gradient(
+        68rem 40rem at 18% 12%,
+        color-mix(in oklab, var(--cobalt-500) 10%, transparent),
+        transparent 70%
+      ),
+      radial-gradient(
+        52rem 34rem at 84% 78%,
+        color-mix(in oklab, var(--gold-500) 9%, transparent),
+        transparent 72%
       );
   }
 
@@ -613,12 +778,17 @@
     border-radius: 9999px;
     border: 1px solid color-mix(in oklab, var(--hue) 55%, transparent);
     background:
-      radial-gradient(circle at 32% 26%, color-mix(in oklab, var(--hue) 42%, transparent), transparent 62%),
-      linear-gradient(160deg, var(--ink-750), var(--ink-850));
+      radial-gradient(circle at 32% 26%, color-mix(in oklab, var(--hue) 40%, transparent), transparent 62%),
+      linear-gradient(160deg, var(--surface-raised), var(--well));
     color: var(--foreground);
     font-weight: var(--weight-semibold);
     letter-spacing: -0.02em;
     overflow: hidden;
+  }
+
+  [data-theme="light"] .node-core {
+    border: 1px solid color-mix(in oklab, var(--hue) 62%, transparent);
+    box-shadow: var(--shadow-sm);
   }
 
   /* Progress rides the rim of the orb as an arc — the ring IS the progress bar. */
@@ -637,8 +807,9 @@
 
   .node-name {
     display: block;
+    font-family: var(--font-display);
     font-size: var(--text-title-3);
-    font-weight: var(--weight-semibold);
+    font-weight: 560;
     letter-spacing: var(--tracking-title);
     color: var(--foreground);
     overflow: hidden;
@@ -656,6 +827,7 @@
   }
 
   .node-detail {
+    display: block;
     font-size: var(--text-caption);
     color: var(--subtle);
     overflow: hidden;

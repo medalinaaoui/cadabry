@@ -86,7 +86,7 @@ export function Universe({ projects }: { projects: UniverseProject[] }) {
 
   // The field grows with the constellation. A fixed 620px of sky around four
   // projects reads as empty rather than spacious.
-  const fieldHeight = Math.min(660, 380 + projects.length * 34);
+  const fieldHeight = Math.min(620, 400 + projects.length * 36);
 
   if (projects.length === 0) {
     return (

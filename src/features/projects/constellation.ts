@@ -76,6 +76,10 @@ export function placeNode(
     y = 50 + Math.sin(angle) * radius * 34;
   }
 
+  // Keep node centers inside a safe band: labels + orbs need clearance from
+  // the field's top and bottom edges, or the constellation crops itself.
+  y = Math.min(Math.max(y, 18), 74);
+
   const r1 = hash(seed);
   const r2 = hash(`${seed}:drift`);
 

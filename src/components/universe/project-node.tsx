@@ -105,7 +105,7 @@ export function ProjectNode({
                 cy="50"
                 r={RADIUS}
                 fill="none"
-                stroke="var(--ink-700)"
+                stroke="var(--track)"
                 strokeWidth="4"
               />
               <circle

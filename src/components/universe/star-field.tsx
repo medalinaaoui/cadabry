@@ -29,7 +29,7 @@ export function StarField({ className }: { className?: string }) {
             cx={star.x}
             cy={star.y}
             r={star.r / 10}
-            fill={i % 11 === 0 ? "var(--gold-300)" : "var(--ink-50)"}
+            fill={i % 11 === 0 ? "var(--gold-400)" : "var(--star)"}
             opacity={star.o}
           />
         ))}
@@ -39,7 +39,7 @@ export function StarField({ className }: { className?: string }) {
             cx={star.x}
             cy={star.y}
             r={star.r / 9}
-            fill="var(--ink-50)"
+            fill="var(--star)"
             style={{
               animation: `cadabry-twinkle ${4 + (i % 4)}s var(--ease-in-out) ${star.delay}s infinite`,
             }}
@@ -48,7 +48,7 @@ export function StarField({ className }: { className?: string }) {
       </svg>
 
       {/* Vignette: settles the edges so nodes near the rim don't float off. */}
-      <div className="absolute inset-0 bg-[radial-gradient(120%_100%_at_50%_45%,transparent_38%,var(--ink-980)_100%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(120%_100%_at_50%_45%,transparent_42%,var(--void)_100%)]" />
     </div>
   );
 }

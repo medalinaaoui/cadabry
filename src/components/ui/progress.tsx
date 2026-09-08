@@ -29,7 +29,7 @@ export function Progress({
         aria-valuenow={clamped}
         aria-valuemin={0}
         aria-valuemax={100}
-        className="h-1 flex-1 overflow-hidden rounded-full bg-ink-700"
+        className="h-1 flex-1 overflow-hidden rounded-full bg-track"
       >
         <div
           className={cn("h-full rounded-full transition-[width] duration-(--duration-slow) ease-(--ease-out)", fill)}

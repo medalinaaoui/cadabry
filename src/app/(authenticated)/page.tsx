@@ -94,7 +94,7 @@ export default async function UniversePage() {
                   {totalQueued} prompt{totalQueued === 1 ? "" : "s"} queued
                 </span>
               )}
-              {totalQueued > 0 && blocked > 0 && <span className="px-2 text-ink-500">·</span>}
+              {totalQueued > 0 && blocked > 0 && <span className="px-2 text-subtle">·</span>}
               {blocked > 0 && (
                 <span className="inline-flex items-center gap-1.5 text-danger">
                   <AlertTriangle className="h-3.5 w-3.5" aria-hidden="true" />

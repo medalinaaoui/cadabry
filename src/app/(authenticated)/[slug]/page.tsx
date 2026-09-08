@@ -6,7 +6,7 @@ import { requireActor } from "@/features/projects/queries";
 import { Panel, PanelHeader } from "@/components/ui/panel";
 import { DataList } from "@/components/ui/page";
 import { Progress } from "@/components/ui/progress";
-import { workStatus } from "@/features/projects/display";
+import { timeAgo, workStatus } from "@/features/projects/display";
 
 async function getBrain(ownerId: string, slug: string) {
   return db.project.findUnique({
@@ -42,6 +42,19 @@ async function getBrain(ownerId: string, slug: string) {
         select: { id: true, name: true, status: true },
         orderBy: { sortOrder: "asc" },
         take: 10,
+      },
+      activities: {
+        select: { id: true, summary: true, occurredAt: true },
+        orderBy: { occurredAt: "desc" },
+        take: 6,
+      },
+      _count: {
+        select: {
+          features: true,
+          bugs: true,
+          queueItems: true,
+          codingSessions: true,
+        },
       },
     },
   });
@@ -194,6 +207,16 @@ export default async function ProjectBrainPage({
 
       <aside className="space-y-6">
         <Panel>
+          <PanelHeader title="At a glance" />
+          <dl className="grid grid-cols-2 gap-3">
+            <Stat label="Features" value={project._count.features} />
+            <Stat label="Open bugs" value={project._count.bugs} tone={project._count.bugs > 0 ? "danger" : undefined} />
+            <Stat label="Queued" value={project._count.queueItems} />
+            <Stat label="Sessions" value={project._count.codingSessions} />
+          </dl>
+        </Panel>
+
+        <Panel>
           <PanelHeader title="Progress" />
           <Progress value={project.progress} label="Project progress" />
           <dl className="mt-4 space-y-1.5 text-caption">
@@ -230,6 +253,31 @@ export default async function ProjectBrainPage({
                 );
               })}
             </ul>
+          </Panel>
+        )}
+
+        {project.activities.length > 0 && (
+          <Panel>
+            <PanelHeader title="Recent activity" />
+            <ol className="space-y-3">
+              {project.activities.map((activity) => (
+                <li key={activity.id} className="flex items-start gap-2.5">
+                  <span
+                    className="mt-[0.45rem] h-1.5 w-1.5 shrink-0 rounded-full bg-line-strong"
+                    aria-hidden="true"
+                  />
+                  <span className="min-w-0">
+                    <span className="block text-caption text-ink-100">{activity.summary}</span>
+                    <time
+                      dateTime={activity.occurredAt.toISOString()}
+                      className="eyebrow mt-0.5 block normal-case"
+                    >
+                      {timeAgo(activity.occurredAt)}
+                    </time>
+                  </span>
+                </li>
+              ))}
+            </ol>
           </Panel>
         )}
 
@@ -286,6 +334,29 @@ function StateLine({
         {value}
       </span>
     </p>
+  );
+}
+
+function Stat({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: number;
+  tone?: "danger";
+}) {
+  return (
+    <div className="rounded-xl border border-line-subtle bg-well px-3 py-2.5">
+      <dt className="eyebrow">{label}</dt>
+      <dd
+        className={`tabular mt-1 text-title-2 font-semibold ${
+          tone === "danger" ? "text-danger" : "text-foreground"
+        }`}
+      >
+        {value}
+      </dd>
+    </div>
   );
 }
 

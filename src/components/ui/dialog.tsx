@@ -34,7 +34,7 @@ export function DialogContent({
   return (
     <DialogPrimitive.Portal>
       <DialogPrimitive.Overlay
-        className="fixed inset-0 z-(--z-overlay) bg-ink-980/70 backdrop-blur-sm
+        className="fixed inset-0 z-(--z-overlay) bg-veil backdrop-blur-sm
           data-[state=open]:animate-[cadabry-overlay-in_var(--duration-base)_var(--ease-out)]"
       />
       <DialogPrimitive.Content

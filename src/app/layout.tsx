@@ -1,16 +1,30 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Fraunces, Instrument_Sans, JetBrains_Mono } from "next/font/google";
 import { Toaster } from "sonner";
 import "./globals.css";
 
 /**
- * system-ui already resolves to SF Pro on Apple platforms, which is where the
- * type ramp was tuned. Inter is loaded as the cross-platform stand-in and sits
- * behind system-ui in the font stack (see --font-sans).
+ * Three voices, one system:
+ * · Fraunces — display voice: the wordmark, page titles, node names. The
+ *   astronomer's atlas lettering.
+ * · Instrument Sans — the UI voice: everything you read and click all day.
+ * · JetBrains Mono — the chart-label voice: eyebrows, keycaps, metadata.
  */
-const inter = Inter({
+const fraunces = Fraunces({
   subsets: ["latin"],
-  variable: "--font-inter",
+  variable: "--font-fraunces",
+  display: "swap",
+});
+
+const instrument = Instrument_Sans({
+  subsets: ["latin"],
+  variable: "--font-instrument",
+  display: "swap",
+});
+
+const jetbrains = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-jetbrains",
   display: "swap",
 });
 
@@ -21,20 +35,42 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#080e1f",
-  colorScheme: "dark",
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: "#070b17" },
+    { media: "(prefers-color-scheme: light)", color: "#f6f2e7" },
+  ],
 };
+
+/**
+ * Theme is applied before first paint so there is no flash of the wrong sky.
+ * Stored preference wins; the brand default is the night sky. The `theme-ready`
+ * class is added on first interaction so the theme *toggle* animates but the
+ * initial render does not.
+ */
+const themeInit = `(function(){try{var t=localStorage.getItem("cadabry:theme");document.documentElement.dataset.theme=t==="light"?"light":"dark";}catch(e){document.documentElement.dataset.theme="dark";}})();`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={inter.variable}>
+    <html
+      lang="en"
+      data-theme="dark"
+      suppressHydrationWarning
+      className={`${fraunces.variable} ${instrument.variable} ${jetbrains.variable}`}
+    >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInit }} />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `requestAnimationFrame(function(){document.documentElement.classList.add("theme-ready")});`,
+          }}
+        />
+      </head>
       <body>
         <a className="skip-link" href="#main">
           Skip to content
         </a>
         {children}
         <Toaster
-          theme="dark"
           position="bottom-right"
           toastOptions={{
             style: {

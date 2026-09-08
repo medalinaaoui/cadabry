@@ -40,7 +40,7 @@ export function ConstellationLines({
       <polyline
         points={path}
         fill="none"
-        stroke="var(--cobalt-400)"
+        stroke="var(--constellation)"
         strokeWidth="1"
         strokeLinecap="round"
         strokeDasharray="3 7"

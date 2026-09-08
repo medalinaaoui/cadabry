@@ -17,6 +17,7 @@ import {
   Zap,
 } from "lucide-react";
 import { Wordmark } from "./brand";
+import { ThemeToggle } from "./theme-toggle";
 import { CommandMenu, type CommandProject } from "./command-menu";
 import { QuickCapture } from "./quick-capture";
 import { Button, IconButton } from "@/components/ui/button";
@@ -133,7 +134,7 @@ export function AppShell({
               type="button"
               onClick={() => setCommandOpen(true)}
               className="press hidden h-9 items-center gap-2 rounded-full border border-line
-                bg-surface/70 pl-3 pr-2 text-caption text-subtle transition-colors
+                bg-surface/70 pl-3 pr-2 text-caption text-muted transition-colors
                 hover:border-line-strong hover:text-muted sm:inline-flex"
             >
               <Search className="h-3.5 w-3.5" />
@@ -149,6 +150,8 @@ export function AppShell({
             >
               <Search className="h-4 w-4" />
             </IconButton>
+
+            <ThemeToggle />
 
             <IconButton aria-label="Capture a thought" size="sm" onClick={openCapture}>
               <Zap className="h-4 w-4" />
