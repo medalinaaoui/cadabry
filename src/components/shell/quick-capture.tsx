@@ -1,128 +1,128 @@
 "use client";
 
-import * as Dialog from "@radix-ui/react-dialog";
-import { X, Zap } from "lucide-react";
-import { toast } from "sonner";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { Bug, FileText, Lightbulb, Sparkles } from "lucide-react";
 import { quickCapture } from "@/features/capture/actions";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogClose, DialogContent } from "@/components/ui/dialog";
+import { Field, FieldShell, SelectField } from "@/components/ui/field";
 
-type QuickCaptureProps = {
+const CAPTURE_TYPES = [
+  { value: "idea", label: "Idea", icon: Lightbulb },
+  { value: "feature", label: "Feature", icon: Sparkles },
+  { value: "bug", label: "Bug", icon: Bug },
+  { value: "note", label: "Note", icon: FileText },
+] as const;
+
+/**
+ * Frictionless capture. One required field, everything else optional, and the
+ * dialog closes the moment it saves — the whole interaction is meant to cost
+ * a couple of seconds mid-build.
+ */
+export function QuickCapture({
+  open,
+  onOpenChange,
+  projects = [],
+}: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   projects?: { id: string; name: string }[];
-};
-
-const CAPTURE_TYPES = [
-  { value: "idea", label: "Idea" },
-  { value: "feature", label: "Feature" },
-  { value: "bug", label: "Bug" },
-  { value: "note", label: "Note" },
-] as const;
-
-export function QuickCapture({ open, onOpenChange, projects = [] }: QuickCaptureProps) {
+}) {
   const [pending, setPending] = useState(false);
+  const router = useRouter();
+
+  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+
+    setPending(true);
+    const result = await quickCapture(formData);
+    setPending(false);
+
+    if (result.ok) {
+      toast.success("Captured to inbox");
+      form.reset();
+      onOpenChange(false);
+      router.refresh();
+    } else {
+      toast.error(result.error ?? "Could not capture that. Try again.");
+    }
+  }
 
   return (
-    <Dialog.Root open={open} onOpenChange={onOpenChange}>
-      <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-overlay bg-ink-950/70" />
-        <Dialog.Content className="fixed left-1/2 top-1/2 z-dialog w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-overlay p-6 shadow-xl data-[state=open]:animate-in data-[state=closed]:animate-out">
-          {/* Header */}
-          <div className="mb-5 flex items-center justify-between">
-            <Dialog.Title className="flex items-center gap-2 text-lg font-semibold text-foreground">
-              <Zap className="h-5 w-5 text-accent" />
-              Quick Capture
-            </Dialog.Title>
-            <Dialog.Close className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-muted transition-colors hover:bg-surface-raised hover:text-foreground">
-              <X className="h-4 w-4" />
-            </Dialog.Close>
-          </div>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent
+        title="Capture a thought"
+        description="It lands in your inbox. Sort it later."
+        size="sm"
+      >
+        <form className="space-y-5" onSubmit={onSubmit}>
+          <Field
+            label="New thought"
+            id="capture-title"
+            name="title"
+            placeholder="Add a Stripe customer portal later"
+            autoFocus
+            required
+            autoComplete="off"
+          />
 
-          {/* Form */}
-          <form className="space-y-4" onSubmit={async (e) => {
-            e.preventDefault();
-            const formData = new FormData(e.currentTarget as HTMLFormElement);
-            const formEl = e.currentTarget as HTMLFormElement;
-            setPending(true);
-            const result = await quickCapture(formData);
-            setPending(false);
-            if (result.ok) {
-              toast.success("Captured to inbox");
-              onOpenChange(false);
-              formEl.reset();
-            } else {
-              toast.error(result.error ?? "Failed to capture");
-            }
-          }}>
-            {/* Title */}
-            <div className="space-y-1.5">
-              <label htmlFor="capture-title" className="text-sm font-medium text-foreground">
-                New thought
-              </label>
-              <input
-                id="capture-title"
-                name="title"
-                type="text"
-                placeholder="Add Stripe customer portal later"
-                className="w-full rounded-xl border border-line bg-surface px-4 py-2.5 text-sm text-foreground placeholder:text-subtle focus:outline-none focus:ring-2 focus:ring-accent/40"
-                autoFocus
-                required
-              />
-            </div>
-
-            {/* Type selector */}
-            <div className="space-y-1.5">
-              <span className="text-sm font-medium text-foreground">Type</span>
-              <div className="flex flex-wrap gap-2">
-                {CAPTURE_TYPES.map((t) => (
-                  <label
-                    key={t.value}
-                    className="flex cursor-pointer items-center gap-1.5 rounded-xl border border-line bg-surface px-3 py-1.5 text-xs text-muted transition-colors has-[:checked]:border-accent has-[:checked]:bg-accent/10 has-[:checked]:text-accent"
-                  >
-                    <input
-                      type="radio"
-                      name="type"
-                      value={t.value}
-                      defaultChecked={t.value === "idea"}
-                      className="sr-only"
-                    />
-                    {t.label}
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* Project selector */}
-            {projects.length > 0 && (
-              <div className="space-y-1.5">
-                <label htmlFor="capture-project" className="text-sm font-medium text-foreground">
-                  Project <span className="text-subtle">(optional)</span>
-                </label>
-                <select
-                  id="capture-project"
-                  name="projectId"
-                  className="w-full rounded-xl border border-line bg-surface px-4 py-2.5 text-sm text-foreground"
+          <FieldShell label="Type">
+            <div className="flex flex-wrap gap-2">
+              {CAPTURE_TYPES.map((type) => (
+                <label
+                  key={type.value}
+                  className="press flex cursor-pointer items-center gap-1.5 rounded-xl border
+                    border-line bg-surface px-3 py-2 text-caption text-muted transition-colors
+                    hover:border-line-strong has-[:checked]:border-accent
+                    has-[:checked]:bg-accent/10 has-[:checked]:text-accent
+                    has-[:focus-visible]:outline has-[:focus-visible]:outline-2
+                    has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-accent"
                 >
-                  <option value="">Inbox (no project)</option>
-                  {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-                </select>
-              </div>
-            )}
-
-
-            {/* Submit */}
-            <div className="flex justify-end gap-2 pt-2">
-              <Dialog.Close asChild>
-                <Button type="button" variant="secondary">Cancel</Button>
-              </Dialog.Close>
-              <Button type="submit" variant="primary" disabled={pending}>
-                {pending ? "Saving…" : "Save"}
-              </Button>
+                  <input
+                    type="radio"
+                    name="type"
+                    value={type.value}
+                    defaultChecked={type.value === "idea"}
+                    className="sr-only"
+                  />
+                  <type.icon className="h-3.5 w-3.5" aria-hidden="true" />
+                  {type.label}
+                </label>
+              ))}
             </div>
-          </form>
-        </Dialog.Content>
-      </Dialog.Portal>
-    </Dialog.Root>
+          </FieldShell>
+
+          {projects.length > 0 && (
+            <SelectField
+              label="Project"
+              id="capture-project"
+              name="projectId"
+              hint="Leave as Inbox if it isn't tied to anything yet."
+              defaultValue=""
+            >
+              <option value="">Inbox (no project)</option>
+              {projects.map((project) => (
+                <option key={project.id} value={project.id}>
+                  {project.name}
+                </option>
+              ))}
+            </SelectField>
+          )}
+
+          <div className="flex justify-end gap-2 pt-1">
+            <DialogClose asChild>
+              <Button variant="ghost">Cancel</Button>
+            </DialogClose>
+            <Button type="submit" variant="primary" disabled={pending}>
+              {pending ? "Saving…" : "Capture"}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }

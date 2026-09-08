@@ -1,21 +1,20 @@
 import { redirect, notFound } from "next/navigation";
-import Link from "next/link";
 import { cookies } from "next/headers";
+import { Check, KeyRound, Trash2 } from "lucide-react";
 import { verifySessionToken, SESSION_COOKIE_NAME } from "@/server/auth/session";
 import { db } from "@/server/db";
+import { requireActor } from "@/features/projects/queries";
 import { Button } from "@/components/ui/button";
-import { Field } from "@/components/ui/field";
+import { Field, FieldShell, SelectField } from "@/components/ui/field";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { EmptyState, Row, Stack } from "@/components/ui/page";
+import { CreateDisclosure, FormGrid, RowButton } from "@/components/ui/disclosure";
 
 type Props = { params: Promise<{ slug: string }> };
 
 export default async function EnvPage({ params }: Props) {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value ?? null;
-  if (!token) redirect("/login");
-
-  const actor = await verifySessionToken(token);
-  if (!actor) redirect("/login");
-
+  const actor = await requireActor();
   const { slug } = await params;
 
   const project = await db.project.findUnique({
@@ -105,104 +104,140 @@ export default async function EnvPage({ params }: Props) {
   }
 
   return (
-    <div className="mx-auto max-w-3xl">
-      <div className="mb-6">
-        <Link href={`/${project.slug}`} className="text-sm text-muted transition-colors hover:text-foreground">
-          ← {project.name}
-        </Link>
-      </div>
-
-      <div className="flex items-start justify-between gap-4">
+    <div className="max-w-3xl space-y-6">
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">Env Checklist</h1>
-          <p className="mt-1 text-sm text-muted">
-            What the deployment needs. Nothing sensitive stored — just what exists and where to get it.
+          <h2 className="text-title-2 text-foreground">Env checklist</h2>
+          <p className="mt-1.5 max-w-(--reading-max) text-body text-muted">
+            What a deployment needs and where to get each value. No secrets are stored
+            here — only the fact that a variable exists.
           </p>
         </div>
+
         {total > 0 && (
-          <div className="shrink-0 rounded-xl border border-line bg-surface px-4 py-2 text-center">
-            <div className="text-lg font-bold text-foreground">{configured}/{total}</div>
-            <div className="text-[10px] text-subtle">configured</div>
+          <div className="w-44 shrink-0 rounded-xl border border-line bg-surface px-4 py-3">
+            <p className="eyebrow">Configured</p>
+            <p className="tabular mt-1 text-title-2 text-foreground">
+              {configured}
+              <span className="text-muted">/{total}</span>
+            </p>
+            <Progress
+              value={total === 0 ? 0 : (configured / total) * 100}
+              label="Environment variables configured"
+              showValue={false}
+              tone={configured === total ? "success" : "gold"}
+              className="mt-2"
+            />
           </div>
         )}
       </div>
 
       {requiredMissing > 0 && (
-        <div className="mt-4 rounded-xl border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger">
-          {requiredMissing} required variable{requiredMissing > 1 ? "s" : ""} not configured yet.
-        </div>
+        <p className="rounded-xl border border-danger/25 bg-danger/8 px-4 py-3 text-body text-danger">
+          {requiredMissing} required variable{requiredMissing === 1 ? "" : "s"} still
+          unconfigured — the app won&apos;t run without {requiredMissing === 1 ? "it" : "them"}.
+        </p>
       )}
 
-      <details className="mt-6 rounded-2xl border border-line bg-surface">
-        <summary className="cursor-pointer px-4 py-3 text-sm font-medium text-muted hover:text-foreground">
-          + New variable
-        </summary>
-        <form action={addVariable} className="space-y-4 px-4 py-4">
-          <div className="grid grid-cols-2 gap-4">
-            <Field label="Name" name="name" type="text" placeholder="DATABASE_URL" required />
-            <div>
-              <label className="mb-1.5 block text-xs font-medium text-muted">Environment</label>
-              <select name="environment" defaultValue="production" className="w-full rounded-xl border border-line bg-black/20 px-3 py-2 text-sm text-foreground">
-                <option value="local">local</option>
-                <option value="staging">staging</option>
-                <option value="production">production</option>
-              </select>
-            </div>
-          </div>
-          <Field label="What it is (optional)" name="description" type="text" placeholder="Neon pooled connection string" />
-          <Field label="Where to get it (optional)" name="acquisitionNote" type="text" placeholder="Neon dashboard → Connection string" />
-          <label className="flex items-center gap-2 text-sm text-muted">
-            <input type="checkbox" name="required" className="accent-[var(--accent)]" />
-            Required for the app to work
-          </label>
-          <Button type="submit">Add variable</Button>
+      <CreateDisclosure label="New variable">
+        <form action={addVariable} className="space-y-4">
+          <FormGrid>
+            <Field
+              label="Name"
+              name="name"
+              type="text"
+              placeholder="DATABASE_URL"
+              required
+              className="font-mono"
+              hint="Uppercased automatically."
+            />
+            <SelectField label="Environment" name="environment" defaultValue="production">
+              <option value="local">local</option>
+              <option value="staging">staging</option>
+              <option value="production">production</option>
+            </SelectField>
+          </FormGrid>
+          <Field
+            label="What it is"
+            name="description"
+            type="text"
+            placeholder="Neon pooled connection string"
+          />
+          <Field
+            label="Where to get it"
+            name="acquisitionNote"
+            type="text"
+            placeholder="Neon dashboard → Connection string"
+          />
+          <FieldShell label="Requirement">
+            <label className="flex items-center gap-2.5 text-body text-muted">
+              <input type="checkbox" name="required" className="h-4 w-4 accent-[var(--accent)]" />
+              Required for the app to work
+            </label>
+          </FieldShell>
+          <Button type="submit" variant="primary">
+            Add variable
+          </Button>
         </form>
-      </details>
+      </CreateDisclosure>
 
-      <div className="mt-6 space-y-3">
-        {project.environmentVariables.length === 0 ? (
-          <div className="rounded-2xl border border-line bg-surface py-16 text-center">
-            <p className="text-sm text-muted">No variables tracked. Add DATABASE_URL first.</p>
-          </div>
-        ) : (
-          project.environmentVariables.map((v) => (
-            <div key={v.id} className="rounded-2xl border border-line bg-surface p-4">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
+      {project.environmentVariables.length === 0 ? (
+        <EmptyState
+          icon={<KeyRound className="h-5 w-5" />}
+          title="No variables tracked"
+          description="Start with DATABASE_URL — the one you always forget on a fresh machine."
+        />
+      ) : (
+        <Stack className="space-y-2">
+          {project.environmentVariables.map((variable) => (
+            <Row key={variable.id} className="p-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="font-mono text-sm font-semibold text-foreground">{v.name}</h3>
-                    <span className="rounded-full bg-cobalt-400/10 px-2 py-0.5 text-[10px] text-cobalt-400">{v.environment}</span>
-                    {v.required && (
-                      <span className="rounded-full bg-accent/10 px-2 py-0.5 text-[10px] text-accent">required</span>
+                    <h3 className="font-mono text-title-3 text-foreground">{variable.name}</h3>
+                    <Badge tone="quiet">{variable.environment}</Badge>
+                    {variable.required && <Badge tone="gold">Required</Badge>}
+                    {variable.configured && (
+                      <Badge tone="success" dot>
+                        Configured
+                      </Badge>
                     )}
                   </div>
-                  {v.description && <p className="mt-1.5 text-sm text-muted">{v.description}</p>}
-                  {v.acquisitionNote && <p className="mt-1 text-xs text-subtle">Get it: {v.acquisitionNote}</p>}
+
+                  {variable.description && (
+                    <p className="mt-1.5 text-body text-muted">{variable.description}</p>
+                  )}
+                  {variable.acquisitionNote && (
+                    <p className="mt-1 text-caption text-subtle">
+                      <span className="eyebrow mr-1.5">Get it</span>
+                      {variable.acquisitionNote}
+                    </p>
+                  )}
                 </div>
+
                 <div className="flex shrink-0 items-center gap-2">
                   <form action={toggleConfigured}>
-                    <input type="hidden" name="id" value={v.id} />
-                    <input type="hidden" name="configured" value={String(v.configured)} />
-                    <button type="submit" className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
-                      v.configured
-                        ? "border-success/30 bg-success/10 text-success"
-                        : "border-line bg-black/20 text-muted hover:text-foreground"
-                    }`}>
-                      {v.configured ? "✓ Configured" : "Mark configured"}
-                    </button>
+                    <input type="hidden" name="id" value={variable.id} />
+                    <input type="hidden" name="configured" value={String(variable.configured)} />
+                    <RowButton tone={variable.configured ? "success" : "neutral"}>
+                      {variable.configured && (
+                        <Check className="h-3.5 w-3.5" aria-hidden="true" />
+                      )}
+                      {variable.configured ? "Configured" : "Mark configured"}
+                    </RowButton>
                   </form>
                   <form action={deleteVariable}>
-                    <input type="hidden" name="id" value={v.id} />
-                    <button type="submit" className="rounded-lg px-2 py-1.5 text-xs text-muted transition-colors hover:text-danger" title="Delete">
-                      ✕
-                    </button>
+                    <input type="hidden" name="id" value={variable.id} />
+                    <RowButton tone="danger" aria-label={`Delete ${variable.name}`}>
+                      <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+                    </RowButton>
                   </form>
                 </div>
               </div>
-            </div>
-          ))
-        )}
-      </div>
+            </Row>
+          ))}
+        </Stack>
+      )}
     </div>
   );
 }

@@ -1,11 +1,18 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import Link from "next/link";
+import { FileText, Search } from "lucide-react";
 import { verifySessionToken, SESSION_COOKIE_NAME } from "@/server/auth/session";
 import { db } from "@/server/db";
 import { Button } from "@/components/ui/button";
-import { Field, TextField } from "@/components/ui/field";
+import { BareInput, Field, SelectField, TextField } from "@/components/ui/field";
 import { CopyButton } from "@/components/ui/copy-button";
+import { Badge } from "@/components/ui/badge";
+import { EmptyState, PageHeader, PageShell, Row, Stack } from "@/components/ui/page";
+import { CreateDisclosure, FormGrid } from "@/components/ui/disclosure";
+import { cn } from "@/lib/cn";
+
+export const metadata = { title: "Prompt library" };
 
 const PROMPT_CATEGORIES = [
   "Starter", "Feature", "Debug", "Refactor", "UI", "Database", "Security",
@@ -108,93 +115,149 @@ export default async function PromptLibrary({
   }
 
   return (
-    <div className="mx-auto max-w-[var(--page-max)]">
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">Prompt Library</h1>
-          <p className="mt-1 text-sm text-muted">
-            Reusable prompts that become your agent&apos;s memory.
-          </p>
-        </div>
-      </div>
+    <PageShell>
+      <PageHeader
+        title="Prompt library"
+        description="Prompts are first-class here, not scraps in a notes app. Save the ones that worked, then queue them onto a project."
+      />
 
-      {/* Create form (collapsible section) */}
-      <details className="mb-8 rounded-2xl border border-line bg-surface">
-        <summary className="cursor-pointer px-4 py-3 text-sm font-medium text-muted hover:text-foreground">
-          + New prompt
-        </summary>
-        <form action={createPrompt} className="space-y-4 px-4 py-4">
-          <Field label="Title" name="title" type="text" placeholder="e.g. Add Stripe customer portal" required />
-          <TextField label="Content" name="content" placeholder="Paste your prompt here..." rows={6} required />
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-1.5">
-              <label htmlFor="category" className="text-sm text-muted">Category</label>
-              <select id="category" name="category" className="w-full rounded-xl border border-line bg-surface px-4 py-2.5 text-sm text-foreground">
-                {PROMPT_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-              </select>
-            </div>
-            <div className="space-y-1.5">
-              <label htmlFor="projectId" className="text-sm text-muted">Project</label>
-              <select id="projectId" name="projectId" className="w-full rounded-xl border border-line bg-surface px-4 py-2.5 text-sm text-foreground">
-                <option value="">— None (global) —</option>
-                {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-              </select>
-            </div>
-          </div>
-          <Button type="submit" variant="primary">Save prompt</Button>
+      <CreateDisclosure label="New prompt" className="mb-6">
+        <form action={createPrompt} className="space-y-4">
+          <Field
+            label="Title"
+            name="title"
+            type="text"
+            placeholder="Add a Stripe customer portal"
+            required
+          />
+          <TextField
+            label="Content"
+            name="content"
+            placeholder="Paste the prompt here…"
+            rows={7}
+            required
+            className="font-mono text-caption"
+          />
+          <FormGrid>
+            <SelectField label="Category" name="category" defaultValue="Custom">
+              {PROMPT_CATEGORIES.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </SelectField>
+            <SelectField label="Project" name="projectId" defaultValue="">
+              <option value="">No project (reusable)</option>
+              {projects.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </SelectField>
+          </FormGrid>
+          <Button type="submit" variant="primary">
+            Save prompt
+          </Button>
         </form>
-      </details>
+      </CreateDisclosure>
 
-      {/* Filters */}
-      <div className="mb-6 flex flex-wrap items-center gap-2 text-sm">
-        <Link href="/prompts" className={`rounded-full px-3 py-1 text-xs ${!category ? "bg-accent/15 text-accent" : "bg-surface text-muted hover:bg-surface-raised"}`}>All</Link>
-        {PROMPT_CATEGORIES.map((c) => (
-          <Link key={c} href={`/prompts?category=${c}`} className={`rounded-full px-3 py-1 text-xs ${category === c ? "bg-accent/15 text-accent" : "bg-surface text-muted hover:bg-surface-raised"}`}>
-            {c}
-          </Link>
-        ))}
+      {/*
+        A plain GET form: search survives a reload, is linkable, and works with
+        no JavaScript. The category chips below carry the query along.
+      */}
+      <form method="get" role="search" className="mb-4 flex flex-wrap gap-2">
+        <div className="relative min-w-56 flex-1">
+          <Search
+            className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-subtle"
+            aria-hidden="true"
+          />
+          <label htmlFor="prompt-search" className="sr-only">
+            Search prompts by title
+          </label>
+          <BareInput
+            id="prompt-search"
+            type="search"
+            name="q"
+            defaultValue={q ?? ""}
+            placeholder="Search prompts…"
+            className="pl-10"
+          />
+        </div>
+        {category && <input type="hidden" name="category" value={category} />}
+        <Button type="submit">Search</Button>
+        {(q || category) && (
+          <Button asChild variant="ghost">
+            <Link href="/prompts">Clear</Link>
+          </Button>
+        )}
+      </form>
+
+      <div className="mb-6 flex flex-wrap gap-1.5">
+        {[null, ...PROMPT_CATEGORIES].map((c) => {
+          const active = c === (category ?? null);
+          const params = new URLSearchParams();
+          if (c) params.set("category", c);
+          if (q) params.set("q", q);
+          const query = params.toString();
+          return (
+            <Link
+              key={c ?? "all"}
+              href={query ? `/prompts?${query}` : "/prompts"}
+              aria-current={active ? "true" : undefined}
+              className={cn(
+                "press inline-flex h-8 items-center rounded-full px-3 text-caption font-semibold",
+                "transition-colors duration-(--duration-fast)",
+                active
+                  ? "bg-cobalt-500/18 text-cobalt-300"
+                  : "border border-line text-muted hover:bg-surface-raised hover:text-foreground",
+              )}
+            >
+              {c ?? "All"}
+            </Link>
+          );
+        })}
       </div>
 
-      {/* List */}
       {prompts.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-line bg-surface py-20">
-          <h2 className="text-lg font-semibold text-foreground">No prompts yet</h2>
-          <p className="mt-1 max-w-sm text-center text-sm text-muted">
-            Save prompts you&apos;ve used or create new ones above.
-          </p>
-        </div>
+        <EmptyState
+          icon={<FileText className="h-5 w-5" />}
+          title={q || category ? "No prompts match" : "No prompts yet"}
+          description={
+            q || category
+              ? "Try a different search, or clear the filters."
+              : "Save the prompts that actually worked. Future you will not remember them."
+          }
+        />
       ) : (
-        <div className="space-y-4">
+        <Stack className="space-y-2">
           {prompts.map((prompt) => (
-            <div key={prompt.id} className="rounded-2xl border border-line bg-surface p-5">
-              <div className="flex items-center justify-between gap-3">
-                <div>
+            <Row key={prompt.id} className="p-5">
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="text-base font-semibold text-foreground">{prompt.title}</h3>
-                    <span className="rounded-full px-2 py-0.5 text-[10px] font-medium text-cobalt-400 bg-cobalt-400/10">
-                      {prompt.category}
-                    </span>
-                    {prompt.project && (
-                      <span className="rounded-full px-2 py-0.5 text-[10px] font-medium text-muted bg-surface-raised">
-                        {prompt.project.name}
-                      </span>
-                    )}
+                    <h2 className="text-title-3 text-foreground">{prompt.title}</h2>
+                    <Badge tone="cobalt">{prompt.category}</Badge>
+                    {prompt.project && <Badge tone="quiet">{prompt.project.name}</Badge>}
                     {prompt._count.queueItems > 0 && (
-                      <span className="rounded-full px-2 py-0.5 text-[10px] font-medium text-accent bg-accent/10">
-                        queued ×{prompt._count.queueItems}
-                      </span>
+                      <Badge tone="gold">Queued ×{prompt._count.queueItems}</Badge>
                     )}
                   </div>
-                  <p className="mt-1 max-w-md truncate text-xs text-subtle">
+
+                  <p className="mt-2 line-clamp-2 max-w-(--reading-max) text-caption text-subtle">
                     {prompt.currentVersion?.content}
                   </p>
                 </div>
-                <CopyButton text={prompt.currentVersion?.content ?? ""} label="Copy" />
+
+                <CopyButton
+                  text={prompt.currentVersion?.content ?? ""}
+                  label="Copy"
+                  className="shrink-0"
+                />
               </div>
-            </div>
+            </Row>
           ))}
-        </div>
+        </Stack>
       )}
-    </div>
+    </PageShell>
   );
 }

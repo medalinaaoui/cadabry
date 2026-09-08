@@ -1,29 +1,21 @@
 import { redirect } from "next/navigation";
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import { cookies } from "next/headers";
+import { GitBranch } from "lucide-react";
 import { verifySessionToken, SESSION_COOKIE_NAME } from "@/server/auth/session";
 import { db } from "@/server/db";
+import { requireActor } from "@/features/projects/queries";
 import { Button } from "@/components/ui/button";
-import { Field, TextField } from "@/components/ui/field";
+import { Field, FieldShell, TextField } from "@/components/ui/field";
+import { Badge } from "@/components/ui/badge";
+import { DataList, EmptyState, Row, Stack } from "@/components/ui/page";
+import { CreateDisclosure, RowActions, RowButton } from "@/components/ui/disclosure";
+import { workStatus } from "@/features/projects/display";
 
 type Props = { params: Promise<{ slug: string }> };
 
-const STATUS_META: Record<string, { label: string; cls: string }> = {
-  PROPOSED: { label: "Proposed", cls: "text-subtle bg-subtle/10" },
-  ACCEPTED: { label: "Accepted", cls: "text-success bg-success/10" },
-  SUPERSEDED: { label: "Superseded", cls: "text-muted bg-muted/10" },
-  REJECTED: { label: "Rejected", cls: "text-danger bg-danger/10" },
-};
-
 export default async function DecisionsPage({ params }: Props) {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value ?? null;
-  if (!token) redirect("/login");
-
-  const actor = await verifySessionToken(token);
-  if (!actor) redirect("/login");
-
+  const actor = await requireActor();
   const { slug } = await params;
 
   const project = await db.project.findUnique({
@@ -106,76 +98,117 @@ export default async function DecisionsPage({ params }: Props) {
   }
 
   return (
-    <div className="mx-auto max-w-3xl">
-      <div className="mb-6">
-        <Link href={`/${project.slug}`} className="text-sm text-muted transition-colors hover:text-foreground">
-          ← {project.name}
-        </Link>
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-title-2 text-foreground">Decision log</h2>
+        <p className="mt-1.5 max-w-(--reading-max) text-body text-muted">
+          Why the project is the way it is. Accepted decisions become context in every
+          generated prompt, so an agent won&apos;t quietly undo them.
+        </p>
       </div>
 
-      <h1 className="text-2xl font-bold tracking-tight text-foreground">Decision Log</h1>
-      <p className="mt-1 text-sm text-muted">
-        Why the project is the way it is — so agents never forget.
-      </p>
-
-      <details className="mt-6 rounded-2xl border border-line bg-surface">
-        <summary className="cursor-pointer px-4 py-3 text-sm font-medium text-muted hover:text-foreground">
-          + Record a decision
-        </summary>
-        <form action={addDecision} className="space-y-4 px-4 py-4">
-          <Field label="Title" name="title" type="text" placeholder="Use Prisma instead of Drizzle" required />
-          <TextField label="Decision" name="decision" rows={2} placeholder="What we decided and why it matters for agents" required />
-          <TextField label="Reasoning" name="reasoning" rows={2} placeholder="The thinking behind it" />
-          <Field label="Alternatives considered" name="alternatives" type="text" placeholder="e.g. Drizzle, Kysely" />
-          <Field label="Affected system" name="affectedSystem" type="text" placeholder="e.g. data layer" />
-          <label className="flex items-center gap-2 text-sm text-muted">
-            <input type="checkbox" name="reversible" defaultChecked className="accent-[var(--accent)]" />
-            Reversible
-          </label>
-          <Button type="submit" variant="primary">Record decision</Button>
+      <CreateDisclosure label="Record a decision">
+        <form action={addDecision} className="space-y-4">
+          <Field
+            label="Title"
+            name="title"
+            type="text"
+            placeholder="Use Prisma instead of Drizzle"
+            required
+          />
+          <TextField
+            label="Decision"
+            name="decision"
+            rows={2}
+            placeholder="What was decided, stated as an instruction an agent can follow"
+            required
+          />
+          <TextField
+            label="Reasoning"
+            name="reasoning"
+            rows={2}
+            placeholder="The thinking behind it"
+          />
+          <Field
+            label="Alternatives considered"
+            name="alternatives"
+            type="text"
+            placeholder="Drizzle, Kysely"
+          />
+          <Field
+            label="Affected system"
+            name="affectedSystem"
+            type="text"
+            placeholder="Data layer"
+          />
+          <FieldShell label="Reversibility">
+            <label className="flex items-center gap-2.5 text-body text-muted">
+              <input
+                type="checkbox"
+                name="reversible"
+                defaultChecked
+                className="h-4 w-4 accent-[var(--accent)]"
+              />
+              This decision can be revisited later
+            </label>
+          </FieldShell>
+          <Button type="submit" variant="primary">
+            Record decision
+          </Button>
         </form>
-      </details>
+      </CreateDisclosure>
 
-      <div className="mt-6 space-y-4">
-        {project.decisions.length === 0 ? (
-          <div className="rounded-2xl border border-line bg-surface py-16 text-center">
-            <p className="text-sm text-muted">No decisions logged yet.</p>
-          </div>
-        ) : (
-          project.decisions.map((d) => {
-            const meta = STATUS_META[d.status] ?? STATUS_META.PROPOSED;
+      {project.decisions.length === 0 ? (
+        <EmptyState
+          icon={<GitBranch className="h-5 w-5" />}
+          title="No decisions logged"
+          description="The first time you wonder why something was built a certain way, this is the page you'll wish you had filled in."
+        />
+      ) : (
+        <Stack>
+          {project.decisions.map((decision) => {
+            const meta = workStatus(decision.status);
             return (
-              <div key={d.id} className="rounded-2xl border border-line bg-surface p-5">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="text-base font-semibold text-foreground">{d.title}</h3>
-                      <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-medium ${meta.cls}`}>{meta.label}</span>
-                      {d.reversible ? (
-                        <span className="rounded-full bg-surface-raised px-2 py-0.5 text-[10px] text-subtle">reversible</span>
-                      ) : (
-                        <span className="rounded-full bg-danger/10 px-2 py-0.5 text-[10px] text-danger">locked</span>
-                      )}
-                    </div>
-                    <p className="mt-1 text-sm text-foreground">{d.decision}</p>
-                    {d.reasoning && <p className="mt-1 text-xs text-muted">Why: {d.reasoning}</p>}
-                    {d.alternatives && <p className="mt-1 text-xs text-subtle">Considered: {d.alternatives}</p>}
-                    {d.affectedSystem && <p className="mt-1 text-xs text-subtle">Affects: {d.affectedSystem}</p>}
-                  </div>
-                  {d.status !== "ACCEPTED" && d.status !== "REJECTED" && (
-                    <form action={updateStatus} className="shrink-0">
-                      <input type="hidden" name="id" value={d.id} />
-                      <button type="submit" name="status" value="ACCEPTED" className="rounded-lg border border-success/30 bg-success/10 px-3 py-1.5 text-xs font-medium text-success">
-                        Accept
-                      </button>
-                    </form>
-                  )}
+              <Row key={decision.id} className="p-5">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="text-title-3 text-foreground">{decision.title}</h3>
+                  <Badge tone={meta.tone}>{meta.label}</Badge>
+                  <Badge tone={decision.reversible ? "quiet" : "danger"}>
+                    {decision.reversible ? "Reversible" : "Locked"}
+                  </Badge>
                 </div>
-              </div>
+
+                <p className="mt-2 max-w-(--reading-max) text-body text-ink-100">
+                  {decision.decision}
+                </p>
+
+                <DataList
+                  className="mt-3"
+                  items={[
+                    { label: "Reasoning", value: decision.reasoning },
+                    { label: "Alternatives", value: decision.alternatives },
+                    { label: "Affects", value: decision.affectedSystem },
+                  ]}
+                />
+
+                {decision.status !== "ACCEPTED" && decision.status !== "REJECTED" && (
+                  <form action={updateStatus}>
+                    <input type="hidden" name="id" value={decision.id} />
+                    <RowActions>
+                      <RowButton name="status" value="ACCEPTED" tone="success">
+                        Accept
+                      </RowButton>
+                      <RowButton name="status" value="REJECTED" tone="danger">
+                        Reject
+                      </RowButton>
+                    </RowActions>
+                  </form>
+                )}
+              </Row>
             );
-          })
-        )}
-      </div>
+          })}
+        </Stack>
+      )}
     </div>
   );
 }

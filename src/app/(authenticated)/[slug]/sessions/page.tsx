@@ -1,28 +1,21 @@
 import { redirect } from "next/navigation";
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import { cookies } from "next/headers";
+import { Terminal } from "lucide-react";
 import { verifySessionToken, SESSION_COOKIE_NAME } from "@/server/auth/session";
 import { db } from "@/server/db";
+import { requireActor } from "@/features/projects/queries";
 import { Button } from "@/components/ui/button";
-import { Field, TextField } from "@/components/ui/field";
+import { Field, FieldShell, TextField } from "@/components/ui/field";
+import { Badge } from "@/components/ui/badge";
+import { DataList, EmptyState, Row, Stack } from "@/components/ui/page";
+import { CreateDisclosure } from "@/components/ui/disclosure";
+import { workStatus } from "@/features/projects/display";
 
 type Props = { params: Promise<{ slug: string }> };
 
-const STATUS_META: Record<string, { label: string; cls: string }> = {
-  ACTIVE: { label: "Active", cls: "text-accent bg-accent/10" },
-  COMPLETED: { label: "Completed", cls: "text-success bg-success/10" },
-  ABANDONED: { label: "Abandoned", cls: "text-muted bg-muted/10" },
-};
-
 export default async function SessionsPage({ params }: Props) {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value ?? null;
-  if (!token) redirect("/login");
-
-  const actor = await verifySessionToken(token);
-  if (!actor) redirect("/login");
-
+  const actor = await requireActor();
   const { slug } = await params;
 
   const project = await db.project.findUnique({
@@ -142,94 +135,156 @@ export default async function SessionsPage({ params }: Props) {
   }
 
   return (
-    <div className="mx-auto max-w-3xl">
-      <div className="mb-6">
-        <Link href={`/${project.slug}`} className="text-sm text-muted transition-colors hover:text-foreground">
-          ← {project.name}
-        </Link>
+    <div className="max-w-3xl space-y-6">
+      <div>
+        <h2 className="text-title-2 text-foreground">Coding sessions</h2>
+        <p className="mt-1.5 max-w-(--reading-max) text-body text-muted">
+          Close a session properly and the next one starts where this one ended. The
+          review at the end is what feeds the next resume packet.
+        </p>
       </div>
 
-      <h1 className="text-2xl font-bold tracking-tight text-foreground">Coding Sessions</h1>
-      <p className="mt-1 text-sm text-muted">
-        Continuity between sessions — so the next one starts where this one ended.
-      </p>
-
-      <details className="mt-6 rounded-2xl border border-line bg-surface">
-        <summary className="cursor-pointer px-4 py-3 text-sm font-medium text-muted hover:text-foreground">
-          + Start a session
-        </summary>
-        <form action={startSession} className="space-y-4 px-4 py-4">
-          <Field label="Objective" name="objective" type="text" placeholder="Finish onboarding persistence" required />
-          <Button type="submit" variant="primary">Start session</Button>
+      <CreateDisclosure label="Start a session">
+        <form action={startSession} className="space-y-4">
+          <Field
+            label="Objective"
+            name="objective"
+            type="text"
+            placeholder="Finish onboarding persistence"
+            required
+            hint="One sentence. What does done look like for this sitting?"
+          />
+          <Button type="submit" variant="primary">
+            Start session
+          </Button>
         </form>
-      </details>
+      </CreateDisclosure>
 
-      <div className="mt-6 space-y-5">
-        {project.codingSessions.length === 0 ? (
-          <div className="rounded-2xl border border-line bg-surface py-16 text-center">
-            <p className="text-sm text-muted">No sessions yet. Start one before your next build.</p>
-          </div>
-        ) : (
-          project.codingSessions.map((session) => {
-            const meta = STATUS_META[session.status] ?? STATUS_META.ACTIVE;
+      {project.codingSessions.length === 0 ? (
+        <EmptyState
+          icon={<Terminal className="h-5 w-5" />}
+          title="No sessions logged"
+          description="Start one before your next build so there's a record of what changed and why."
+        />
+      ) : (
+        <Stack className="space-y-3">
+          {project.codingSessions.map((session) => {
+            const meta = workStatus(session.status);
             return (
-              <div key={session.id} className="rounded-2xl border border-line bg-surface p-5">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="text-base font-semibold text-foreground">{session.objective}</h3>
-                      <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-medium ${meta.cls}`}>{meta.label}</span>
-                      {session._count.prompts > 0 && (
-                        <span className="rounded-full bg-accent/10 px-2 py-0.5 text-[10px] text-accent">{session._count.prompts} prompts</span>
-                      )}
-                    </div>
-                    <p className="mt-1 text-xs text-subtle">
-                      {session.startedAt.toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}
-                      {session.endedAt && ` → ${session.endedAt.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}`}
-                    </p>
-                    {session.notes && <p className="mt-2 text-sm text-muted">{session.notes}</p>}
-                    {session.discoveries && (
-                      <p className="mt-1 text-xs text-subtle">🗒 Discoveries: {session.discoveries}</p>
-                    )}
-                    {session.whatChanged && (
-                      <p className="mt-1 text-xs text-subtle">Changed: {session.whatChanged}</p>
-                    )}
-                    {session.nextTask && (
-                      <div className="mt-2 rounded-lg border border-accent/20 bg-accent/5 px-3 py-2 text-xs text-accent">
-                        Next: {session.nextTask}
-                      </div>
-                    )}
-                  </div>
+              <Row key={session.id} className="p-5">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="text-title-3 text-foreground">{session.objective}</h3>
+                  <Badge tone={meta.tone} dot={session.status === "ACTIVE"}>
+                    {meta.label}
+                  </Badge>
+                  {session._count.prompts > 0 && (
+                    <Badge tone="cobalt">
+                      {session._count.prompts} prompt
+                      {session._count.prompts === 1 ? "" : "s"}
+                    </Badge>
+                  )}
                 </div>
 
+                <p className="mt-1 text-caption text-subtle">
+                  <time dateTime={session.startedAt.toISOString()}>
+                    {session.startedAt.toLocaleString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      hour: "numeric",
+                      minute: "2-digit",
+                    })}
+                  </time>
+                  {session.endedAt && (
+                    <>
+                      {" → "}
+                      <time dateTime={session.endedAt.toISOString()}>
+                        {session.endedAt.toLocaleTimeString("en-US", {
+                          hour: "numeric",
+                          minute: "2-digit",
+                        })}
+                      </time>
+                    </>
+                  )}
+                </p>
+
+                <DataList
+                  className="mt-3"
+                  items={[
+                    { label: "Finished", value: session.notes },
+                    { label: "Still broken", value: session.whatChanged },
+                    { label: "Discoveries", value: session.discoveries },
+                  ]}
+                />
+
+                {session.nextTask && (
+                  <p className="mt-3 rounded-xl border border-accent/25 bg-accent/8 px-3.5 py-2.5 text-caption text-accent">
+                    <span className="font-semibold">Next · </span>
+                    {session.nextTask}
+                  </p>
+                )}
+
                 {session.status === "ACTIVE" && (
-                  <details className="mt-3 rounded-xl border border-line bg-surface px-3 py-2 text-xs text-muted">
-                    <summary className="cursor-pointer">End session (quick review)</summary>
-                    <form action={endSession} className="mt-3 space-y-3">
+                  <details className="mt-4 rounded-xl border border-line bg-well">
+                    <summary
+                      className="cursor-pointer list-none px-4 py-3 text-caption font-semibold
+                        text-muted transition-colors hover:text-foreground
+                        [&::-webkit-details-marker]:hidden"
+                    >
+                      End session — quick review
+                    </summary>
+                    <form
+                      action={endSession}
+                      className="space-y-4 border-t border-line-subtle px-4 py-4"
+                    >
                       <input type="hidden" name="id" value={session.id} />
                       <TextField label="What did we finish?" name="notes" rows={2} />
                       <TextField label="What still doesn't work?" name="whatChanged" rows={2} />
                       <TextField label="Discoveries" name="discoveries" rows={2} />
-                      <Field label="What should happen next?" name="nextTask" type="text" placeholder="Next task for the project" />
-                      <div className="rounded-xl border border-line bg-surface-raised p-3">
-                        <label className="flex items-center gap-2 text-xs text-muted">
-                          <input type="checkbox" name="makeDecision" className="accent-[var(--accent)]" />
-                          Record a decision made this session
-                        </label>
-                        <div className="mt-2 space-y-2">
-                          <Field label="Decision title" name="decisionTitle" type="text" placeholder="Use Prisma instead of Drizzle" />
-                          <Field label="Decision" name="decisionBody" type="text" placeholder="What we decided" />
+                      <Field
+                        label="What should happen next?"
+                        name="nextTask"
+                        type="text"
+                        placeholder="Becomes the project's next task"
+                      />
+
+                      <div className="rounded-xl border border-line bg-surface p-4">
+                        <FieldShell label="Decision">
+                          <label className="flex items-center gap-2.5 text-body text-muted">
+                            <input
+                              type="checkbox"
+                              name="makeDecision"
+                              className="h-4 w-4 accent-[var(--accent)]"
+                            />
+                            Record a decision made this session
+                          </label>
+                        </FieldShell>
+                        <div className="mt-4 space-y-4">
+                          <Field
+                            label="Decision title"
+                            name="decisionTitle"
+                            type="text"
+                            placeholder="Use Prisma instead of Drizzle"
+                          />
+                          <Field
+                            label="Decision"
+                            name="decisionBody"
+                            type="text"
+                            placeholder="What was decided"
+                          />
                         </div>
                       </div>
-                      <Button type="submit" variant="secondary">Complete session</Button>
+
+                      <Button type="submit" variant="primary">
+                        Complete session
+                      </Button>
                     </form>
                   </details>
                 )}
-              </div>
+              </Row>
             );
-          })
-        )}
-      </div>
+          })}
+        </Stack>
+      )}
     </div>
   );
 }

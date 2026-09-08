@@ -1,30 +1,21 @@
 import { redirect } from "next/navigation";
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import { cookies } from "next/headers";
+import { Flag } from "lucide-react";
 import { verifySessionToken, SESSION_COOKIE_NAME } from "@/server/auth/session";
 import { db } from "@/server/db";
+import { requireActor } from "@/features/projects/queries";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
+import { Badge } from "@/components/ui/badge";
+import { EmptyState, Row, Stack } from "@/components/ui/page";
+import { CreateDisclosure, RowActions, RowButton } from "@/components/ui/disclosure";
+import { workStatus } from "@/features/projects/display";
 
 type Props = { params: Promise<{ slug: string }> };
 
-const STATUS_META: Record<string, { label: string; cls: string }> = {
-  PLANNED: { label: "Planned", cls: "text-subtle bg-subtle/10" },
-  IN_PROGRESS: { label: "In progress", cls: "text-accent bg-accent/10" },
-  BLOCKED: { label: "Blocked", cls: "text-danger bg-danger/10" },
-  DONE: { label: "Done", cls: "text-success bg-success/10" },
-  CANCELLED: { label: "Cancelled", cls: "text-muted bg-muted/10" },
-};
-
 export default async function MilestonesPage({ params }: Props) {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value ?? null;
-  if (!token) redirect("/login");
-
-  const actor = await verifySessionToken(token);
-  if (!actor) redirect("/login");
-
+  const actor = await requireActor();
   const { slug } = await params;
 
   const project = await db.project.findUnique({
@@ -107,72 +98,102 @@ export default async function MilestonesPage({ params }: Props) {
   }
 
   return (
-    <div className="mx-auto max-w-3xl">
-      <div className="mb-6">
-        <Link href={`/${project.slug}`} className="text-sm text-muted transition-colors hover:text-foreground">
-          ← {project.name}
-        </Link>
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-title-2 text-foreground">Milestones</h2>
+        <p className="mt-1.5 max-w-(--reading-max) text-body text-muted">
+          The big moments on the way to shipping. Dates are optional — the sequence is
+          the point.
+        </p>
       </div>
 
-      <h1 className="text-2xl font-bold tracking-tight text-foreground">Milestones</h1>
-      <p className="mt-1 text-sm text-muted">
-        Big moments on the way to shipping — dates are optional.
-      </p>
-
-      <details className="mt-6 rounded-2xl border border-line bg-surface">
-        <summary className="cursor-pointer px-4 py-3 text-sm font-medium text-muted hover:text-foreground">
-          + New milestone
-        </summary>
-        <form action={addMilestone} className="space-y-4 px-4 py-4">
+      <CreateDisclosure label="New milestone">
+        <form action={addMilestone} className="space-y-4">
           <Field label="Name" name="name" type="text" placeholder="MVP" required />
-          <Field label="Description" name="description" type="text" placeholder="Core loop working for early users" />
-          <Field label="Target date (optional)" name="targetDate" type="date" />
-          <Button type="submit" variant="primary">Add milestone</Button>
+          <Field
+            label="Description"
+            name="description"
+            type="text"
+            placeholder="Core loop working end to end for early users"
+          />
+          <Field label="Target date" name="targetDate" type="date" hint="Optional." />
+          <Button type="submit" variant="primary">
+            Add milestone
+          </Button>
         </form>
-      </details>
+      </CreateDisclosure>
 
-      <div className="mt-6 space-y-4">
-        {project.milestones.length === 0 ? (
-          <div className="rounded-2xl border border-line bg-surface py-16 text-center">
-            <p className="text-sm text-muted">No milestones yet. Prototype → MVP → Launch, that kind of thing.</p>
-          </div>
-        ) : (
-          project.milestones.map((m) => {
-            const meta = STATUS_META[m.status] ?? STATUS_META.PLANNED;
+      {project.milestones.length === 0 ? (
+        <EmptyState
+          icon={<Flag className="h-5 w-5" />}
+          title="No milestones yet"
+          description="Prototype → MVP → Launch. Naming the stops makes an unfinished project feel finishable."
+        />
+      ) : (
+        <Stack as="ol" className="space-y-2">
+          {project.milestones.map((milestone) => {
+            const meta = workStatus(milestone.status);
+            const done = milestone.status === "DONE";
             return (
-              <div key={m.id} className="rounded-2xl border border-line bg-surface p-5">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="text-base font-semibold text-foreground">{m.name}</h3>
-                      <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-medium ${meta.cls}`}>{meta.label}</span>
-                      {m._count.features > 0 && (
-                        <span className="rounded-full bg-cobalt-400/10 px-2 py-0.5 text-[10px] text-cobalt-400">{m._count.features} features</span>
-                      )}
-                    </div>
-                    {m.description && <p className="mt-1 text-sm text-muted">{m.description}</p>}
-                    {m.targetDate && <p className="mt-1 text-xs text-subtle">Target: {m.targetDate.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</p>}
-                  </div>
+              <Row key={milestone.id} className="p-5">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3
+                    className={
+                      done
+                        ? "text-title-3 text-subtle line-through"
+                        : "text-title-3 text-foreground"
+                    }
+                  >
+                    {milestone.name}
+                  </h3>
+                  <Badge tone={meta.tone}>{meta.label}</Badge>
+                  {milestone._count.features > 0 && (
+                    <Badge tone="cobalt">
+                      {milestone._count.features} feature
+                      {milestone._count.features === 1 ? "" : "s"}
+                    </Badge>
+                  )}
                 </div>
-                <form action={updateStatus} className="mt-2 flex flex-wrap gap-2">
-                  <input type="hidden" name="id" value={m.id} />
-                  {[
-                    { value: "IN_PROGRESS", label: "Start", cls: "text-accent bg-accent/10 border-accent/30" },
-                    { value: "DONE", label: "Complete", cls: "text-success bg-success/10 border-success/30" },
-                  ].map((btn) => (
-                    m.status === "DONE" ? null : (
-                      <button key={btn.value} type="submit" name="status" value={btn.value}
-                              className={`rounded-lg border px-3 py-1.5 text-xs font-medium ${btn.cls}`}>
-                        {btn.label}
-                      </button>
-                    )
-                  ))}
-                </form>
-              </div>
+
+                {milestone.description && (
+                  <p className="mt-1.5 max-w-(--reading-max) text-body text-muted">
+                    {milestone.description}
+                  </p>
+                )}
+
+                {milestone.targetDate && (
+                  <p className="mt-1.5 text-caption text-subtle">
+                    <span className="eyebrow mr-1.5">Target</span>
+                    <time dateTime={milestone.targetDate.toISOString()}>
+                      {milestone.targetDate.toLocaleDateString("en-US", {
+                        month: "long",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                    </time>
+                  </p>
+                )}
+
+                {!done && milestone.status !== "CANCELLED" && (
+                  <form action={updateStatus}>
+                    <input type="hidden" name="id" value={milestone.id} />
+                    <RowActions>
+                      {milestone.status !== "IN_PROGRESS" && (
+                        <RowButton name="status" value="IN_PROGRESS" tone="accent">
+                          Start
+                        </RowButton>
+                      )}
+                      <RowButton name="status" value="DONE" tone="success">
+                        Complete
+                      </RowButton>
+                    </RowActions>
+                  </form>
+                )}
+              </Row>
             );
-          })
-        )}
-      </div>
+          })}
+        </Stack>
+      )}
     </div>
   );
 }

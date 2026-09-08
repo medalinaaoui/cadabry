@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { CopyButton } from "@/components/ui/copy-button";
 import { Button } from "@/components/ui/button";
+import { Panel, PanelHeader } from "@/components/ui/panel";
 
 // Fixed reference — no "AI" novium
 const DEFAULT_RULES = `GENERAL: Use App Router, Server Components by default
@@ -39,6 +40,17 @@ export function StarterOutputClient({ defaultAgent, rules }: { defaultAgent: str
       "# Product goal",
       `Help ${audience || "the user"}.${outcome ? `\nCore outcome: ${outcome}.` : ""}`,
       "",
+      ...(features
+        ? [
+            "# Core features",
+            ...features
+              .split(",")
+              .map((f) => f.trim())
+              .filter(Boolean)
+              .map((f) => `- ${f}`),
+            "",
+          ]
+        : []),
       "# Stack",
       "Next.js · TypeScript · App Router · React · Prisma · PostgreSQL (Neon) · Tailwind CSS",
       "",
@@ -90,26 +102,32 @@ export function StarterOutputClient({ defaultAgent, rules }: { defaultAgent: str
 
   return (
     <>
-      <section className="rounded-2xl border border-line bg-surface p-5">
-        <h2 className="text-sm font-semibold text-foreground">4. Generate</h2>
-        <p className="mt-1 text-xs text-muted">
-          Assembled from your answers + Builder Profile. Edit freely, then copy.
-        </p>
-        <div className="mt-4">
-          <Button type="button" variant="primary" onClick={generatePrompt}>Generate starter prompt</Button>
-        </div>
-      </section>
+      <Panel>
+        <PanelHeader
+          title="4 · Generate"
+          description="Assembled from your answers plus your builder profile. Edit it freely once it's out."
+        />
+        <Button type="button" variant="primary" onClick={generatePrompt}>
+          Generate starter prompt
+        </Button>
+      </Panel>
 
       {generated && (
-        <section className="mt-6 rounded-2xl border border-line bg-surface p-5">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-foreground">Your starter prompt</h2>
-            <CopyButton text={generated} label="Copy prompt" />
-          </div>
-          <pre className="mt-4 overflow-x-auto rounded-xl border border-line bg-well p-4 text-xs text-foreground leading-relaxed">
+        <Panel>
+          <PanelHeader
+            title="Your starter prompt"
+            action={<CopyButton text={generated} label="Copy prompt" variant="primary" />}
+          />
+          <pre
+            tabIndex={0}
+            role="region"
+            aria-label="Generated starter prompt"
+            className="max-h-[60vh] overflow-auto rounded-xl border border-line-subtle bg-well p-4
+              text-caption leading-relaxed text-ink-100"
+          >
             {generated}
           </pre>
-        </section>
+        </Panel>
       )}
     </>
   );

@@ -1,11 +1,15 @@
 import { redirect } from "next/navigation";
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import { cookies } from "next/headers";
+import { ArrowUpRight, Lightbulb } from "lucide-react";
 import { verifySessionToken, SESSION_COOKIE_NAME } from "@/server/auth/session";
 import { db } from "@/server/db";
+import { requireActor } from "@/features/projects/queries";
 import { Button } from "@/components/ui/button";
-import { Field, TextField } from "@/components/ui/field";
+import { Field, SelectField, TextField } from "@/components/ui/field";
+import { Badge } from "@/components/ui/badge";
+import { EmptyState, Row, Stack } from "@/components/ui/page";
+import { CreateDisclosure } from "@/components/ui/disclosure";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -14,13 +18,7 @@ const KIND_LABELS: Record<string, string> = {
 };
 
 export default async function InspirationsPage({ params }: Props) {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value ?? null;
-  if (!token) redirect("/login");
-
-  const actor = await verifySessionToken(token);
-  if (!actor) redirect("/login");
-
+  const actor = await requireActor();
   const { slug } = await params;
 
   const project = await db.project.findUnique({
@@ -64,71 +62,94 @@ export default async function InspirationsPage({ params }: Props) {
   }
 
   return (
-    <div className="mx-auto max-w-3xl">
-      <div className="mb-6">
-        <Link href={`/${project.slug}`} className="text-sm text-muted transition-colors hover:text-foreground">
-          ← {project.name}
-        </Link>
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-title-2 text-foreground">Inspiration vault</h2>
+        <p className="mt-1.5 max-w-(--reading-max) text-body text-muted">
+          A bookmark says <em>what</em>. The field that matters here is <em>why</em> — the
+          specific thing you want to steal.
+        </p>
       </div>
 
-      <h1 className="text-2xl font-bold tracking-tight text-foreground">Inspiration Vault</h1>
-      <p className="mt-1 text-sm text-muted">
-        Save what inspires you — and why it matters.
-      </p>
-
-      <details className="mt-6 rounded-2xl border border-line bg-surface">
-        <summary className="cursor-pointer px-4 py-3 text-sm font-medium text-muted hover:text-foreground">
-          + Save inspiration
-        </summary>
-        <form action={addInspiration} className="space-y-4 px-4 py-4">
-          <Field label="Title" name="title" type="text" placeholder="linear.app command menu" required />
-          <Field label="URL" name="url" type="url" placeholder="https://..." />
-          <div className="space-y-1.5">
-            <label htmlFor="kind" className="text-sm text-muted">Kind</label>
-            <select id="kind" name="kind" className="w-full rounded-xl border border-line bg-surface px-4 py-2.5 text-sm text-foreground">
-              {Object.entries(KIND_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-            </select>
-          </div>
-          <TextField label="What exactly inspired me" name="inspiredDetail" rows={2} placeholder="I like how their command menu surfaces actions without clutter" />
+      <CreateDisclosure label="Save inspiration">
+        <form action={addInspiration} className="space-y-4">
+          <Field
+            label="Title"
+            name="title"
+            type="text"
+            placeholder="linear.app command menu"
+            required
+          />
+          <Field label="URL" name="url" type="url" placeholder="https://…" />
+          <SelectField label="Kind" name="kind" defaultValue="LINK">
+            {Object.entries(KIND_LABELS).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </SelectField>
+          <TextField
+            label="What exactly inspired me"
+            name="inspiredDetail"
+            rows={2}
+            hint="Be specific. “Nice design” is worth nothing in six months."
+            placeholder="How their command menu surfaces actions without any visible chrome"
+          />
           <TextField label="Text snippet" name="textSnippet" rows={2} />
           <Field label="Note" name="note" type="text" placeholder="Any extra context" />
-          <Button type="submit" variant="primary">Save</Button>
+          <Button type="submit" variant="primary">
+            Save
+          </Button>
         </form>
-      </details>
+      </CreateDisclosure>
 
-      <div className="mt-6 space-y-4">
-        {project.inspirations.length === 0 ? (
-          <div className="rounded-2xl border border-line bg-surface py-16 text-center">
-            <p className="text-sm text-muted">No inspirations yet. Capture what makes products feel good.</p>
-          </div>
-        ) : (
-          project.inspirations.map((item) => (
-            <div key={item.id} className="rounded-2xl border border-line bg-surface p-5">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="text-base font-semibold text-foreground">
-                      {item.canonicalUrl ? (
-                        <a href={item.canonicalUrl} target="_blank" rel="noopener noreferrer" className="text-cobalt-400 hover:text-cobalt-300">{item.title}</a>
-                      ) : item.title}
-                    </h3>
-                    <span className="rounded-full bg-cobalt-400/10 px-2 py-0.5 text-[10px] font-medium text-cobalt-400">
-                      {KIND_LABELS[item.kind] ?? item.kind}
-                    </span>
-                  </div>
-                  {item.inspiredDetail && (
-                    <p className="mt-1 text-sm text-muted">💡 {item.inspiredDetail}</p>
+      {project.inspirations.length === 0 ? (
+        <EmptyState
+          icon={<Lightbulb className="h-5 w-5" />}
+          title="Nothing saved yet"
+          description="Capture the products, screens and details you want this project to feel like."
+        />
+      ) : (
+        <Stack className="space-y-3">
+          {project.inspirations.map((item) => (
+            <Row key={item.id} className="p-5">
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="text-title-3 text-foreground">
+                  {item.canonicalUrl ? (
+                    <a
+                      href={item.canonicalUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-cobalt-400 transition-colors hover:text-cobalt-300"
+                    >
+                      {item.title}
+                      <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+                    </a>
+                  ) : (
+                    item.title
                   )}
-                  {item.textSnippet && (
-                    <blockquote className="mt-1 border-l-2 border-line pl-3 text-xs text-subtle">{item.textSnippet}</blockquote>
-                  )}
-                  {item.note && <p className="mt-1 text-xs text-subtle">{item.note}</p>}
-                </div>
+                </h3>
+                <Badge tone="cobalt">{KIND_LABELS[item.kind] ?? item.kind}</Badge>
               </div>
-            </div>
-          ))
-        )}
-      </div>
+
+              {item.inspiredDetail && (
+                <p className="mt-2 max-w-(--reading-max) text-body text-ink-100">
+                  <span className="eyebrow mr-1.5">Why</span>
+                  {item.inspiredDetail}
+                </p>
+              )}
+
+              {item.textSnippet && (
+                <blockquote className="mt-2.5 border-l-2 border-cobalt-500/45 pl-3.5 text-caption text-muted">
+                  {item.textSnippet}
+                </blockquote>
+              )}
+
+              {item.note && <p className="mt-2 text-caption text-subtle">{item.note}</p>}
+            </Row>
+          ))}
+        </Stack>
+      )}
     </div>
   );
 }

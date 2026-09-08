@@ -17,9 +17,11 @@ export default async function AuthenticatedLayout({
   const actor = await verifySessionToken(token);
   if (!actor) redirect("/login");
 
+  // Loaded once for the shell so the command menu can route anywhere without
+  // a round trip on open.
   const projects = await db.project.findMany({
     where: { ownerId: actor.userId, archivedAt: null },
-    select: { id: true, name: true },
+    select: { id: true, name: true, slug: true, status: true },
     orderBy: { lastActivityAt: "desc" },
     take: 50,
   });

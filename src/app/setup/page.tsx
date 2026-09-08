@@ -5,6 +5,9 @@ import { SESSION_COOKIE_NAME, sessionCookieOptions } from "@/server/auth/session
 import { AuthError } from "@/server/auth/errors";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
+import { AuthLayout } from "@/components/shell/auth-layout";
+
+export const metadata = { title: "Create your workspace" };
 
 export default async function SetupPage({
   searchParams,
@@ -46,31 +49,51 @@ export default async function SetupPage({
   }
 
   return (
-    <main className="flex min-h-dvh items-center justify-center bg-background p-6">
-      <div className="w-full max-w-md">
-        <div className="mb-10 text-center">
-          <h1 className="text-3xl font-bold tracking-tight text-accent">Cadabry</h1>
-          <p className="mt-2 text-sm text-muted">
-            Your universe of unfinished ideas becoming real software.
-          </p>
-        </div>
-
-        {error && (
-          <div className="mb-5 rounded-xl border border-danger/30 bg-danger/5 px-4 py-3 text-sm text-danger" role="alert">
-            {error}
-          </div>
-        )}
-
-        <form action={handleSetup} className="space-y-5">
-          <Field label="Display name" name="displayName" type="text" placeholder="Your name" autoComplete="name" required />
-          <Field label="Email" name="email" type="email" placeholder="you@example.com" autoComplete="email" required />
-          <Field label="Password" name="password" type="password" placeholder="At least 12 characters" autoComplete="new-password" minLength={12} required />
-          <Field label="Confirm password" name="passwordConfirm" type="password" placeholder="Re-enter password" autoComplete="new-password" minLength={12} required />
-          <Button type="submit" variant="primary" className="w-full">
-            Create your workspace
-          </Button>
-        </form>
-      </div>
-    </main>
+    <AuthLayout
+      title="Create your workspace"
+      subtitle="Your universe of unfinished ideas becoming real software."
+      error={error}
+      footer="You're the owner. Public signup stays closed until you open it."
+    >
+      <form action={handleSetup} className="space-y-4">
+        <Field
+          label="Display name"
+          name="displayName"
+          type="text"
+          placeholder="Your name"
+          autoComplete="name"
+          required
+          autoFocus
+        />
+        <Field
+          label="Email"
+          name="email"
+          type="email"
+          placeholder="you@example.com"
+          autoComplete="email"
+          required
+        />
+        <Field
+          label="Password"
+          name="password"
+          type="password"
+          autoComplete="new-password"
+          minLength={12}
+          required
+          hint="At least 12 characters."
+        />
+        <Field
+          label="Confirm password"
+          name="passwordConfirm"
+          type="password"
+          autoComplete="new-password"
+          minLength={12}
+          required
+        />
+        <Button type="submit" variant="primary" size="lg" className="w-full">
+          Create your workspace
+        </Button>
+      </form>
+    </AuthLayout>
   );
 }

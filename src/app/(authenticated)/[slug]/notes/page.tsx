@@ -1,23 +1,21 @@
 import { redirect } from "next/navigation";
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import { cookies } from "next/headers";
+import { FileText, Pin, PinOff } from "lucide-react";
 import { verifySessionToken, SESSION_COOKIE_NAME } from "@/server/auth/session";
 import { db } from "@/server/db";
+import { requireActor } from "@/features/projects/queries";
 import { Button } from "@/components/ui/button";
 import { Field, TextField } from "@/components/ui/field";
 import { Markdown } from "@/components/ui/markdown";
+import { EmptyState, Row, Stack } from "@/components/ui/page";
+import { CreateDisclosure, RowButton } from "@/components/ui/disclosure";
+import { timeAgo } from "@/features/projects/display";
 
 type Props = { params: Promise<{ slug: string }> };
 
 export default async function NotesPage({ params }: Props) {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value ?? null;
-  if (!token) redirect("/login");
-
-  const actor = await verifySessionToken(token);
-  if (!actor) redirect("/login");
-
+  const actor = await requireActor();
   const { slug } = await params;
 
   const project = await db.project.findUnique({
@@ -64,55 +62,85 @@ export default async function NotesPage({ params }: Props) {
   }
 
   return (
-    <div className="mx-auto max-w-3xl">
-      <div className="mb-6">
-        <Link href={`/${project.slug}`} className="text-sm text-muted transition-colors hover:text-foreground">
-          ← {project.name}
-        </Link>
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-title-2 text-foreground">Notes</h2>
+        <p className="mt-1.5 max-w-(--reading-max) text-body text-muted">
+          Loose memory for this project, written in Markdown. Pin the ones you keep
+          coming back to.
+        </p>
       </div>
 
-      <h1 className="text-2xl font-bold tracking-tight text-foreground">Notes</h1>
-      <p className="mt-1 text-sm text-muted">Random memory for this project, in Markdown.</p>
-
-      <details className="mt-6 rounded-2xl border border-line bg-surface">
-        <summary className="cursor-pointer px-4 py-3 text-sm font-medium text-muted hover:text-foreground">
-          + New note
-        </summary>
-        <form action={addNote} className="space-y-4 px-4 py-4">
-          <Field label="Title" name="title" type="text" placeholder="Why we chose X" required />
-          <TextField label="Body (Markdown)" name="body" rows={5} placeholder={"**Decision context**\nWe picked this because..."} required />
-          <Button type="submit" variant="primary">Add note</Button>
+      <CreateDisclosure label="New note">
+        <form action={addNote} className="space-y-4">
+          <Field
+            label="Title"
+            name="title"
+            type="text"
+            placeholder="Why we chose the Neon adapter"
+            required
+          />
+          <TextField
+            label="Body"
+            name="body"
+            rows={6}
+            hint="Markdown is supported."
+            placeholder={"**Context**\nWe picked this because…"}
+            required
+          />
+          <Button type="submit" variant="primary">
+            Add note
+          </Button>
         </form>
-      </details>
+      </CreateDisclosure>
 
-      <div className="mt-6 space-y-4">
-        {project.notes.length === 0 ? (
-          <div className="rounded-2xl border border-line bg-surface py-16 text-center">
-            <p className="text-sm text-muted">No notes yet.</p>
-          </div>
-        ) : (
-          project.notes.map((note) => (
-            <div key={note.id} className="rounded-2xl border border-line bg-surface p-5">
-              <div className="flex items-start justify-between">
-                <h3 className="text-base font-semibold text-foreground">
-                  {note.pinned && <span className="mr-2 text-accent">📌</span>}
-                  {note.title}
-                </h3>
-                <form action={togglePin} className="contents">
+      {project.notes.length === 0 ? (
+        <EmptyState
+          icon={<FileText className="h-5 w-5" />}
+          title="No notes yet"
+          description="The thought you'd otherwise lose in a chat window belongs here."
+        />
+      ) : (
+        <Stack className="space-y-3">
+          {project.notes.map((note) => (
+            <Row key={note.id} className="p-5">
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <h3 className="flex items-center gap-2 text-title-3 text-foreground">
+                    {note.pinned && (
+                      <Pin className="h-3.5 w-3.5 shrink-0 text-accent" aria-hidden="true" />
+                    )}
+                    {note.title}
+                  </h3>
+                  <p className="mt-0.5 text-micro text-subtle">
+                    Updated{" "}
+                    <time dateTime={note.updatedAt.toISOString()}>
+                      {timeAgo(note.updatedAt)}
+                    </time>
+                  </p>
+                </div>
+
+                <form action={togglePin} className="shrink-0">
                   <input type="hidden" name="id" value={note.id} />
                   <input type="hidden" name="pinned" value={String(!note.pinned)} />
-                  <button type="submit" className="rounded-lg border border-line px-2.5 py-1 text-xs text-muted hover:text-foreground">
+                  <RowButton tone={note.pinned ? "accent" : "neutral"}>
+                    {note.pinned ? (
+                      <PinOff className="h-3.5 w-3.5" aria-hidden="true" />
+                    ) : (
+                      <Pin className="h-3.5 w-3.5" aria-hidden="true" />
+                    )}
                     {note.pinned ? "Unpin" : "Pin"}
-                  </button>
+                  </RowButton>
                 </form>
               </div>
-              <div className="mt-2 text-sm text-foreground markdown-body">
+
+              <div className="mt-3.5 border-t border-line-subtle pt-3.5">
                 <Markdown>{note.body}</Markdown>
               </div>
-            </div>
-          ))
-        )}
-      </div>
+            </Row>
+          ))}
+        </Stack>
+      )}
     </div>
   );
 }

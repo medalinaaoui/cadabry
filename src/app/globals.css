@@ -3,54 +3,56 @@
 /* ============================================================================
    Cadabry design tokens — "Apple workspace inside The Starry Night"
    Full specification: docs/design-system.md
-   Dark, sophisticated navy canvas; moonlight gold + cobalt reserved for
-   energy, active state, progress, and calls to action.
-   All tokens are additive. Existing slate and amber utilities still resolve;
-   see the migration map in docs/design-system.md.
+
+   Three ideas govern this file:
+   1. Depth comes from surface change and light, not from drop shadows.
+   2. Gold is the only "act on this" signal. Cobalt is energy and place.
+   3. Motion describes spatial relationships. Never decoration.
    ========================================================================== */
 :root {
   color-scheme: dark;
 
   /* --- Ink: blue-tinted neutral ramp (surfaces → text) ------------------- */
-  --ink-950: #050a17; /* void / deepest canvas behind the universe */
+  --ink-980: #02050f; /* deep void, behind the star field */
+  --ink-950: #050a17; /* void / deepest canvas */
   --ink-900: #080e1f; /* app background */
   --ink-850: #0c1428; /* sunken wells, code blocks */
-  --ink-800: #101c35; /* base surface / cards */
+  --ink-800: #101c35; /* base surface / panels */
   --ink-750: #16223f; /* raised surface, hover fill */
   --ink-700: #1c2b4d; /* overlay / popover / dialog */
   --ink-600: #26355a; /* strong border, dividers on raised */
-  --ink-500: #35477a; /* scrollbar hover, hairlines (see --line) */
+  --ink-500: #35477a; /* scrollbar hover, hairlines */
   --ink-400: #4a5d82; /* disabled control border */
-  --ink-300: #6b7d9e; /* tertiary text / placeholder */
+  --ink-300: #8794ae; /* tertiary text / placeholder — 5.1:1 on the lightest panel */
   --ink-200: #9eabc4; /* muted / secondary text (cloudy blue-gray) */
   --ink-100: #c7d0e0; /* high-emphasis secondary */
   --ink-50:  #e8edf8; /* primary foreground */
 
-  /* --- Cobalt: ultramarine energy (links, focus, "moving" projects) ------ */
-  --cobalt-700: #2a4fa8; /* pressed / deep ultramarine */
+  /* --- Cobalt: ultramarine energy (place, selection, live projects) ------ */
+  --cobalt-700: #2a4fa8;
   --cobalt-600: #3a67c9;
-  --cobalt-500: #497fe3; /* base interactive blue */
+  --cobalt-500: #497fe3;
   --cobalt-400: #6c9bef; /* link text on dark (AA) */
-  --cobalt-300: #93b8f6; /* highlight text */
+  --cobalt-300: #93b8f6;
   --cobalt-glow: color-mix(in oklab, #497fe3 38%, transparent);
 
-  /* --- Cyan: subtle starlight highlight ---------------------------------- */
+  /* --- Cyan: distant starlight ------------------------------------------ */
   --cyan-400: #58c8dc;
   --cyan-300: #86dcec;
   --cyan-glow: color-mix(in oklab, #58c8dc 30%, transparent);
 
-  /* --- Gold: moonlight accent (CTA, progress, stars, active) ------------- */
-  --gold-600: #d9a94e; /* pressed / muted golden */
+  /* --- Gold: moonlight. The single action accent. ----------------------- */
+  --gold-600: #d9a94e;
   --gold-500: #e9be63;
-  --gold-400: #f3cf77; /* base moonlight yellow */
-  --gold-300: #f8dd97; /* hover / bright star */
+  --gold-400: #f3cf77;
+  --gold-300: #f8dd97;
   --gold-glow: color-mix(in oklab, #f3cf77 30%, transparent);
 
   /* --- Status ------------------------------------------------------------ */
-  --success-500: #4cbf94; /* moving / shipped */
+  --success-500: #4cbf94;
   --success-400: #6fd3ab;
-  --warning-500: #f3cf77; /* needs attention (aligns with gold) */
-  --danger-600: #cf4d55; /* blocked / destructive */
+  --warning-500: #f3cf77;
+  --danger-600: #cf4d55;
   --danger-500: #e5686a;
   --danger-400: #f28b8c;
   --info-500: #497fe3;
@@ -61,35 +63,41 @@
   --surface-raised: var(--ink-750);
   --overlay: var(--ink-700);
   --well: var(--ink-850);
+  --void: var(--ink-980);
+
+  /* Glass: used only on elements that float above the universe. */
+  --glass: color-mix(in oklab, var(--ink-800) 72%, transparent);
+  --glass-strong: color-mix(in oklab, var(--ink-750) 86%, transparent);
+  --glass-blur: 20px;
 
   /* --- Semantic text ----------------------------------------------------- */
   --foreground: var(--ink-50);
   --muted: var(--ink-200);
   --subtle: var(--ink-300);
-  --on-accent: #1a1305; /* text on gold fills */
-  --on-cobalt: #061024; /* text on cobalt fills */
+  --on-accent: #1a1305;
+  --on-cobalt: #061024;
 
   /* --- Lines ------------------------------------------------------------- */
-  --line: color-mix(in oklab, #35477a 55%, transparent); /* default border */
+  --line: color-mix(in oklab, #35477a 55%, transparent);
   --line-strong: var(--ink-600);
   --line-subtle: color-mix(in oklab, #35477a 30%, transparent);
 
-  /* --- Accent aliases (back-compat + intent) ----------------------------- */
+  /* --- Accent aliases ---------------------------------------------------- */
   --accent: var(--gold-400);
   --accent-strong: var(--gold-300);
   --accent-muted: var(--gold-600);
   --blue: var(--cobalt-500);
 
-  /* --- Radius ------------------------------------------------------------ */
+  /* --- Radius: four steps, no in-between --------------------------------- */
   --radius-xs: 6px;
   --radius-sm: 8px;
-  --radius-md: 12px; /* inputs, buttons (matches rounded-xl) */
+  --radius-md: 12px;
   --radius-lg: 16px;
-  --radius-xl: 24px; /* panels, cards (matches rounded-3xl) */
+  --radius-xl: 24px;
   --radius-2xl: 32px;
   --radius-full: 9999px;
 
-  /* --- Elevation: subtle black + top highlight; glow carries "energy" ---- */
+  /* --- Elevation --------------------------------------------------------- */
   --shadow-xs: 0 1px 2px rgb(3 7 18 / 0.4);
   --shadow-sm: 0 2px 6px rgb(3 7 18 / 0.45), inset 0 1px 0 rgb(255 255 255 / 0.03);
   --shadow-md: 0 8px 20px -6px rgb(3 7 18 / 0.55), inset 0 1px 0 rgb(255 255 255 / 0.04);
@@ -103,17 +111,18 @@
   --duration-fast: 120ms;
   --duration-base: 200ms;
   --duration-slow: 320ms;
-  --duration-spatial: 520ms; /* universe / view transitions */
+  --duration-spatial: 520ms;
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
   --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 
   /* --- Layout ------------------------------------------------------------ */
-  --page-max: 80rem;      /* 1280px content ceiling */
-  --reading-max: 46rem;   /* long-form prose / prompt bodies */
-  --gutter: 1.5rem;       /* mobile page padding */
-  --gutter-lg: 3rem;      /* desktop page padding */
-  --header-h: 3.5rem;
+  --page-max: 78rem;
+  --reading-max: 44rem;
+  --gutter: 1.25rem;
+  --gutter-lg: 2.5rem;
+  --header-h: 3.25rem;
 
   /* --- Z-index scale ----------------------------------------------------- */
   --z-base: 0;
@@ -126,15 +135,40 @@
   --z-command: 70;
 
   /* --- Typography -------------------------------------------------------- */
-  --font-sans: ui-sans-serif, -apple-system, BlinkMacSystemFont, "SF Pro Text",
-    "Segoe UI", Roboto, Inter, system-ui, sans-serif;
+  /* system-ui resolves to SF Pro on Apple platforms; Inter carries the rest. */
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+    var(--font-inter, Inter), "Segoe UI", Roboto, sans-serif;
   --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", "Fira Code",
     Menlo, Consolas, monospace;
+
+  /* Weight ladder is 300 / 400 / 600 / 700. 500 is deliberately absent. */
+  --weight-light: 300;
+  --weight-normal: 400;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  /* App-scale ramp. Display sizes carry negative tracking ("Apple tight");
+     nothing at or below 12px is ever tightened. */
+  --text-display: 2.75rem;  /* 44px — universe hero, empty states */
+  --text-title-1: 1.75rem;  /* 28px — page titles */
+  --text-title-2: 1.3125rem;/* 21px — section heads */
+  --text-title-3: 1.0625rem;/* 17px — card titles, strong body */
+  --text-body: 0.9375rem;   /* 15px — default app body */
+  --text-caption: 0.8125rem;/* 13px — secondary captions */
+  --text-micro: 0.6875rem;  /* 11px — eyebrow, meta, keycaps */
+
+  --tracking-display: -0.022em;
+  --tracking-title: -0.014em;
+  --tracking-body: -0.006em;
+  --tracking-eyebrow: 0.09em;
+
+  --leading-display: 1.06;
+  --leading-title: 1.2;
+  --leading-body: 1.5;
 }
 
-/* Map curated tokens into Tailwind's theme so the frontend can use
-   utilities like bg-surface, text-muted, border-line, text-accent,
-   bg-cobalt-500, font-sans, etc. Additive — does not remove defaults. */
+/* Map curated tokens into Tailwind's theme so utilities like bg-surface,
+   text-muted, border-line, text-accent, text-body, font-sans all resolve. */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -142,16 +176,34 @@
   --color-surface-raised: var(--surface-raised);
   --color-overlay: var(--overlay);
   --color-well: var(--well);
+  --color-void: var(--void);
+  --color-glass: var(--glass);
+  --color-glass-strong: var(--glass-strong);
 
   --color-muted: var(--muted);
   --color-subtle: var(--subtle);
   --color-line: var(--line);
   --color-line-strong: var(--line-strong);
+  --color-line-subtle: var(--line-subtle);
 
   --color-accent: var(--accent);
   --color-accent-strong: var(--accent-strong);
   --color-accent-muted: var(--accent-muted);
   --color-on-accent: var(--on-accent);
+
+  --color-ink-950: var(--ink-950);
+  --color-ink-900: var(--ink-900);
+  --color-ink-850: var(--ink-850);
+  --color-ink-800: var(--ink-800);
+  --color-ink-750: var(--ink-750);
+  --color-ink-700: var(--ink-700);
+  --color-ink-600: var(--ink-600);
+  --color-ink-500: var(--ink-500);
+  --color-ink-400: var(--ink-400);
+  --color-ink-300: var(--ink-300);
+  --color-ink-200: var(--ink-200);
+  --color-ink-100: var(--ink-100);
+  --color-ink-50: var(--ink-50);
 
   --color-cobalt-300: var(--cobalt-300);
   --color-cobalt-400: var(--cobalt-400);
@@ -160,125 +212,271 @@
   --color-cobalt-700: var(--cobalt-700);
   --color-on-cobalt: var(--on-cobalt);
 
+  --color-gold-300: var(--gold-300);
+  --color-gold-400: var(--gold-400);
+  --color-gold-500: var(--gold-500);
+  --color-gold-600: var(--gold-600);
+
   --color-cyan: var(--cyan-400);
+  --color-cyan-300: var(--cyan-300);
   --color-success: var(--success-500);
   --color-warning: var(--warning-500);
   --color-danger: var(--danger-500);
+  --color-danger-strong: var(--danger-600);
   --color-info: var(--info-500);
 
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
+
+  --text-display: var(--text-display);
+  --text-title-1: var(--text-title-1);
+  --text-title-2: var(--text-title-2);
+  --text-title-3: var(--text-title-3);
+  --text-body: var(--text-body);
+  --text-caption: var(--text-caption);
+  --text-micro: var(--text-micro);
+
+  --radius-xs: var(--radius-xs);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-2xl: var(--radius-2xl);
+
+  --ease-out: var(--ease-out);
+  --ease-spring: var(--ease-spring);
 }
 
 /* ============================================================================
    Base
    ========================================================================== */
-* {
-  box-sizing: border-box;
+
+/* Layered so Tailwind utilities can override these element defaults.
+   Unlayered CSS beats everything in @layer, which silently made rules like
+   `button { color: inherit }` win over `text-on-accent`. */
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: var(--leading-body);
+    letter-spacing: var(--tracking-body);
+    font-synthesis: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1, h2, h3, h4 {
+    margin: 0;
+    font-weight: var(--weight-semibold);
+    letter-spacing: var(--tracking-title);
+    line-height: var(--leading-title);
+    text-wrap: balance;
+  }
+
+  p {
+    margin: 0;
+    text-wrap: pretty;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+    letter-spacing: inherit;
+    color: inherit;
+  }
+
+  button,
+  a,
+  input,
+  textarea,
+  select {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  a {
+    color: inherit;
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  [aria-disabled="true"] {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  code,
+  kbd,
+  pre,
+  samp {
+    font-family: var(--font-mono);
+    letter-spacing: 0;
+  }
+
+  ::selection {
+    background: var(--gold-glow);
+    color: var(--foreground);
+  }
+
+  /* Focus: always visible, gold ring with dark offset so it reads on any surface */
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: var(--radius-xs);
+  }
+
+  /* Scrollbars tuned to the navy canvas (progressive enhancement) */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--ink-600) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: var(--ink-600);
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    border-radius: var(--radius-full);
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background: var(--ink-500);
+    background-clip: padding-box;
+  }
+
 }
 
-body {
-  margin: 0;
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans);
-  font-synthesis: none;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
-}
+@layer components {
+  /* ============================================================================
+     Utilities
+     ========================================================================== */
+  .skip-link {
+    position: fixed;
+    top: -100px;
+    left: 1rem;
+    z-index: var(--z-command);
+    padding: 1rem;
+    border-radius: var(--radius-md);
+    background: var(--accent);
+    color: var(--on-accent);
+    font-weight: var(--weight-semibold);
+  }
+  .skip-link:focus {
+    top: 1rem;
+  }
 
-button,
-input,
-textarea,
-select {
-  font: inherit;
-}
+  /* Eyebrow: small uppercase label above a group. Positive tracking, never tight. */
+  .eyebrow {
+    font-size: var(--text-micro);
+    font-weight: var(--weight-semibold);
+    letter-spacing: var(--tracking-eyebrow);
+    text-transform: uppercase;
+    color: var(--subtle);
+  }
 
-button,
-a,
-input,
-textarea,
-select {
-  -webkit-tap-highlight-color: transparent;
-}
+  /* Numeric data aligns in columns. */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
 
-a {
-  color: inherit;
-}
+  /* Frosted panel floating above the universe. */
+  .glass {
+    background: var(--glass);
+    backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    border: 1px solid var(--line);
+  }
 
-button {
-  cursor: pointer;
-}
+  /* Press feedback, applied system-wide to actionable elements. */
+  .press:active:not(:disabled) {
+    transform: scale(0.97);
+  }
 
-button:disabled {
-  cursor: wait;
-  opacity: 0.6;
-}
+  /* ============================================================================
+     The universe
+     ========================================================================== */
 
-code,
-kbd,
-pre,
-samp {
-  font-family: var(--font-mono);
-}
+  /* Deep-space ground: a nebula wash over the void. Two radial pools of
+     ultramarine and one distant gold, so the field is never flat black. */
+  .sky {
+    background-color: var(--void);
+    background-image:
+      radial-gradient(
+        68rem 40rem at 18% 12%,
+        color-mix(in oklab, var(--cobalt-700) 26%, transparent),
+        transparent 70%
+      ),
+      radial-gradient(
+        52rem 34rem at 84% 78%,
+        color-mix(in oklab, var(--cobalt-600) 16%, transparent),
+        transparent 72%
+      ),
+      radial-gradient(
+        30rem 24rem at 70% 8%,
+        color-mix(in oklab, var(--gold-600) 7%, transparent),
+        transparent 70%
+      );
+  }
 
-::selection {
-  background: var(--gold-glow);
-  color: var(--foreground);
-}
+  @keyframes cadabry-twinkle {
+    0%, 100% { opacity: 0.28; }
+    50% { opacity: 1; }
+  }
 
-/* Focus: always visible, gold ring with dark offset so it reads on any surface */
-:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 3px;
-  border-radius: var(--radius-xs);
-}
+  /* Slow orbital drift for a project node. Amplitude and phase are supplied
+     per-node as custom properties so no two nodes move alike. */
+  @keyframes cadabry-drift {
+    0%, 100% { transform: translate3d(0, 0, 0); }
+    50% { transform: translate3d(var(--drift-x, 4px), var(--drift-y, -6px), 0); }
+  }
 
-/* Scrollbars tuned to the navy canvas (progressive enhancement) */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: var(--ink-600) transparent;
-}
-*::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-*::-webkit-scrollbar-thumb {
-  background: var(--ink-600);
-  border: 2px solid transparent;
-  background-clip: padding-box;
-  border-radius: var(--radius-full);
-}
-*::-webkit-scrollbar-thumb:hover {
-  background: var(--ink-500);
-  background-clip: padding-box;
+  /* A node's aura pulses when the project is actively being built. */
+  @keyframes cadabry-pulse {
+    0%, 100% { opacity: 0.45; transform: scale(1); }
+    50% { opacity: 0.85; transform: scale(1.09); }
+  }
+
+  @keyframes cadabry-fade-up {
+    from { opacity: 0; transform: translate3d(0, 8px, 0); }
+    to { opacity: 1; transform: none; }
+  }
+
+  @keyframes cadabry-scale-in {
+    from { opacity: 0; transform: scale(0.96); }
+    to { opacity: 1; transform: none; }
+  }
+
+  @keyframes cadabry-overlay-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .animate-fade-up {
+    animation: cadabry-fade-up var(--duration-slow) var(--ease-out) both;
+  }
+
 }
 
 /* ============================================================================
-   Utilities
+   Motion preferences — the universe holds still when asked.
    ========================================================================== */
-.skip-link {
-  position: fixed;
-  top: -100px;
-  left: 1rem;
-  z-index: var(--z-command);
-  padding: 1rem;
-  border-radius: var(--radius-md);
-  background: var(--accent);
-  color: var(--on-accent);
-  font-weight: 600;
-}
-.skip-link:focus {
-  top: 1rem;
-}
-
-/* Starlight twinkle — universe accents only. Disabled under reduced motion. */
-@keyframes cadabry-twinkle {
-  0%, 100% { opacity: 0.35; transform: scale(0.9); }
-  50% { opacity: 1; transform: scale(1); }
-}
-
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -288,4 +486,220 @@ samp {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+  .press:active:not(:disabled) {
+    transform: none;
+  }
+}
+
+@layer components {
+  /* ============================================================================
+     Universe layout
+
+     The map and the list are the SAME DOM — one <ul> of project nodes. Only the
+     positioning changes, so the accessibility tree, tab order and screen-reader
+     count stay identical in both views, and small screens get the readable
+     layout without a second copy of the markup.
+     ========================================================================== */
+
+  .universe {
+    --node-size: 84px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .universe-node {
+    position: relative;
+  }
+
+  /* Map view: nodes take the positions the constellation layout assigned them. */
+  @media (min-width: 768px) {
+    .universe[data-view="map"] {
+      display: block;
+      height: var(--field-height, 520px);
+    }
+
+    .universe[data-view="map"] .universe-node {
+      position: absolute;
+      left: var(--x);
+      top: var(--y);
+      width: var(--node-size);
+      transform: translate(-50%, -50%);
+      animation: cadabry-drift var(--drift-duration, 15s) var(--ease-in-out) var(--drift-delay, 0s)
+        infinite;
+    }
+
+    /* Lift the focused or hovered node above its neighbours' labels. */
+    .universe[data-view="map"] .universe-node:hover,
+    .universe[data-view="map"] .universe-node:focus-within {
+      z-index: 5;
+      animation-play-state: paused;
+    }
+  }
+
+  /* A node the current filter excludes stays in the sky but recedes, so the
+     constellation keeps its shape instead of reflowing on every filter change. */
+  .universe-node[data-dimmed="true"] {
+    opacity: 0.22;
+    filter: saturate(0.4);
+  }
+
+  .universe-node[data-dimmed="true"] .node-aura {
+    display: none;
+  }
+
+  /* ---------------------------------------------------------------- a node -- */
+
+  /* List view is the base: a horizontal row, circle then text. Map view turns
+     the same element into a stacked celestial body. */
+  .node {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    border-radius: var(--radius-xl);
+    border: 1px solid transparent;
+    padding: 0.625rem 0.875rem;
+    text-decoration: none;
+    transition:
+      background-color var(--duration-base) var(--ease-out),
+      border-color var(--duration-base) var(--ease-out),
+      transform var(--duration-base) var(--ease-out);
+  }
+
+  .node:hover,
+  .node:focus-visible {
+    background: var(--surface);
+    border-color: var(--line);
+  }
+
+  .node-body {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .node-orb {
+    position: relative;
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: var(--orb, 48px);
+    height: var(--orb, 48px);
+  }
+
+  /* The aura is the project's energy: hue from status, strength from recency. */
+  .node-aura {
+    position: absolute;
+    inset: -28%;
+    border-radius: 9999px;
+    background: radial-gradient(circle, var(--hue) 0%, transparent 68%);
+    opacity: var(--energy, 0.4);
+    filter: blur(6px);
+  }
+
+  .node[data-live="true"] .node-aura {
+    animation: cadabry-pulse 4.5s var(--ease-in-out) infinite;
+  }
+
+  .node-core {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    border-radius: 9999px;
+    border: 1px solid color-mix(in oklab, var(--hue) 55%, transparent);
+    background:
+      radial-gradient(circle at 32% 26%, color-mix(in oklab, var(--hue) 42%, transparent), transparent 62%),
+      linear-gradient(160deg, var(--ink-750), var(--ink-850));
+    color: var(--foreground);
+    font-weight: var(--weight-semibold);
+    letter-spacing: -0.02em;
+    overflow: hidden;
+  }
+
+  /* Progress rides the rim of the orb as an arc — the ring IS the progress bar. */
+  .node-ring {
+    position: absolute;
+    inset: -5px;
+    transform: rotate(-90deg);
+    overflow: visible;
+  }
+
+  .node:hover .node-orb,
+  .node:focus-visible .node-orb {
+    transform: scale(1.06);
+    transition: transform var(--duration-base) var(--ease-spring);
+  }
+
+  .node-name {
+    display: block;
+    font-size: var(--text-title-3);
+    font-weight: var(--weight-semibold);
+    letter-spacing: var(--tracking-title);
+    color: var(--foreground);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .node-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: var(--text-caption);
+    color: var(--muted);
+    min-width: 0;
+  }
+
+  .node-detail {
+    font-size: var(--text-caption);
+    color: var(--subtle);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  @media (min-width: 768px) {
+    .universe[data-view="map"] .node {
+      flex-direction: column;
+      gap: 0.5rem;
+      padding: 0.5rem;
+      text-align: center;
+      background: none;
+      border-color: transparent;
+    }
+
+    .universe[data-view="map"] .node:hover,
+    .universe[data-view="map"] .node:focus-visible {
+      background: var(--glass);
+      backdrop-filter: blur(var(--glass-blur));
+      -webkit-backdrop-filter: blur(var(--glass-blur));
+      border-color: var(--line);
+    }
+
+    .universe[data-view="map"] .node-name {
+      font-size: var(--text-body);
+    }
+
+    .universe[data-view="map"] .node-meta {
+      justify-content: center;
+    }
+
+    /* The current task is the payload of the map: it only appears when a node is
+       hovered or focused, so the sky stays quiet until you ask it something. */
+    .universe[data-view="map"] .node-detail {
+      display: none;
+      max-width: 15rem;
+    }
+
+    .universe[data-view="map"] .node:hover .node-detail,
+    .universe[data-view="map"] .node:focus-visible .node-detail {
+      display: block;
+    }
+  }
+
 }

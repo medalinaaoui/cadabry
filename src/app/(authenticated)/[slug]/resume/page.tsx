@@ -1,25 +1,17 @@
-import { redirect } from "next/navigation";
 import { notFound } from "next/navigation";
-import Link from "next/link";
-import { cookies } from "next/headers";
-import { verifySessionToken, SESSION_COOKIE_NAME } from "@/server/auth/session";
 import { db } from "@/server/db";
 import { compileContext } from "@/features/context/compiler";
 import { projectHealth } from "@/features/projects/health";
+import { requireActor } from "@/features/projects/queries";
 import { CopyButton } from "@/components/ui/copy-button";
+import { Panel, PanelHeader } from "@/components/ui/panel";
 
 type Props = {
   params: Promise<{ slug: string }>;
 };
 
 export default async function ResumePage({ params }: Props) {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value ?? null;
-  if (!token) redirect("/login");
-
-  const actor = await verifySessionToken(token);
-  if (!actor) redirect("/login");
-
+  const actor = await requireActor();
   const { slug } = await params;
 
   const project = await db.project.findUnique({
@@ -130,79 +122,99 @@ export default async function ResumePage({ params }: Props) {
     budget: 12000,
   });
 
+  const toneClass: Record<typeof health.tone, string> = {
+    red: "border-danger/25 bg-danger/8 text-danger",
+    gold: "border-accent/25 bg-accent/8 text-accent",
+    green: "border-success/25 bg-success/8 text-success",
+    blue: "border-cobalt-400/25 bg-cobalt-400/8 text-cobalt-300",
+    muted: "border-line bg-surface text-subtle",
+  };
+
   return (
-    <div className="mx-auto max-w-4xl">
-      {/* Breadcrumb */}
-      <div className="mb-6">
-        <Link href={`/${project.slug}`} className="text-sm text-muted transition-colors hover:text-foreground">
-          ← {project.name}
-        </Link>
-      </div>
-
-      <h1 className="text-2xl font-bold tracking-tight text-foreground">Resume Building</h1>
-      <p className="mt-1 text-sm text-muted">
-        A ready-to-copy context packet for your coding agent.
-      </p>
-
-      {/* Health banner */}
-      <div className={`mt-6 flex items-center gap-3 rounded-xl border px-4 py-3 ${
-        health.tone === "red" ? "border-danger/20 bg-danger/5"
-          : health.tone === "gold" ? "border-accent/20 bg-accent/5"
-          : health.tone === "green" ? "border-success/20 bg-success/5"
-          : "border-cobalt-400/20 bg-cobalt-400/5"
-      }`}>
-        <span className={`h-2.5 w-2.5 rounded-full ${
-          health.tone === "red" ? "bg-danger"
-            : health.tone === "gold" ? "bg-accent"
-            : health.tone === "green" ? "bg-success"
-            : "bg-cobalt-400"
-        }`} />
-        <div className="text-sm">
-          <span className="font-semibold text-foreground">{health.label}.</span>{" "}
-          <span className="text-muted">{health.reason}</span>
-        </div>
-      </div>
-
-      {/* Packet stats */}
-      <div className="mt-4 grid grid-cols-3 gap-4 rounded-2xl border border-line bg-surface p-4 text-sm">
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
+      <div className="min-w-0 space-y-5">
         <div>
-          <div className="text-xl font-bold text-foreground">{packet.included.length}</div>
-          <div className="text-xs text-muted">sources included</div>
+          <h2 className="text-title-2 text-foreground">Resume building</h2>
+          <p className="mt-1.5 max-w-(--reading-max) text-body text-muted">
+            Everything your agent needs to continue — and nothing it doesn&apos;t. Relevant
+            context beats maximum context.
+          </p>
         </div>
-        <div>
-          <div className="text-xl font-bold text-accent">{(packet.characterCount / 1000).toFixed(1)}k</div>
-          <div className="text-xs text-muted">characters</div>
+
+        <div className={`flex items-start gap-3 rounded-xl border px-4 py-3 ${toneClass[health.tone]}`}>
+          <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-current" aria-hidden="true" />
+          <p className="text-body">
+            <span className="font-semibold">{health.label}.</span>{" "}
+            <span className="text-muted">{health.reason}</span>
+          </p>
         </div>
-        <div>
-          <div className="text-xl font-bold text-subtle">{packet.omitted.length}</div>
-          <div className="text-xs text-muted">omitted (irrelevant/over budget)</div>
+
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-caption text-subtle">
+            Paste this into your agent to pick up exactly where you stopped.
+          </p>
+          <CopyButton text={packet.markdown} label="Copy context packet" variant="primary" />
         </div>
-      </div>
 
-      {/* Copy action */}
-      <div className="mt-6 flex items-center justify-between">
-        <p className="text-sm text-subtle">
-          Paste this into your agent to continue exactly where you stopped.
-        </p>
-        <CopyButton text={packet.markdown} />
-      </div>
+        {/* Focusable: a scrollable region must be reachable by keyboard. */}
+        <pre
+          tabIndex={0}
+          role="region"
+          aria-label="Generated context packet"
+          className="max-h-[70vh] overflow-auto rounded-2xl border border-line-subtle bg-well p-5
+            text-caption leading-relaxed text-ink-100"
+        >
+          {packet.markdown}
+        </pre>
 
-      {/* Prompt body */}
-      <pre className="mt-6 overflow-x-auto rounded-2xl border border-line bg-well p-5 text-xs leading-relaxed text-foreground">
-        {packet.markdown}
-      </pre>
-
-      {/* Omitted sources */}
-      {packet.omitted.length > 0 && (
-        <details className="mt-4 rounded-xl border border-line bg-surface px-4 py-3 text-sm">
-          <summary className="cursor-pointer text-muted">View omitted sources ({packet.omitted.length})</summary>
-          <ul className="mt-2 list-disc space-y-1 pl-4 text-xs text-subtle">
-            {packet.omitted.map((o) => (
-              <li key={o.id} className="text-muted">{o.id} — {o.reason}</li>
+        {packet.omitted.length > 0 && (
+          <details className="rounded-xl border border-line bg-surface px-4 py-3">
+            <summary className="cursor-pointer text-caption text-muted marker:text-subtle">
+              {packet.omitted.length} source{packet.omitted.length === 1 ? "" : "s"} left out
+            </summary>
+            <ul className="mt-3 space-y-1.5">
+              {packet.omitted.map((omission) => (
+                <li key={omission.id} className="flex gap-2 text-caption text-subtle">
+                  <code className="text-ink-100">{omission.id}</code>
+                  <span>— {omission.reason}</span>
+                </li>
               ))}
-          </ul>
-        </details>
-      )}
+            </ul>
+          </details>
+        )}
+      </div>
+
+      <aside className="space-y-5">
+        <Panel>
+          <PanelHeader title="Packet" description="What went in, and how big it is." />
+          <dl className="space-y-3">
+            <Stat label="Sources included" value={packet.included.length} tone="text-foreground" />
+            <Stat
+              label="Characters"
+              value={`${(packet.characterCount / 1000).toFixed(1)}k`}
+              tone="text-accent"
+            />
+            <Stat label="Left out" value={packet.omitted.length} tone="text-subtle" />
+          </dl>
+        </Panel>
+      </aside>
+    </div>
+  );
+}
+
+function Stat({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: number | string;
+  tone: string;
+}) {
+  return (
+    <div className="flex items-baseline justify-between gap-3">
+      <dt className="text-caption text-muted">{label}</dt>
+      <dd className={`tabular text-title-2 font-semibold ${tone}`}>{value}</dd>
     </div>
   );
 }

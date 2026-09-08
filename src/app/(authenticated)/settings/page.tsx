@@ -2,20 +2,20 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { verifySessionToken, SESSION_COOKIE_NAME } from "@/server/auth/session";
 import { db } from "@/server/db";
+import { requireActor } from "@/features/projects/queries";
 import { Button } from "@/components/ui/button";
 import { Field, TextField } from "@/components/ui/field";
+import { PageHeader, PageShell } from "@/components/ui/page";
+import { Panel, PanelHeader } from "@/components/ui/panel";
+
+export const metadata = { title: "Settings" };
 
 export default async function SettingsPage() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value ?? null;
-  if (!token) redirect("/login");
-
-  const actor = await verifySessionToken(token);
-  if (!actor) redirect("/login");
+  const actor = await requireActor();
 
   const profile = await db.builderProfile.findUnique({
     where: { ownerId: actor.userId },
-    include: { rules: { orderBy: [{ priority: "desc" }, { createdAt: "asc" }] } },
+    include: { rules: { orderBy: [{ priority: "desc" }, { id: "asc" }] } },
   });
 
   async function saveProfile(formData: FormData) {
@@ -74,56 +74,64 @@ export default async function SettingsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl">
-      <h1 className="text-2xl font-bold tracking-tight text-foreground">Settings</h1>
-      <p className="mt-1 text-sm text-muted">
-        Your global builder profile — the defaults every project starts from.
-      </p>
+    <PageShell width="reading">
+      <PageHeader
+        title="Settings"
+        description="Your global builder profile — the defaults every new project and generated prompt starts from, so you stop retyping them."
+      />
 
-      <form action={saveProfile} className="mt-8 space-y-6">
-        <section className="rounded-2xl border border-line bg-surface p-5">
-          <h2 className="text-sm font-semibold text-foreground">Builder Profile</h2>
-          <p className="mt-1 text-xs text-muted">Applied to new projects and starter prompts.</p>
-
-          <div className="mt-5 space-y-4">
+      <form action={saveProfile} className="space-y-5">
+        <Panel>
+          <PanelHeader
+            title="Builder profile"
+            description="Applied to new projects and starter prompts."
+          />
+          <div className="space-y-4">
             <Field
               label="Profile name"
               name="displayName"
               type="text"
-              placeholder="e.g. My default build style"
+              placeholder="My default build style"
               defaultValue={profile?.displayName ?? ""}
             />
             <Field
               label="Default AI coding tool"
               name="defaultAgent"
               type="text"
-              placeholder="e.g. Codex, Claude Code, Cursor"
+              placeholder="Claude Code"
               defaultValue={profile?.defaultAgent ?? ""}
             />
           </div>
-        </section>
+        </Panel>
 
-        <section className="rounded-2xl border border-line bg-surface p-5">
-          <h2 className="text-sm font-semibold text-foreground">Coding rules</h2>
-          <p className="mt-1 text-xs text-muted">
-            One rule per line. Format: <code className="text-cobalt-400">Category|Rule text</code>
-          </p>
-
-          <div className="mt-5">
-            <TextField
-              label="Rules"
-              name="rules"
-              rows={10}
-              placeholder={"General|Use App Router\nGeneral|No placeholder buttons\nQuality|Run lint and typecheck after implementation\nGeneral|Preserve existing patterns"}
-              defaultValue={profile?.rules.map((r) => `${r.category}|${r.content}`).join("\n") ?? ""}
-            />
-          </div>
-        </section>
+        <Panel>
+          <PanelHeader
+            title="Coding rules"
+            description="The standards you'd otherwise repeat in every prompt."
+          />
+          <TextField
+            label="Rules"
+            name="rules"
+            rows={10}
+            hint="One per line, written as Category|Rule text."
+            placeholder={
+              "General|Use App Router\n" +
+              "General|Server Components by default\n" +
+              "General|No placeholder buttons or fake functionality\n" +
+              "Quality|Run lint and typecheck after implementation\n" +
+              "Quality|Do not change unrelated code"
+            }
+            defaultValue={profile?.rules.map((r) => `${r.category}|${r.content}`).join("\n") ?? ""}
+            className="font-mono text-caption"
+          />
+        </Panel>
 
         <div className="flex justify-end">
-          <Button type="submit" variant="primary">Save settings</Button>
+          <Button type="submit" variant="primary">
+            Save settings
+          </Button>
         </div>
       </form>
-    </div>
+    </PageShell>
   );
 }

@@ -1,9 +1,18 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { AlertTriangle, ArrowRight, Layers, Plus } from "lucide-react";
 import { db } from "@/server/db";
 import { verifySessionToken, SESSION_COOKIE_NAME } from "@/server/auth/session";
-import { redirect } from "next/navigation";
-import { PlusCircle, ArrowRight } from "lucide-react";
+import { Universe } from "@/components/universe/universe";
+import type { UniverseProject } from "@/components/universe/project-node";
+import { Button } from "@/components/ui/button";
+import { PageShell } from "@/components/ui/page";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { projectStatus, timeAgo } from "@/features/projects/display";
+
+export const metadata = { title: "Universe" };
 
 async function getProjects(ownerId: string) {
   return db.project.findMany({
@@ -32,20 +41,7 @@ async function getProjects(ownerId: string) {
   });
 }
 
-function statusColor(status: string): string {
-  const map: Record<string, string> = {
-    IDEA: "text-subtle",
-    PLANNING: "text-cobalt-400",
-    BUILDING: "text-accent",
-    BLOCKED: "text-danger",
-    PAUSED: "text-muted",
-    SHIPPED: "text-success",
-    ARCHIVED: "text-subtle",
-  };
-  return map[status] ?? "text-subtle";
-}
-
-export default async function Dashboard() {
+export default async function UniversePage() {
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE_NAME)?.value ?? null;
   if (!token) redirect("/login");
@@ -53,132 +49,151 @@ export default async function Dashboard() {
   const actor = await verifySessionToken(token);
   if (!actor) redirect("/login");
 
-  const projects = await getProjects(actor.userId);
+  const rows = await getProjects(actor.userId);
+
+  const projects: UniverseProject[] = rows.map((row) => ({
+    id: row.id,
+    name: row.name,
+    slug: row.slug,
+    oneLineDescription: row.oneLineDescription,
+    status: row.status,
+    importance: row.importance,
+    progress: row.progress,
+    color: row.color,
+    icon: row.icon,
+    currentTask: row.currentTask,
+    currentBlocker: row.currentBlocker,
+    lastActivityAt: row.lastActivityAt,
+    queuedCount: row._count.queueItems,
+    bugCount: row._count.bugs,
+  }));
+
+  // The one project worth resuming: most recently touched, still in flight.
+  const resumable = projects.find((p) =>
+    ["BUILDING", "PLANNING", "BLOCKED"].includes(p.status),
+  );
+
+  const totalQueued = projects.reduce((sum, p) => sum + p.queuedCount, 0);
+  const blocked = projects.filter((p) => p.status === "BLOCKED" || p.currentBlocker).length;
 
   return (
-    <div className="mx-auto max-w-[var(--page-max)]">
-      {/* Header area */}
-      <div className="mb-8 flex items-center justify-between">
+    <PageShell>
+      <header className="mb-7 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">Projects</h1>
-          <p className="mt-1 text-sm text-muted">
-            {projects.length} {projects.length === 1 ? "project" : "projects"} in your universe
-          </p>
+          <p className="eyebrow">Your universe</p>
+          <h1 className="mt-1.5 text-title-1 text-foreground">
+            {projects.length === 0
+              ? "Nothing in orbit yet"
+              : `${projects.length} ${projects.length === 1 ? "project" : "projects"} in orbit`}
+          </h1>
+          {projects.length > 0 && (
+            <p className="mt-2 text-body text-muted">
+              {totalQueued > 0 && (
+                <span className="inline-flex items-center gap-1.5">
+                  <Layers className="h-3.5 w-3.5 text-cobalt-400" aria-hidden="true" />
+                  {totalQueued} prompt{totalQueued === 1 ? "" : "s"} queued
+                </span>
+              )}
+              {totalQueued > 0 && blocked > 0 && <span className="px-2 text-ink-500">·</span>}
+              {blocked > 0 && (
+                <span className="inline-flex items-center gap-1.5 text-danger">
+                  <AlertTriangle className="h-3.5 w-3.5" aria-hidden="true" />
+                  {blocked} blocked
+                </span>
+              )}
+              {totalQueued === 0 && blocked === 0 && "Everything is clear. Pick a star."}
+            </p>
+          )}
         </div>
-        <Link
-          href="/projects/new"
-          className="inline-flex items-center gap-2 rounded-xl bg-accent px-4 py-2.5 text-sm font-medium text-on-accent transition-colors hover:bg-accent-strong"
-        >
-          <PlusCircle className="h-4 w-4" />
-          New Project
-        </Link>
-      </div>
 
-      {/* Empty state */}
-      {projects.length === 0 && (
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-line bg-surface py-24">
-          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-cobalt-500/10">
-            <PlusCircle className="h-7 w-7 text-cobalt-400" />
-          </div>
-          <h2 className="text-lg font-semibold text-foreground">Your universe is empty</h2>
-          <p className="mt-1 max-w-xs text-center text-sm text-muted">
-            Create your first project and start building with AI.
-          </p>
-          <Link
-            href="/projects/new"
-            className="mt-6 inline-flex items-center gap-2 rounded-xl bg-accent px-5 py-2.5 text-sm font-medium text-on-accent transition-colors hover:bg-accent-strong"
-          >
-            Create your first project
-            <ArrowRight className="h-4 w-4" />
+        <Button asChild variant={projects.length === 0 ? "primary" : "secondary"}>
+          <Link href="/projects/new">
+            <Plus className="h-4 w-4" />
+            New project
           </Link>
-        </div>
-      )}
+        </Button>
+      </header>
 
-      {/* Project grid */}
-      {projects.length > 0 && (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {projects.map((project) => (
-            <Link
-              key={project.id}
-              href={`/${project.slug}`}
-              className="group relative rounded-2xl border border-line bg-surface p-5 transition-all duration-base hover:border-line-strong hover:bg-surface-raised hover:shadow-md"
-            >
-              {/* Status indicator */}
-              <div className="mb-3 flex items-center gap-2">
-                <span
-                  className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColor(project.status)} bg-current/10`}
-                >
-                  {project.status}
-                </span>
-                <span className="ml-auto text-xs text-subtle">
-                  {project._count.queueItems > 0 && `${project._count.queueItems} queued`}
-                </span>
-              </div>
+      {resumable && <ResumeCard project={resumable} />}
 
-              {/* Project name + description */}
-              <h3 className="text-base font-semibold text-foreground group-hover:text-accent transition-colors">
-                {project.name}
-              </h3>
-              {project.oneLineDescription && (
-                <p className="mt-1 text-sm text-muted line-clamp-2">
-                  {project.oneLineDescription}
-                </p>
-              )}
-
-              {/* Current task */}
-              {project.currentTask && (
-                <p className="mt-3 text-xs text-subtle line-clamp-1">
-                  Building: {project.currentTask}
-                </p>
-              )}
-
-              {/* Blocker indicator */}
-              {project.currentBlocker && (
-                <div className="mt-2 flex items-center gap-1.5 text-xs text-danger">
-                  <span className="h-1.5 w-1.5 rounded-full bg-danger" />
-                  Blocked
-                </div>
-              )}
-
-              {/* Progress bar */}
-              {project.progress > 0 && (
-                <div className="mt-4">
-                  <div className="h-1.5 overflow-hidden rounded-full bg-line">
-                    <div
-                      className="h-full rounded-full bg-accent transition-all"
-                      style={{ width: `${Math.min(project.progress, 100)}%` }}
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* Footer info */}
-              <div className="mt-3 flex items-center gap-3 text-xs text-subtle">
-                {project.lastActivityAt && (
-                  <span>
-                    {timeAgo(project.lastActivityAt)}
-                  </span>
-                )}
-                {project._count.bugs > 0 && (
-                  <span className="text-danger">{project._count.bugs} bugs</span>
-                )}
-              </div>
-            </Link>
-          ))}
-        </div>
-      )}
-    </div>
+      <Universe projects={projects} />
+    </PageShell>
   );
 }
 
-function timeAgo(date: Date): string {
-  const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
-  if (seconds < 60) return "just now";
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  if (days < 30) return `${days}d ago`;
-  return `${Math.floor(days / 30)}mo ago`;
+/**
+ * The signature action. Cadabry's whole premise is that reopening a project
+ * shouldn't cost twenty minutes of remembering, so the single most useful
+ * control on the home screen is "pick up exactly where you stopped".
+ */
+function ResumeCard({ project }: { project: UniverseProject }) {
+  const meta = projectStatus(project.status);
+
+  return (
+    <div className="glass mb-6 rounded-2xl p-5 sm:p-6">
+      <div className="flex flex-wrap items-start justify-between gap-5">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <p className="eyebrow">Pick up where you left off</p>
+            <Badge tone={meta.tone} dot>
+              {meta.label}
+            </Badge>
+          </div>
+
+          <h2 className="mt-2 text-title-2 text-foreground">{project.name}</h2>
+
+          {project.currentTask ? (
+            <p className="mt-1.5 max-w-(--reading-max) text-body text-ink-100">
+              {project.currentTask}
+            </p>
+          ) : project.oneLineDescription ? (
+            <p className="mt-1.5 max-w-(--reading-max) text-body text-muted">
+              {project.oneLineDescription}
+            </p>
+          ) : null}
+
+          {project.currentBlocker && (
+            <p className="mt-2.5 flex items-start gap-2 text-caption text-danger">
+              <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+              <span>Blocked: {project.currentBlocker}</span>
+            </p>
+          )}
+
+          <p className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-caption text-subtle">
+            <span>
+              Last touched{" "}
+              <time dateTime={project.lastActivityAt?.toISOString()}>
+                {timeAgo(project.lastActivityAt)}
+              </time>
+            </span>
+            {project.queuedCount > 0 && (
+              <span className="text-cobalt-400">
+                {project.queuedCount} prompt{project.queuedCount === 1 ? "" : "s"} ready to send
+              </span>
+            )}
+          </p>
+
+          {project.progress > 0 && (
+            <Progress
+              value={project.progress}
+              label={`${project.name} progress`}
+              className="mt-4 max-w-xs"
+            />
+          )}
+        </div>
+
+        <div className="flex shrink-0 flex-wrap gap-2">
+          <Button asChild variant="primary" size="lg">
+            <Link href={`/${project.slug}/resume`}>
+              Resume building
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+          <Button asChild variant="ghost">
+            <Link href={`/${project.slug}`}>Open brain</Link>
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
 }

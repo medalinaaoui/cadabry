@@ -1,10 +1,8 @@
-import { redirect } from "next/navigation";
 import { notFound } from "next/navigation";
-import Link from "next/link";
-import { cookies } from "next/headers";
-import { verifySessionToken, SESSION_COOKIE_NAME } from "@/server/auth/session";
+import { Download } from "lucide-react";
 import { db } from "@/server/db";
-import { Button } from "@/components/ui/button";
+import { requireActor } from "@/features/projects/queries";
+import { Row, Stack } from "@/components/ui/page";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -17,13 +15,7 @@ const EXPORTS = [
 ];
 
 export default async function ExportPage({ params }: Props) {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value ?? null;
-  if (!token) redirect("/login");
-
-  const actor = await verifySessionToken(token);
-  if (!actor) redirect("/login");
-
+  const actor = await requireActor();
   const { slug } = await params;
 
   const project = await db.project.findUnique({
@@ -33,37 +25,39 @@ export default async function ExportPage({ params }: Props) {
   if (!project) notFound();
 
   return (
-    <div className="mx-auto max-w-3xl">
-      <div className="mb-6">
-        <Link href={`/${project.slug}`} className="text-sm text-muted transition-colors hover:text-foreground">
-          ← {project.name}
-        </Link>
+    <div className="max-w-3xl space-y-6">
+      <div>
+        <h2 className="text-title-2 text-foreground">Export project context</h2>
+        <p className="mt-1.5 max-w-(--reading-max) text-body text-muted">
+          Markdown files you can drop straight into a repo, a docs folder, or an
+          agent&apos;s context window.
+        </p>
       </div>
 
-      <h1 className="text-2xl font-bold tracking-tight text-foreground">Export Project Context</h1>
-      <p className="mt-1 text-sm text-muted">
-        One-click Markdown documents — for agents, docs, or your repo.
-      </p>
-
-      <div className="mt-8 space-y-4">
-        {EXPORTS.map((exp) => (
-          <div key={exp.id} className="rounded-2xl border border-line bg-surface p-5">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <h3 className="text-base font-semibold text-foreground font-mono">{exp.file}</h3>
-                <p className="mt-1 text-sm text-muted">{exp.desc}</p>
+      <Stack className="space-y-2">
+        {EXPORTS.map((item) => (
+          <Row key={item.id} className="p-5">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="min-w-0">
+                <h3 className="font-mono text-title-3 text-foreground">{item.file}</h3>
+                <p className="mt-1 max-w-(--reading-max) text-caption text-muted">
+                  {item.desc}
+                </p>
               </div>
               <a
-                href={`/${project.slug}/export/${exp.id}.md`}
+                href={`/${project.slug}/export/${item.id}.md`}
                 download
-                className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-accent px-4 py-2 text-sm font-medium text-on-accent transition-colors hover:bg-accent-strong"
+                className="press inline-flex h-11 shrink-0 items-center gap-2 rounded-xl border
+                  border-line bg-surface-raised px-4 text-body font-semibold text-foreground
+                  transition-colors hover:border-line-strong hover:bg-overlay"
               >
+                <Download className="h-4 w-4" aria-hidden="true" />
                 Download
               </a>
             </div>
-          </div>
+          </Row>
         ))}
-      </div>
+      </Stack>
     </div>
   );
 }

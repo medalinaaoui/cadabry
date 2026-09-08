@@ -1,30 +1,21 @@
 import { redirect } from "next/navigation";
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import { cookies } from "next/headers";
+import { Sparkles } from "lucide-react";
 import { verifySessionToken, SESSION_COOKIE_NAME } from "@/server/auth/session";
 import { db } from "@/server/db";
+import { requireActor } from "@/features/projects/queries";
 import { Button } from "@/components/ui/button";
-import { Field, TextField } from "@/components/ui/field";
+import { Field, SelectField, TextField } from "@/components/ui/field";
+import { Badge } from "@/components/ui/badge";
+import { EmptyState, Row, Stack } from "@/components/ui/page";
+import { CreateDisclosure, FormGrid, RowActions, RowButton } from "@/components/ui/disclosure";
+import { workStatus } from "@/features/projects/display";
 
 type Props = { params: Promise<{ slug: string }> };
 
-const STATUS_META: Record<string, { label: string; cls: string }> = {
-  PLANNED: { label: "Planned", cls: "text-subtle bg-subtle/10" },
-  IN_PROGRESS: { label: "Building", cls: "text-accent bg-accent/10" },
-  BLOCKED: { label: "Blocked", cls: "text-danger bg-danger/10" },
-  DONE: { label: "Shipped", cls: "text-success bg-success/10" },
-  CANCELLED: { label: "Cancelled", cls: "text-muted bg-muted/10" },
-};
-
 export default async function FeaturesPage({ params }: Props) {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value ?? null;
-  if (!token) redirect("/login");
-
-  const actor = await verifySessionToken(token);
-  if (!actor) redirect("/login");
-
+  const actor = await requireActor();
   const { slug } = await params;
 
   const project = await db.project.findUnique({
@@ -123,89 +114,128 @@ export default async function FeaturesPage({ params }: Props) {
   }
 
   return (
-    <div className="mx-auto max-w-3xl">
-      <div className="mb-6">
-        <Link href={`/${project.slug}`} className="text-sm text-muted transition-colors hover:text-foreground">
-          ← {project.name}
-        </Link>
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-title-2 text-foreground">Features</h2>
+        <p className="mt-1.5 max-w-(--reading-max) text-body text-muted">
+          A backlog shaped for AI-assisted building: each feature carries the reason it
+          exists and the criteria that say it&apos;s done.
+        </p>
       </div>
 
-      <h1 className="text-2xl font-bold tracking-tight text-foreground">Features</h1>
-      <p className="mt-1 text-sm text-muted">
-        A backlog optimized for vibe coding.
-      </p>
-
-      <details className="mt-6 rounded-2xl border border-line bg-surface">
-        <summary className="cursor-pointer px-4 py-3 text-sm font-medium text-muted hover:text-foreground">
-          + New feature
-        </summary>
-        <form action={addFeature} className="space-y-4 px-4 py-4">
-          <Field label="Name" name="title" type="text" placeholder="Onboarding persistence" required />
-          <TextField label="Description" name="body" rows={2} placeholder="What should this do?" />
-          <Field label="Reason" name="reason" type="text" placeholder="Why does this matter?" />
-          <TextField label="Acceptance criteria" name="criteria" rows={2} placeholder="- user can save and reload" />
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-1.5">
-              <label htmlFor="milestoneId" className="text-sm text-muted">Milestone</label>
-              <select id="milestoneId" name="milestoneId" className="w-full rounded-xl border border-line bg-surface px-4 py-2.5 text-sm text-foreground">
-                <option value="">— None —</option>
-                {project.milestones.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
-              </select>
-            </div>
-            <div className="space-y-1.5">
-              <label htmlFor="priority" className="text-sm text-muted">Priority (0–5)</label>
-              <select id="priority" name="priority" className="w-full rounded-xl border border-line bg-surface px-4 py-2.5 text-sm text-foreground">
-                {[0, 1, 2, 3, 4, 5].map((p) => <option key={p} value={p}>{p}{p === 5 ? " — must" : p === 4 ? " — high" : p === 0 ? " — low" : ""}</option>)}
-              </select>
-            </div>
-          </div>
-          <Button type="submit" variant="primary">Add feature</Button>
+      <CreateDisclosure label="New feature">
+        <form action={addFeature} className="space-y-4">
+          <Field
+            label="Name"
+            name="title"
+            type="text"
+            placeholder="Onboarding persistence"
+            required
+          />
+          <TextField
+            label="Description"
+            name="body"
+            rows={2}
+            placeholder="What should this do?"
+          />
+          <Field
+            label="Reason"
+            name="reason"
+            type="text"
+            placeholder="Why does this matter?"
+            hint="An agent that knows the why makes better calls than one that only knows the what."
+          />
+          <TextField
+            label="Acceptance criteria"
+            name="criteria"
+            rows={2}
+            placeholder="- user can save and reload"
+          />
+          <FormGrid>
+            <SelectField label="Milestone" name="milestoneId" defaultValue="">
+              <option value="">No milestone</option>
+              {project.milestones.map((milestone) => (
+                <option key={milestone.id} value={milestone.id}>
+                  {milestone.name}
+                </option>
+              ))}
+            </SelectField>
+            <SelectField label="Priority" name="priority" defaultValue="0">
+              {[0, 1, 2, 3, 4, 5].map((p) => (
+                <option key={p} value={p}>
+                  {p}
+                  {p === 5 ? " — must ship" : p === 4 ? " — high" : p === 0 ? " — low" : ""}
+                </option>
+              ))}
+            </SelectField>
+          </FormGrid>
+          <Button type="submit" variant="primary">
+            Add feature
+          </Button>
         </form>
-      </details>
+      </CreateDisclosure>
 
-      <div className="mt-6 space-y-4">
-        {project.features.length === 0 ? (
-          <div className="rounded-2xl border border-line bg-surface py-16 text-center">
-            <p className="text-sm text-muted">No features yet. What should this project do?</p>
-          </div>
-        ) : (
-          project.features.map((f) => {
-            const meta = STATUS_META[f.status] ?? STATUS_META.PLANNED;
+      {project.features.length === 0 ? (
+        <EmptyState
+          icon={<Sparkles className="h-5 w-5" />}
+          title="No features yet"
+          description="What should this project actually do? Add the first one and it becomes context for every prompt you generate."
+        />
+      ) : (
+        <Stack>
+          {project.features.map((feature) => {
+            const meta = workStatus(feature.status);
             return (
-              <div key={f.id} className="rounded-2xl border border-line bg-surface p-5">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="text-base font-semibold text-foreground">{f.title}</h3>
-                      <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-medium ${meta.cls}`}>{meta.label}</span>
-                      {f.priority >= 4 && <span className="rounded-full bg-accent/10 px-2 py-0.5 text-[10px] text-accent">P{f.priority}</span>}
-                    </div>
-                    {f.body && <p className="mt-1 text-sm text-muted">{f.body}</p>}
-                    {f.reason && <p className="mt-1 text-xs text-subtle">Why: {f.reason}</p>}
-                    {f.acceptanceCriteria && (
-                      <p className="mt-1 text-xs text-subtle">Done when: {f.acceptanceCriteria}</p>
-                    )}
-                  </div>
+              <Row key={feature.id} className="p-5">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="text-title-3 text-foreground">{feature.title}</h3>
+                  <Badge tone={meta.tone}>{meta.label}</Badge>
+                  {feature.priority >= 4 && <Badge tone="gold">P{feature.priority}</Badge>}
                 </div>
 
-                <form action={updateFeature} className="mt-2 flex flex-wrap gap-2">
-                  <input type="hidden" name="id" value={f.id} />
-                  {[
-                    { value: "IN_PROGRESS", label: "Start", cls: "text-accent bg-accent/10 border-accent/30" },
-                    { value: "BLOCKED", label: "Block", cls: "text-danger bg-danger/10 border-danger/30" },
-                    { value: "DONE", label: "Ship", cls: "text-success bg-success/10 border-success/30" },
-                  ].map((btn) => (
-                    <button key={btn.value} type="submit" name="status" value={btn.value}
-                            className={`rounded-lg border px-3 py-1.5 text-xs font-medium ${btn.cls}`}>
-                      {btn.label}
-                    </button>
-                  ))}
-                </form>
-              </div>
+                {feature.body && (
+                  <p className="mt-1.5 max-w-(--reading-max) text-body text-muted">
+                    {feature.body}
+                  </p>
+                )}
+                {feature.reason && (
+                  <p className="mt-1.5 text-caption text-subtle">
+                    <span className="eyebrow mr-1.5">Why</span>
+                    {feature.reason}
+                  </p>
+                )}
+                {feature.acceptanceCriteria && (
+                  <p className="mt-1 text-caption text-subtle">
+                    <span className="eyebrow mr-1.5">Done when</span>
+                    {feature.acceptanceCriteria}
+                  </p>
+                )}
+
+                {feature.status !== "DONE" && feature.status !== "CANCELLED" && (
+                  <form action={updateFeature}>
+                    <input type="hidden" name="id" value={feature.id} />
+                    <RowActions>
+                      {feature.status !== "IN_PROGRESS" && (
+                        <RowButton name="status" value="IN_PROGRESS" tone="accent">
+                          Start building
+                        </RowButton>
+                      )}
+                      {feature.status !== "BLOCKED" && (
+                        <RowButton name="status" value="BLOCKED" tone="danger">
+                          Block
+                        </RowButton>
+                      )}
+                      <RowButton name="status" value="DONE" tone="success">
+                        Ship
+                      </RowButton>
+                    </RowActions>
+                  </form>
+                )}
+              </Row>
             );
-          })
-        )}
-      </div>
+          })}
+        </Stack>
+      )}
     </div>
   );
 }

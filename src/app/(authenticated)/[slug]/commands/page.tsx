@@ -1,22 +1,20 @@
 import { redirect, notFound } from "next/navigation";
-import Link from "next/link";
 import { cookies } from "next/headers";
+import { Terminal, Trash2 } from "lucide-react";
 import { verifySessionToken, SESSION_COOKIE_NAME } from "@/server/auth/session";
 import { db } from "@/server/db";
+import { requireActor } from "@/features/projects/queries";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { CopyButton } from "@/components/ui/copy-button";
+import { Badge } from "@/components/ui/badge";
+import { EmptyState, Row, Stack } from "@/components/ui/page";
+import { CreateDisclosure, FormGrid, RowButton } from "@/components/ui/disclosure";
 
 type Props = { params: Promise<{ slug: string }> };
 
 export default async function CommandsPage({ params }: Props) {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value ?? null;
-  if (!token) redirect("/login");
-
-  const actor = await verifySessionToken(token);
-  if (!actor) redirect("/login");
-
+  const actor = await requireActor();
   const { slug } = await params;
 
   const project = await db.project.findUnique({
@@ -75,68 +73,84 @@ export default async function CommandsPage({ params }: Props) {
   }
 
   return (
-    <div className="mx-auto max-w-3xl">
-      <div className="mb-6">
-        <Link href={`/${project.slug}`} className="text-sm text-muted transition-colors hover:text-foreground">
-          ← {project.name}
-        </Link>
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-title-2 text-foreground">Command vault</h2>
+        <p className="mt-1.5 max-w-(--reading-max) text-body text-muted">
+          Every command this project needs — dev, test, migrate, deploy. So you never
+          go digging through shell history again.
+        </p>
       </div>
 
-      <h1 className="text-2xl font-bold tracking-tight text-foreground">Command Vault</h1>
-      <p className="mt-1 text-sm text-muted">
-        Every command you run for this project — dev, test, deploy. Copy, paste, go.
-      </p>
-
-      <details className="mt-6 rounded-2xl border border-line bg-surface">
-        <summary className="cursor-pointer px-4 py-3 text-sm font-medium text-muted hover:text-foreground">
-          + New command
-        </summary>
-        <form action={addCommand} className="space-y-4 px-4 py-4">
-          <div className="grid grid-cols-2 gap-4">
+      <CreateDisclosure label="New command">
+        <form action={addCommand} className="space-y-4">
+          <FormGrid>
             <Field label="Name" name="name" type="text" placeholder="dev" required />
-            <Field label="Category (optional)" name="category" type="text" placeholder="daily" />
-          </div>
-          <Field label="Command" name="commandText" type="text" placeholder="npm run dev" required />
-          <Field label="Description (optional)" name="description" type="text" placeholder="Start the dev server" />
-          <Button type="submit">Add command</Button>
+            <Field label="Category" name="category" type="text" placeholder="daily" />
+          </FormGrid>
+          <Field
+            label="Command"
+            name="commandText"
+            type="text"
+            placeholder="npm run dev"
+            required
+            className="font-mono"
+          />
+          <Field
+            label="Description"
+            name="description"
+            type="text"
+            placeholder="Start the dev server"
+          />
+          <Button type="submit" variant="primary">
+            Add command
+          </Button>
         </form>
-      </details>
+      </CreateDisclosure>
 
-      <div className="mt-6 space-y-3">
-        {project.commands.length === 0 ? (
-          <div className="rounded-2xl border border-line bg-surface py-16 text-center">
-            <p className="text-sm text-muted">No commands saved yet.</p>
-          </div>
-        ) : (
-          project.commands.map((cmd) => (
-            <div key={cmd.id} className="rounded-2xl border border-line bg-surface p-4">
-              <div className="flex items-start justify-between gap-3">
+      {project.commands.length === 0 ? (
+        <EmptyState
+          icon={<Terminal className="h-5 w-5" />}
+          title="No commands saved"
+          description="Save the ones you retype most: dev, test, migrate, deploy."
+        />
+      ) : (
+        <Stack className="space-y-2">
+          {project.commands.map((command) => (
+            <Row key={command.id} className="p-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="text-sm font-semibold text-foreground">{cmd.name}</h3>
-                    {cmd.category && (
-                      <span className="rounded-full bg-cobalt-400/10 px-2 py-0.5 text-[10px] text-cobalt-400">{cmd.category}</span>
-                    )}
+                    <h3 className="text-title-3 text-foreground">{command.name}</h3>
+                    {command.category && <Badge tone="quiet">{command.category}</Badge>}
                   </div>
-                  <code className="mt-1.5 block truncate rounded-lg bg-black/30 px-3 py-2 font-mono text-sm text-accent">
-                    {cmd.commandText}
+
+                  <code
+                    className="mt-2 block overflow-x-auto rounded-lg border border-line-subtle
+                      bg-well px-3 py-2 font-mono text-caption text-gold-300"
+                  >
+                    {command.commandText}
                   </code>
-                  {cmd.description && <p className="mt-1.5 text-xs text-muted">{cmd.description}</p>}
+
+                  {command.description && (
+                    <p className="mt-1.5 text-caption text-muted">{command.description}</p>
+                  )}
                 </div>
+
                 <div className="flex shrink-0 items-center gap-2">
-                  <CopyButton text={cmd.commandText} label="Copy" />
+                  <CopyButton text={command.commandText} label="Copy" size="sm" />
                   <form action={deleteCommand}>
-                    <input type="hidden" name="id" value={cmd.id} />
-                    <button type="submit" className="rounded-lg px-2 py-1.5 text-xs text-muted transition-colors hover:text-danger" title="Delete">
-                      ✕
-                    </button>
+                    <input type="hidden" name="id" value={command.id} />
+                    <RowButton tone="danger" aria-label={`Delete ${command.name}`}>
+                      <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+                    </RowButton>
                   </form>
                 </div>
               </div>
-            </div>
-          ))
-        )}
-      </div>
+            </Row>
+          ))}
+        </Stack>
+      )}
     </div>
   );
 }

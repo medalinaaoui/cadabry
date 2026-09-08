@@ -1,4 +1,5 @@
 import { PrismaClient } from "../src/server/generated/prisma/client";
+import type { ProjectStatus } from "../src/server/generated/prisma/enums";
 import { PrismaNeon } from "@prisma/adapter-neon";
 import { hash } from "@node-rs/argon2";
 
@@ -131,7 +132,15 @@ async function seed() {
     },
   });
 
-  async function makeProject(data: any) {
+  type SeedTech = { techId: string; category: string };
+  type SeedProject = {
+    name: string; desc: string; statement: string; problem: string;
+    targetUser: string; outcome: string; status: ProjectStatus; progress: number;
+    importance: number; task: string | null; next: string | null; blocker: string | null;
+    works: string; partial: string; broken: string; tech: SeedTech[];
+  };
+
+  async function makeProject(data: SeedProject) {
     const slug = data.name.toLowerCase().replace(/[^\w\s-]/g, "").replace(/\s+/g, "-");
     return db.project.create({
       data: {
@@ -153,7 +162,7 @@ async function seed() {
         partiallyBuilt: data.partial,
         whatIsBroken: data.broken,
         lastActivityAt: new Date(Date.now() - Math.floor(Math.random() * 5) * 86400000),
-        technologies: { create: data.tech.map((t: any, i: number) => ({
+        technologies: { create: data.tech.map((t: SeedTech, i: number) => ({
           technologyId: t.techId, category: t.category, sortOrder: i,
         })) },
         boundaries: { create: [

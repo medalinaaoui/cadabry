@@ -2,31 +2,24 @@ import { redirect } from "next/navigation";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { cookies } from "next/headers";
+import { Layers } from "lucide-react";
 import { verifySessionToken, SESSION_COOKIE_NAME } from "@/server/auth/session";
 import { db } from "@/server/db";
+import { requireActor } from "@/features/projects/queries";
 import { Button } from "@/components/ui/button";
-import { Field, TextField } from "@/components/ui/field";
+import { SelectField } from "@/components/ui/field";
+import { Badge } from "@/components/ui/badge";
+import { CopyButton } from "@/components/ui/copy-button";
+import { EmptyState, Row, Stack } from "@/components/ui/page";
+import { CreateDisclosure, RowButton } from "@/components/ui/disclosure";
+import { workStatus } from "@/features/projects/display";
 
 type Props = {
   params: Promise<{ slug: string }>;
 };
 
-const QUEUE_STATUS_LABELS: Record<string, string> = {
-  QUEUED: "Queued",
-  SENT: "Sent",
-  COMPLETED: "Completed",
-  FAILED: "Failed",
-  CANCELLED: "Cancelled",
-};
-
 export default async function QueuePage({ params }: Props) {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value ?? null;
-  if (!token) redirect("/login");
-
-  const actor = await verifySessionToken(token);
-  if (!actor) redirect("/login");
-
+  const actor = await requireActor();
   const { slug } = await params;
 
   const project = await db.project.findUnique({
@@ -127,97 +120,124 @@ export default async function QueuePage({ params }: Props) {
   }
 
   return (
-    <div className="mx-auto max-w-3xl">
-      <div className="mb-6">
-        <Link href={`/${project.slug}`} className="text-sm text-muted transition-colors hover:text-foreground">
-          ← {project.name}
-        </Link>
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-title-2 text-foreground">Next prompt queue</h2>
+        <p className="mt-1.5 max-w-(--reading-max) text-body text-muted">
+          Not tasks — the actual prompts you plan to send next. Line them up now so
+          tomorrow&apos;s session starts with a copy instead of a blank page.
+        </p>
       </div>
 
-      <h1 className="text-2xl font-bold tracking-tight text-foreground">
-        Next Prompt Queue
-      </h1>
-      <p className="mt-1 text-sm text-muted">
-        Plan the prompts you&apos;ll send in your next session.
-      </p>
+      <CreateDisclosure label="Queue a prompt">
+        <form action={enqueuePrompt} className="space-y-4">
+          <SelectField
+            label="Prompt"
+            name="promptId"
+            required
+            defaultValue=""
+            disabled={project.prompts.length === 0}
+            hint={
+              project.prompts.length === 0
+                ? "No ready prompts on this project yet."
+                : undefined
+            }
+          >
+            <option value="">Select a saved prompt…</option>
+            {project.prompts.map((prompt) => (
+              <option key={prompt.id} value={prompt.id}>
+                {prompt.title}
+              </option>
+            ))}
+          </SelectField>
 
-      {/* Enqueue form */}
-      <details className="mt-6 rounded-2xl border border-line bg-surface">
-        <summary className="cursor-pointer px-4 py-3 text-sm font-medium text-muted hover:text-foreground">
-          + Queue a prompt
-        </summary>
-        <form action={enqueuePrompt} className="space-y-4 px-4 py-4">
-          <div className="space-y-1.5">
-            <label htmlFor="promptId" className="text-sm text-muted">Prompt</label>
-            <select id="promptId" name="promptId" className="w-full rounded-xl border border-line bg-surface px-4 py-2.5 text-sm text-foreground" required>
-              <option value="">Select a saved prompt...</option>
-              {project.prompts.map((p) => <option key={p.id} value={p.id}>{p.title}</option>)}
-            </select>
-          </div>
           {project.prompts.length === 0 && (
-            <p className="text-xs text-subtle">
-              No ready prompts on this project yet. Save one in the{" "}
-              <Link href="/prompts" className="text-cobalt-400 hover:text-cobalt-300">Prompt Library</Link> first.
+            <p className="text-caption text-subtle">
+              Save one in the{" "}
+              <Link href="/prompts" className="text-cobalt-400 underline underline-offset-2 hover:text-cobalt-300">
+                Prompt Library
+              </Link>{" "}
+              and mark it Ready, then it shows up here.
             </p>
           )}
+
           <Button type="submit" variant="primary" disabled={project.prompts.length === 0}>
             Add to queue
           </Button>
         </form>
-      </details>
+      </CreateDisclosure>
 
-      {/* Queue list */}
-      <div className="mt-6 space-y-3">
-        {project.queueItems.length === 0 ? (
-          <div className="rounded-2xl border border-line bg-surface py-16 text-center">
-            <p className="text-sm text-muted">
-              Nothing queued yet. Add prompts to plan your next session.
-            </p>
-          </div>
-        ) : (
-          project.queueItems.map((item) => (
-            <div key={item.id} className="rounded-2xl border border-line bg-surface p-4">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <h3 className="text-sm font-medium text-foreground">
-                    <Link href="/prompts" className="hover:underline">{item.prompt.title}</Link>
-                  </h3>
-                  <p className="mt-1 line-clamp-2 text-xs text-subtle">
-                    {item.prompt.currentVersion?.content}
-                  </p>
+      {project.queueItems.length === 0 ? (
+        <EmptyState
+          icon={<Layers className="h-5 w-5" />}
+          title="Nothing queued"
+          description="Plan your next coding session by queueing the prompts you already know you'll need."
+        />
+      ) : (
+        <Stack as="ol" className="space-y-2">
+          {project.queueItems.map((item, index) => {
+            const meta = workStatus(item.status);
+            const content = item.prompt.currentVersion?.content ?? "";
+            return (
+              <Row key={item.id} className="p-4">
+                <div className="flex items-start gap-3.5">
+                  <span
+                    className="tabular mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full
+                      border border-line bg-well text-micro font-semibold text-subtle"
+                    aria-hidden="true"
+                  >
+                    {index + 1}
+                  </span>
+
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="text-title-3 text-foreground">{item.prompt.title}</h3>
+                      <Badge tone={meta.tone}>{meta.label}</Badge>
+                    </div>
+
+                    {content && (
+                      <p className="mt-1.5 line-clamp-2 text-caption text-subtle">{content}</p>
+                    )}
+
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                      {content && (
+                        <CopyButton text={content} label="Copy prompt" size="sm" />
+                      )}
+
+                      {item.status === "QUEUED" && (
+                        <form action={updateQueueStatus} className="contents">
+                          <input type="hidden" name="itemId" value={item.id} />
+                          <RowButton name="status" value="SENT">
+                            Mark sent
+                          </RowButton>
+                          <RowButton name="status" value="COMPLETED" tone="success">
+                            Completed
+                          </RowButton>
+                          <RowButton name="status" value="FAILED" tone="danger">
+                            Failed
+                          </RowButton>
+                        </form>
+                      )}
+
+                      {item.status === "SENT" && (
+                        <form action={updateQueueStatus} className="contents">
+                          <input type="hidden" name="itemId" value={item.id} />
+                          <RowButton name="status" value="COMPLETED" tone="success">
+                            Completed
+                          </RowButton>
+                          <RowButton name="status" value="FAILED" tone="danger">
+                            Failed
+                          </RowButton>
+                        </form>
+                      )}
+                    </div>
+                  </div>
                 </div>
-                <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-medium ${
-                  item.status === "COMPLETED" ? "text-success bg-success/10"
-                    : item.status === "FAILED" ? "text-danger bg-danger/10"
-                    : item.status === "SENT" ? "text-cobalt-400 bg-cobalt-400/10"
-                    : "text-accent bg-accent/10"
-                }`}>
-                  {QUEUE_STATUS_LABELS[item.status] ?? item.status}
-                </span>
-              </div>
-
-              {/* Status transitions */}
-              {item.status === "QUEUED" && (
-                <form action={updateQueueStatus} className="mt-2 flex gap-2">
-                  <input type="hidden" name="itemId" value={item.id} />
-                  <button type="submit" name="status" value="SENT"
-                          className="rounded-lg border border-cobalt-400/30 bg-cobalt-400/10 px-3 py-1.5 text-xs font-medium text-cobalt-400">
-                    Mark sent
-                  </button>
-                  <button type="submit" name="status" value="COMPLETED"
-                          className="rounded-lg border border-success/30 bg-success/10 px-3 py-1.5 text-xs font-medium text-success">
-                    Done
-                  </button>
-                  <button type="submit" name="status" value="FAILED"
-                          className="rounded-lg border border-danger/30 bg-danger/10 px-3 py-1.5 text-xs font-medium text-danger">
-                    Failed
-                  </button>
-                </form>
-              )}
-            </div>
-          ))
-        )}
-      </div>
+              </Row>
+            );
+          })}
+        </Stack>
+      )}
     </div>
   );
 }

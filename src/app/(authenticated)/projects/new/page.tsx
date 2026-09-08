@@ -5,6 +5,10 @@ import { verifySessionToken, SESSION_COOKIE_NAME } from "@/server/auth/session";
 import { db } from "@/server/db";
 import { Button } from "@/components/ui/button";
 import { Field, TextField } from "@/components/ui/field";
+import { PageHeader, PageShell } from "@/components/ui/page";
+import { Panel, PanelHeader } from "@/components/ui/panel";
+
+export const metadata = { title: "New project" };
 
 function slugify(text: string): string {
   return text
@@ -86,34 +90,78 @@ export default async function NewProjectPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl">
-      {/* Breadcrumb */}
-      <div className="mb-8">
-        <Link href="/" className="text-sm text-muted transition-colors hover:text-foreground">
-          ← Projects
-        </Link>
-      </div>
+    <PageShell width="reading">
+      <PageHeader
+        eyebrow="Universe"
+        eyebrowHref="/"
+        title="New project"
+        description="Only the name is required. Everything else can be filled in as the project takes shape — but the more you answer now, the better your first generated prompt will be."
+      />
 
-      <h1 className="text-2xl font-bold tracking-tight text-foreground">New Project</h1>
-      <p className="mt-1 text-sm text-muted">
-        Describe what you&apos;re building. The rest fills in as you go.
-      </p>
+      <form action={createProject} className="space-y-5">
+        <Panel>
+          <PanelHeader title="Identity" />
+          <div className="space-y-4">
+            <Field
+              label="Project name"
+              name="name"
+              type="text"
+              placeholder="Hook Finder"
+              required
+              autoComplete="off"
+              autoFocus
+            />
+            <TextField
+              label="One-line description"
+              name="description"
+              placeholder="Analyzes Meta ad creatives and identifies winning hooks"
+              rows={2}
+            />
+          </div>
+        </Panel>
 
-      <form action={createProject} className="mt-8 space-y-6">
-        <Field label="Project name" name="name" type="text" placeholder="My awesome project" required autoComplete="off" />
-        <TextField label="One-line description" name="description" placeholder="What is this? Keep it short." rows={2} />
-        <TextField label="Product statement" name="productStatement" placeholder="What are you building?" rows={3} />
-        <TextField label="Problem" name="problem" placeholder="What problem does this solve?" rows={3} />
-        <Field label="Target user" name="targetUser" type="text" placeholder="Who is this for?" />
-        <TextField label="Desired outcome" name="desiredOutcome" placeholder="What does success look like?" rows={2} />
+        <Panel>
+          <PanelHeader
+            title="What and why"
+            description="Optional now, valuable later — this is what an agent reads first."
+          />
+          <div className="space-y-4">
+            <TextField
+              label="Product statement"
+              name="productStatement"
+              placeholder="What exactly are you building?"
+              rows={3}
+            />
+            <TextField
+              label="Problem"
+              name="problem"
+              placeholder="What problem does this solve?"
+              rows={3}
+            />
+            <Field
+              label="Target user"
+              name="targetUser"
+              type="text"
+              placeholder="Who is it for?"
+            />
+            <TextField
+              label="Desired outcome"
+              name="desiredOutcome"
+              placeholder="What does success look like?"
+              rows={2}
+            />
+          </div>
+        </Panel>
 
-        <div className="flex justify-end gap-3 pt-4">
-          <Link href="/">
-            <Button type="button" variant="secondary">Cancel</Button>
-          </Link>
-          <Button type="submit" variant="primary">Create Project</Button>
+        <div className="flex justify-end gap-2">
+          <Button asChild variant="ghost">
+            <Link href="/">Cancel</Link>
+          </Button>
+          <Button type="submit" variant="primary">
+            Create project
+          </Button>
         </div>
       </form>
-    </div>
+    </PageShell>
   );
 }

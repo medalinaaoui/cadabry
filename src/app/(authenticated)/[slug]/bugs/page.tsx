@@ -1,30 +1,21 @@
 import { redirect } from "next/navigation";
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import { cookies } from "next/headers";
+import { Bug as BugIcon } from "lucide-react";
 import { verifySessionToken, SESSION_COOKIE_NAME } from "@/server/auth/session";
 import { db } from "@/server/db";
+import { requireActor } from "@/features/projects/queries";
 import { Button } from "@/components/ui/button";
-import { Field, TextField } from "@/components/ui/field";
+import { BareInput, Field, SelectField, TextField } from "@/components/ui/field";
+import { Badge } from "@/components/ui/badge";
+import { DataList, EmptyState, Row, Stack } from "@/components/ui/page";
+import { CreateDisclosure, FormGrid, RowActions, RowButton } from "@/components/ui/disclosure";
+import { workStatus } from "@/features/projects/display";
 
 type Props = { params: Promise<{ slug: string }> };
 
-const STATUS_META: Record<string, { label: string; cls: string }> = {
-  INBOX: { label: "Inbox", cls: "text-subtle bg-subtle/10" },
-  ACTIVE: { label: "Active", cls: "text-danger bg-danger/10" },
-  PLANNED: { label: "Planned", cls: "text-cobalt-400 bg-cobalt-400/10" },
-  RESOLVED: { label: "Resolved", cls: "text-success bg-success/10" },
-  ARCHIVED: { label: "Archived", cls: "text-muted bg-muted/10" },
-};
-
 export default async function BugsPage({ params }: Props) {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value ?? null;
-  if (!token) redirect("/login");
-
-  const actor = await verifySessionToken(token);
-  if (!actor) redirect("/login");
-
+  const actor = await requireActor();
   const { slug } = await params;
 
   const project = await db.project.findUnique({
@@ -123,93 +114,130 @@ export default async function BugsPage({ params }: Props) {
   }
 
   return (
-    <div className="mx-auto max-w-3xl">
-      <div className="mb-6">
-        <Link href={`/${project.slug}`} className="text-sm text-muted transition-colors hover:text-foreground">
-          ← {project.name}
-        </Link>
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-title-2 text-foreground">Bugs &amp; debugging memory</h2>
+        <p className="mt-1.5 max-w-(--reading-max) text-body text-muted">
+          Track what broke, and record how it was fixed. The resolution is the part
+          that stops you debugging the same thing twice.
+        </p>
       </div>
 
-      <h1 className="text-2xl font-bold tracking-tight text-foreground">Bugs &amp; Debugging Memory</h1>
-      <p className="mt-1 text-sm text-muted">
-        Track problems, and remember how you fixed them.
-      </p>
-
-      <details className="mt-6 rounded-2xl border border-line bg-surface">
-        <summary className="cursor-pointer px-4 py-3 text-sm font-medium text-muted hover:text-foreground">
-          + Report a bug
-        </summary>
-        <form action={addBug} className="space-y-4 px-4 py-4">
-          <Field label="Title" name="title" type="text" placeholder="Auth redirect fails on Safari" required />
+      <CreateDisclosure label="Report a bug">
+        <form action={addBug} className="space-y-4">
+          <Field
+            label="Title"
+            name="title"
+            type="text"
+            placeholder="Auth redirect fails on Safari"
+            required
+          />
           <TextField label="Symptoms" name="symptoms" rows={2} placeholder="What goes wrong?" />
-          <TextField label="Reproduction steps" name="reproduction" rows={2} placeholder="1. Open on Safari 2. ..." />
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Expected" name="expected" type="text" placeholder="Should redirect to dashboard" />
-            <Field label="Actual" name="actual" type="text" placeholder="Redirects to login" />
-          </div>
-          <div className="space-y-1.5">
-            <label htmlFor="severity" className="text-sm text-muted">Severity (1–5)</label>
-            <select id="severity" name="severity" className="w-full rounded-xl border border-line bg-surface px-4 py-2.5 text-sm text-foreground">
-              {[1, 2, 3, 4, 5].map((s) => <option key={s} value={s}>{s} — {s >= 4 ? "critical" : s === 3 ? "major" : "minor"}</option>)}
-            </select>
-          </div>
-          <Button type="submit" variant="primary">Report bug</Button>
+          <TextField
+            label="Reproduction steps"
+            name="reproduction"
+            rows={2}
+            placeholder="1. Open on Safari  2. Sign in  3. …"
+          />
+          <FormGrid>
+            <Field
+              label="Expected"
+              name="expected"
+              type="text"
+              placeholder="Redirects to the dashboard"
+            />
+            <Field
+              label="Actual"
+              name="actual"
+              type="text"
+              placeholder="Bounces back to login"
+            />
+          </FormGrid>
+          <SelectField label="Severity" name="severity" defaultValue="1">
+            {[1, 2, 3, 4, 5].map((s) => (
+              <option key={s} value={s}>
+                {s} — {s >= 4 ? "critical" : s === 3 ? "major" : "minor"}
+              </option>
+            ))}
+          </SelectField>
+          <Button type="submit" variant="primary">
+            Report bug
+          </Button>
         </form>
-      </details>
+      </CreateDisclosure>
 
-      <div className="mt-6 space-y-4">
-        {project.bugs.length === 0 ? (
-          <div className="rounded-2xl border border-line bg-surface py-16 text-center">
-            <p className="text-sm text-muted">No bugs tracked. Keep it that way.</p>
-          </div>
-        ) : (
-          project.bugs.map((bug) => {
-            const meta = STATUS_META[bug.status] ?? STATUS_META.INBOX;
+      {project.bugs.length === 0 ? (
+        <EmptyState
+          icon={<BugIcon className="h-5 w-5" />}
+          title="Nothing broken"
+          description="No bugs tracked on this project. Keep it that way."
+        />
+      ) : (
+        <Stack>
+          {project.bugs.map((bug) => {
+            const meta = workStatus(bug.status);
+            const open = bug.status !== "RESOLVED" && bug.status !== "ARCHIVED";
             return (
-              <div key={bug.id} className="rounded-2xl border border-line bg-surface p-5">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="text-base font-semibold text-foreground">{bug.title}</h3>
-                      <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-medium ${meta.cls}`}>{meta.label}</span>
-                      {bug.severity > 0 && (
-                        <span className="rounded-full bg-danger/10 px-2 py-0.5 text-[10px] text-danger">S{bug.severity}</span>
-                      )}
-                    </div>
-                    {bug.symptoms && <p className="mt-1 text-sm text-muted">{bug.symptoms}</p>}
-                    {bug.expectedBehavior && bug.actualBehavior && (
-                      <p className="mt-1 text-xs text-subtle">Expected: {bug.expectedBehavior} · Actual: {bug.actualBehavior}</p>
-                    )}
-                    {bug.reproduction && <p className="mt-1 text-xs text-subtle">Repro: {bug.reproduction}</p>}
-                    {bug.status === "RESOLVED" && bug.resolution && (
-                      <div className="mt-2 rounded-lg border border-success/20 bg-success/5 px-3 py-2 text-xs text-success">
-                        Fixed: {bug.resolution}
-                      </div>
-                    )}
-                  </div>
+              <Row key={bug.id} className="p-5">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="text-title-3 text-foreground">{bug.title}</h3>
+                  <Badge tone={meta.tone}>{meta.label}</Badge>
+                  {bug.severity >= 4 && <Badge tone="danger">Severity {bug.severity}</Badge>}
                 </div>
 
-                {bug.status !== "RESOLVED" && bug.status !== "ARCHIVED" ? (
-                  <form action={resolveOrReopen} className="mt-3 flex gap-2">
+                {bug.symptoms && (
+                  <p className="mt-1.5 max-w-(--reading-max) text-body text-muted">
+                    {bug.symptoms}
+                  </p>
+                )}
+
+                <DataList
+                  className="mt-3"
+                  items={[
+                    { label: "Expected", value: bug.expectedBehavior },
+                    { label: "Actual", value: bug.actualBehavior },
+                    { label: "Reproduce", value: bug.reproduction },
+                  ]}
+                />
+
+                {bug.status === "RESOLVED" && bug.resolution && (
+                  <p className="mt-3 rounded-xl border border-success/25 bg-success/8 px-3.5 py-2.5 text-caption text-success">
+                    <span className="font-semibold">Fixed · </span>
+                    {bug.resolution}
+                  </p>
+                )}
+
+                {open ? (
+                  <form action={resolveOrReopen} className="mt-4 flex flex-wrap items-center gap-2">
                     <input type="hidden" name="id" value={bug.id} />
-                    <input type="text" name="resolution" placeholder="How it was fixed (root cause)" className="flex-1 rounded-lg border border-line bg-surface px-3 py-1.5 text-xs text-foreground placeholder:text-subtle" />
-                    <button type="submit" name="action" value="resolve" className="rounded-lg border border-success/30 bg-success/10 px-3 py-1.5 text-xs font-medium text-success">
+                    <label htmlFor={`resolution-${bug.id}`} className="sr-only">
+                      How {bug.title} was fixed
+                    </label>
+                    <BareInput
+                      id={`resolution-${bug.id}`}
+                      name="resolution"
+                      placeholder="Root cause and fix…"
+                      className="h-9 min-w-0 flex-1 text-caption"
+                    />
+                    <RowButton name="action" value="resolve" tone="success">
                       Resolve
-                    </button>
+                    </RowButton>
                   </form>
                 ) : bug.status === "RESOLVED" ? (
-                  <form action={resolveOrReopen} className="mt-3">
+                  <form action={resolveOrReopen}>
                     <input type="hidden" name="id" value={bug.id} />
-                    <button type="submit" name="action" value="reopen" className="rounded-lg border border-line bg-surface px-3 py-1.5 text-xs font-medium text-muted hover:text-foreground">
-                      Reopen
-                    </button>
+                    <RowActions>
+                      <RowButton name="action" value="reopen">
+                        Reopen
+                      </RowButton>
+                    </RowActions>
                   </form>
                 ) : null}
-              </div>
+              </Row>
             );
-          })
-        )}
-      </div>
+          })}
+        </Stack>
+      )}
     </div>
   );
 }

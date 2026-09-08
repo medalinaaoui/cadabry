@@ -1,18 +1,21 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { cookies } from "next/headers";
+import { Layers } from "lucide-react";
 import { verifySessionToken, SESSION_COOKIE_NAME } from "@/server/auth/session";
 import { db } from "@/server/db";
+import { requireActor } from "@/features/projects/queries";
 import { Button } from "@/components/ui/button";
 import { Field, TextField } from "@/components/ui/field";
+import { Badge } from "@/components/ui/badge";
+import { Panel } from "@/components/ui/panel";
+import { EmptyState, PageHeader, PageShell } from "@/components/ui/page";
+import { CreateDisclosure } from "@/components/ui/disclosure";
+
+export const metadata = { title: "Context packs" };
 
 export default async function PacksPage() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value ?? null;
-  if (!token) redirect("/login");
-
-  const actor = await verifySessionToken(token);
-  if (!actor) redirect("/login");
+  const actor = await requireActor();
 
   const packs = await db.contextPack.findMany({
     where: { ownerId: actor.userId, archivedAt: null },
@@ -65,52 +68,78 @@ export default async function PacksPage() {
   }
 
   return (
-    <div className="mx-auto max-w-[var(--page-max)]">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">Context Packs</h1>
-        <p className="mt-1 text-sm text-muted">
-          Reusable instruction blocks you toggle into prompts. No more one giant permanent instruction wall.
-        </p>
-      </div>
+    <PageShell>
+      <PageHeader
+        title="Context packs"
+        description="Reusable instruction blocks you switch on per prompt — instead of one permanent wall of rules an agent stops reading."
+      />
 
-      <details className="mb-8 rounded-2xl border border-line bg-surface">
-        <summary className="cursor-pointer px-4 py-3 text-sm font-medium text-muted hover:text-foreground">
-          + New context pack
-        </summary>
-        <form action={createPack} className="space-y-4 px-4 py-4">
-          <Field label="Name" name="name" type="text" placeholder="My Next.js Standards" required />
-          <Field label="Description" name="description" type="text" placeholder="What is this pack for?" />
-          <TextField label="Rules (one per line)" name="rules" rows={6} placeholder={"- Use App Router\n- Server Components by default\n- Validate all input"} />
-          <Button type="submit" variant="primary">Create pack</Button>
+      <CreateDisclosure label="New context pack" className="mb-6">
+        <form action={createPack} className="space-y-4">
+          <Field
+            label="Name"
+            name="name"
+            type="text"
+            placeholder="My Next.js standards"
+            required
+          />
+          <Field
+            label="Description"
+            name="description"
+            type="text"
+            placeholder="What is this pack for?"
+          />
+          <TextField
+            label="Rules"
+            name="rules"
+            rows={6}
+            hint="One per line."
+            placeholder={"Use App Router\nServer Components by default\nValidate all external input"}
+          />
+          <Button type="submit" variant="primary">
+            Create pack
+          </Button>
         </form>
-      </details>
+      </CreateDisclosure>
 
       {packs.length === 0 ? (
-        <div className="rounded-2xl border border-line bg-surface py-16 text-center">
-          <p className="text-sm text-muted">No context packs yet. These become toggleable prompt ingredients.</p>
-        </div>
+        <EmptyState
+          icon={<Layers className="h-5 w-5" />}
+          title="No context packs yet"
+          description="Group the rules you repeat, then drop them into prompts as one ingredient."
+        />
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {packs.map((pack) => (
-            <div key={pack.id} className="rounded-2xl border border-line bg-surface p-5">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="text-base font-semibold text-foreground">{pack.name}</h3>
-                  {pack.description && <p className="mt-1 text-xs text-muted">{pack.description}</p>}
+            <li key={pack.id}>
+              <Panel className="h-full">
+                <div className="flex items-start justify-between gap-3">
+                  <h2 className="text-title-3 text-foreground">{pack.name}</h2>
+                  <Badge tone="cobalt">
+                    {pack._count.rules} rule{pack._count.rules === 1 ? "" : "s"}
+                  </Badge>
                 </div>
-                <span className="rounded-full bg-cobalt-400/10 px-2 py-0.5 text-[10px] font-medium text-cobalt-400">
-                  {pack._count.rules} rule{pack._count.rules === 1 ? "" : "s"}
-                </span>
-              </div>
-              {pack.project && (
-                <p className="mt-2 text-xs text-subtle">
-                  Project: <Link href={`/${pack.project.slug}`} className="text-cobalt-400 hover:text-cobalt-300">{pack.project.name}</Link>
-                </p>
-              )}
-            </div>
+
+                {pack.description && (
+                  <p className="mt-2 text-caption text-muted">{pack.description}</p>
+                )}
+
+                {pack.project && (
+                  <p className="mt-3 text-caption text-subtle">
+                    <span className="eyebrow mr-1.5">Project</span>
+                    <Link
+                      href={`/${pack.project.slug}`}
+                      className="text-cobalt-400 underline underline-offset-2 transition-colors hover:text-cobalt-300"
+                    >
+                      {pack.project.name}
+                    </Link>
+                  </p>
+                )}
+              </Panel>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
-    </div>
+    </PageShell>
   );
 }

@@ -1,17 +1,19 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { cookies } from "next/headers";
+import { Inbox as InboxIcon, Sparkles } from "lucide-react";
 import { verifySessionToken, SESSION_COOKIE_NAME } from "@/server/auth/session";
 import { db } from "@/server/db";
-import { Button } from "@/components/ui/button";
+import { requireActor } from "@/features/projects/queries";
+import { Badge, Kbd } from "@/components/ui/badge";
+import { EmptyState, PageHeader, PageShell, Row, Stack } from "@/components/ui/page";
+import { RowButton } from "@/components/ui/disclosure";
+import { timeAgo } from "@/features/projects/display";
+
+export const metadata = { title: "Idea inbox" };
 
 export default async function InboxPage() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value ?? null;
-  if (!token) redirect("/login");
-
-  const actor = await verifySessionToken(token);
-  if (!actor) redirect("/login");
+  const actor = await requireActor();
 
   const ideas = await db.idea.findMany({
     where: { ownerId: actor.userId, status: "INBOX" },
@@ -74,66 +76,84 @@ export default async function InboxPage() {
   }
 
   return (
-    <div className="mx-auto max-w-[var(--page-max)]">
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">Idea Inbox</h1>
-          <p className="mt-1 text-sm text-muted">
-            Your raw thoughts, ideas, and captures awaiting triage.
-          </p>
-        </div>
-        <span className="rounded-full bg-accent/15 px-3 py-1 text-xs font-medium text-accent">
-          {ideas.length} uncategorized
-        </span>
-      </div>
+    <PageShell width="reading">
+      <PageHeader
+        title="Idea inbox"
+        description="Everything you captured mid-build, waiting to be sorted. Promote what belongs to a project, archive the rest."
+        actions={
+          ideas.length > 0 ? (
+            <Badge tone="gold">{ideas.length} to triage</Badge>
+          ) : undefined
+        }
+      />
 
       {ideas.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-line bg-surface py-20">
-          <h2 className="text-lg font-semibold text-foreground">Inbox zero ✨</h2>
-          <p className="mt-1 max-w-sm text-center text-sm text-muted">
-            Nothing pending. Use Quick Capture (sidebar) whenever a thought hits.
-          </p>
-        </div>
+        <EmptyState
+          icon={<Sparkles className="h-5 w-5" />}
+          title="Inbox zero"
+          description="Nothing waiting. Press C anywhere in the app the next time a thought hits."
+        />
       ) : (
-        <div className="space-y-3">
-          {ideas.map((idea) => (
-            <div key={idea.id} className="rounded-2xl border border-line bg-surface p-4">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <h3 className="text-sm font-medium text-foreground">{idea.title}</h3>
-                  <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-subtle">
-                    <span>{idea.createdAt.toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
-                    {idea.project && (
-                      <Link href={`/${idea.project.slug}`} className="text-cobalt-400 hover:text-cobalt-300">
-                        → {idea.project.name}
-                      </Link>
-                    )}
-                    {idea.body && idea.body !== "Captured as idea" && (
-                      <span className="text-muted">· {idea.body}</span>
-                    )}
-                  </div>
-                </div>
-              </div>
+        <Stack className="space-y-2">
+          {ideas.map((idea) => {
+            const note =
+              idea.body && !idea.body.startsWith("Captured as") ? idea.body : null;
+            return (
+              <Row key={idea.id} className="p-4">
+                <h2 className="text-title-3 text-foreground">{idea.title}</h2>
 
-              {/* Triage actions */}
-              <div className="mt-2 flex gap-2">
-                <form action={triageIdea} className="contents">
+                <p className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-caption text-subtle">
+                  <time dateTime={idea.createdAt.toISOString()}>
+                    {timeAgo(idea.createdAt)}
+                  </time>
+                  {idea.project && (
+                    <>
+                      <span aria-hidden="true">·</span>
+                      <Link
+                        href={`/${idea.project.slug}`}
+                        className="text-cobalt-400 underline underline-offset-2 transition-colors hover:text-cobalt-300"
+                      >
+                        {idea.project.name}
+                      </Link>
+                    </>
+                  )}
+                  {note && (
+                    <>
+                      <span aria-hidden="true">·</span>
+                      <span className="text-muted">{note}</span>
+                    </>
+                  )}
+                </p>
+
+                <form action={triageIdea} className="mt-3 flex flex-wrap gap-2">
                   <input type="hidden" name="id" value={idea.id} />
-                  <button type="submit" name="action" value="promote" disabled={!idea.projectId}
-                          className="rounded-lg border border-accent/30 bg-accent/10 px-3 py-1.5 text-xs font-medium text-accent"
-                          title={idea.projectId ? "Promote to feature" : "Link a project first"}>
+                  <RowButton
+                    name="action"
+                    value="promote"
+                    tone="accent"
+                    disabled={!idea.projectId}
+                    title={
+                      idea.projectId
+                        ? "Promote to a feature on this project"
+                        : "Link this idea to a project first"
+                    }
+                  >
                     Promote to feature
-                  </button>
-                  <button type="submit" name="action" value="archive"
-                          className="rounded-lg border border-line bg-surface px-3 py-1.5 text-xs font-medium text-muted hover:text-foreground">
+                  </RowButton>
+                  <RowButton name="action" value="archive">
                     Archive
-                  </button>
+                  </RowButton>
                 </form>
-              </div>
-            </div>
-          ))}
-        </div>
+              </Row>
+            );
+          })}
+        </Stack>
       )}
-    </div>
+
+      <p className="mt-6 flex items-center gap-2 text-caption text-subtle">
+        <InboxIcon className="h-3.5 w-3.5" aria-hidden="true" />
+        Press <Kbd>C</Kbd> anywhere to capture a new thought.
+      </p>
+    </PageShell>
   );
 }

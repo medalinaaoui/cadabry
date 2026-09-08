@@ -1,18 +1,20 @@
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { cookies } from "next/headers";
+import { ArrowUpRight, BookOpen } from "lucide-react";
 import { verifySessionToken, SESSION_COOKIE_NAME } from "@/server/auth/session";
 import { db } from "@/server/db";
+import { requireActor } from "@/features/projects/queries";
 import { Button } from "@/components/ui/button";
 import { Field, TextField } from "@/components/ui/field";
+import { Badge } from "@/components/ui/badge";
+import { Panel } from "@/components/ui/panel";
+import { EmptyState, PageHeader, PageShell } from "@/components/ui/page";
+import { CreateDisclosure, FormGrid } from "@/components/ui/disclosure";
+
+export const metadata = { title: "Skills" };
 
 export default async function SkillsPage() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value ?? null;
-  if (!token) redirect("/login");
-
-  const actor = await verifySessionToken(token);
-  if (!actor) redirect("/login");
+  const actor = await requireActor();
 
   const skills = await db.skill.findMany({
     where: { ownerId: actor.userId },
@@ -60,67 +62,114 @@ export default async function SkillsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-[var(--page-max)]">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">Skills Library</h1>
-        <p className="mt-1 text-sm text-muted">
-          Agent skills you use — with installation notes, so you never hunt for them again.
-        </p>
-      </div>
+    <PageShell>
+      <PageHeader
+        title="Skills library"
+        description="The agent skills you actually use, with the install line attached — so you never go hunting for the same repo twice."
+      />
 
-      <details className="mb-8 rounded-2xl border border-line bg-surface">
-        <summary className="cursor-pointer px-4 py-3 text-sm font-medium text-muted hover:text-foreground">
-          + Add skill
-        </summary>
-        <form action={addSkill} className="space-y-4 px-4 py-4">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Name" name="name" type="text" placeholder="e.g. Prisma CLI" required />
-            <Field label="Category" name="category" type="text" placeholder="database / testing / design / ..." />
-          </div>
-          <Field label="Description" name="description" type="text" placeholder="What does this skill do?" />
-          <Field label="When to use" name="whenToUse" type="text" placeholder="When working with the database schema" />
-          <TextField label="Installation instructions" name="installation" rows={2} placeholder="How to install / enable it" />
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Command" name="command" type="text" placeholder="prisma db push" />
-            <Field label="Repository / link" name="url" type="url" placeholder="https://github.com/..." />
-          </div>
-          <Button type="submit" variant="primary">Add skill</Button>
+      <CreateDisclosure label="Add skill" className="mb-6">
+        <form action={addSkill} className="space-y-4">
+          <FormGrid>
+            <Field label="Name" name="name" type="text" placeholder="Prisma CLI" required />
+            <Field
+              label="Category"
+              name="category"
+              type="text"
+              placeholder="database / testing / design"
+            />
+          </FormGrid>
+          <Field
+            label="Description"
+            name="description"
+            type="text"
+            placeholder="What does this skill do?"
+          />
+          <Field
+            label="When to use"
+            name="whenToUse"
+            type="text"
+            placeholder="When touching the database schema"
+          />
+          <TextField
+            label="Installation instructions"
+            name="installation"
+            rows={2}
+            placeholder="npx skills add …"
+          />
+          <FormGrid>
+            <Field
+              label="Command"
+              name="command"
+              type="text"
+              placeholder="prisma db push"
+              className="font-mono"
+            />
+            <Field
+              label="Repository or link"
+              name="url"
+              type="url"
+              placeholder="https://github.com/…"
+            />
+          </FormGrid>
+          <Button type="submit" variant="primary">
+            Add skill
+          </Button>
         </form>
-      </details>
+      </CreateDisclosure>
 
       {skills.length === 0 ? (
-        <div className="rounded-2xl border border-line bg-surface py-16 text-center">
-          <p className="text-sm text-muted">No skills saved yet. Track the ones you actually use.</p>
-        </div>
+        <EmptyState
+          icon={<BookOpen className="h-5 w-5" />}
+          title="No skills saved"
+          description="Track the ones you reach for, and how to install them."
+        />
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {skills.map((skill) => (
-            <div key={skill.id} className="rounded-2xl border border-line bg-surface p-5">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="text-base font-semibold text-foreground">{skill.name}</h3>
-                  {skill.category && (
-                    <span className="mt-1 rounded-full bg-cobalt-400/10 px-2 py-0.5 text-[10px] font-medium text-cobalt-400">
-                      {skill.category}
-                    </span>
-                  )}
+            <li key={skill.id}>
+              <Panel className="flex h-full flex-col">
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <h2 className="text-title-3 text-foreground">{skill.name}</h2>
+                  {skill.category && <Badge tone="cobalt">{skill.category}</Badge>}
                 </div>
-              </div>
-              {skill.description && <p className="mt-2 text-sm text-muted">{skill.description}</p>}
-              {skill.whenToUse && <p className="mt-1 text-xs text-subtle">Use when: {skill.whenToUse}</p>}
-              {skill.command && (
-                <code className="mt-2 block rounded-lg bg-well px-2.5 py-1.5 text-xs text-cobalt-300">{skill.command}</code>
-              )}
-              {skill.url && (
-                <a href={skill.url} target="_blank" rel="noopener noreferrer"
-                   className="mt-2 block truncate text-xs text-cobalt-400 hover:text-cobalt-300">
-                  {skill.url}
-                </a>
-              )}
-            </div>
+
+                {skill.description && (
+                  <p className="mt-2 text-caption text-muted">{skill.description}</p>
+                )}
+                {skill.whenToUse && (
+                  <p className="mt-2 text-caption text-subtle">
+                    <span className="eyebrow mr-1.5">Use when</span>
+                    {skill.whenToUse}
+                  </p>
+                )}
+
+                {skill.command && (
+                  <code
+                    className="mt-3 block overflow-x-auto rounded-lg border border-line-subtle
+                      bg-well px-2.5 py-1.5 font-mono text-caption text-gold-300"
+                  >
+                    {skill.command}
+                  </code>
+                )}
+
+                {skill.url && (
+                  <a
+                    href={skill.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-3 inline-flex items-center gap-1.5 text-caption text-cobalt-400
+                      transition-colors hover:text-cobalt-300"
+                  >
+                    Open source
+                    <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+                  </a>
+                )}
+              </Panel>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
-    </div>
+    </PageShell>
   );
 }

@@ -4,22 +4,16 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { verifySessionToken, SESSION_COOKIE_NAME } from "@/server/auth/session";
 import { db } from "@/server/db";
+import { requireActor } from "@/features/projects/queries";
 import { Button } from "@/components/ui/button";
-import { Field, TextField } from "@/components/ui/field";
+import { Field, SelectField, TextField } from "@/components/ui/field";
+import { Panel, PanelHeader } from "@/components/ui/panel";
+import { PROJECT_STATUS_ORDER, projectStatus } from "@/features/projects/display";
 
 type Props = { params: Promise<{ slug: string }> };
 
-const STATUSES = ["IDEA", "PLANNING", "BUILDING", "BLOCKED", "PAUSED", "SHIPPED", "ARCHIVED"];
-const BOUNDARY_KINDS = ["GOAL", "NON_GOAL", "ASSUMPTION", "CONSTRAINT", "FUTURE_IDEA"];
-
 export default async function EditProjectPage({ params }: Props) {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value ?? null;
-  if (!token) redirect("/login");
-
-  const actor = await verifySessionToken(token);
-  if (!actor) redirect("/login");
-
+  const actor = await requireActor();
   const { slug } = await params;
 
   const project = await db.project.findUnique({
@@ -128,90 +122,202 @@ export default async function EditProjectPage({ params }: Props) {
   }
 
   return (
-    <div className="mx-auto max-w-3xl">
-      <div className="mb-6">
-        <Link href={`/${project.slug}`} className="text-sm text-muted transition-colors hover:text-foreground">
-          ← {project.name}
-        </Link>
+    <div className="max-w-3xl">
+      <div>
+        <h2 className="text-title-2 text-foreground">Edit project brain</h2>
+        <p className="mt-1.5 max-w-(--reading-max) text-body text-muted">
+          The structured source of truth agents read. Everything here can end up in a
+          generated prompt, so write it the way you&apos;d want an agent to read it.
+        </p>
       </div>
 
-      <h1 className="text-2xl font-bold tracking-tight text-foreground">Edit Project Brain</h1>
-      <p className="mt-1 text-sm text-muted">
-        The structured source of truth agents read to understand this project.
-      </p>
-
-      <form action={saveBrain} className="mt-8 space-y-6">
-        <section className="rounded-2xl border border-line bg-surface p-5">
-          <h2 className="text-sm font-semibold text-foreground">Identity</h2>
-          <div className="mt-4 space-y-4">
-            <Field label="One-line description" name="oneLine" type="text" placeholder="What is this, briefly?" defaultValue={project.oneLineDescription ?? ""} />
-            <TextField label="Detailed description" name="description" rows={3} defaultValue={project.description ?? ""} />
+      <form action={saveBrain} className="mt-7 space-y-5">
+        <Panel>
+          <PanelHeader title="Identity" />
+          <div className="space-y-4">
+            <Field
+              label="One-line description"
+              name="oneLine"
+              type="text"
+              placeholder="What is this, briefly?"
+              defaultValue={project.oneLineDescription ?? ""}
+            />
+            <TextField
+              label="Detailed description"
+              name="description"
+              rows={3}
+              defaultValue={project.description ?? ""}
+            />
             <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <label htmlFor="status" className="text-sm text-muted">Status</label>
-                <select id="status" name="status" className="w-full rounded-xl border border-line bg-surface px-4 py-2.5 text-sm text-foreground">
-                  {STATUSES.map((s) => <option key={s} value={s} defaultValue={project.status}>{s.replaceAll("_", " ").toLowerCase()}</option>)}
-                </select>
-              </div>
-              <div className="space-y-1.5">
-                <label htmlFor="progress" className="text-sm text-muted">Progress (0–100%)</label>
-                <input id="progress" name="progress" type="number" min={0} max={100} defaultValue={project.progress}
-                       className="w-full rounded-xl border border-line bg-surface px-4 py-2.5 text-sm text-foreground" />
-              </div>
+              <SelectField label="Status" name="status" defaultValue={project.status}>
+                {PROJECT_STATUS_ORDER.map((status) => (
+                  <option key={status} value={status}>
+                    {projectStatus(status).label}
+                  </option>
+                ))}
+              </SelectField>
+              <Field
+                label="Progress"
+                name="progress"
+                type="number"
+                min={0}
+                max={100}
+                defaultValue={project.progress}
+                hint="0–100%."
+              />
             </div>
           </div>
-        </section>
+        </Panel>
 
-        <section className="rounded-2xl border border-line bg-surface p-5">
-          <h2 className="text-sm font-semibold text-foreground">What are we building?</h2>
-          <div className="mt-4 space-y-4">
-            <TextField label="Product statement" name="productStatement" rows={2} defaultValue={project.productStatement ?? ""} placeholder="An app for agency owners that analyzes Meta ad creatives..." />
-            <TextField label="Problem" name="problem" rows={2} defaultValue={project.problem ?? ""} />
-            <Field label="Target user" name="targetUser" type="text" defaultValue={project.targetUser ?? ""} />
-            <TextField label="Desired outcome" name="desiredOutcome" rows={2} defaultValue={project.desiredOutcome ?? ""} />
-            <TextField label="Value proposition" name="valueProposition" rows={2} defaultValue={project.valueProposition ?? ""} />
+        <Panel>
+          <PanelHeader title="What are we building?" />
+          <div className="space-y-4">
+            <TextField
+              label="Product statement"
+              name="productStatement"
+              rows={2}
+              defaultValue={project.productStatement ?? ""}
+              placeholder="An app for agency owners that analyzes Meta ad creatives and identifies winning hooks."
+            />
+            <TextField
+              label="Problem"
+              name="problem"
+              rows={2}
+              defaultValue={project.problem ?? ""}
+            />
+            <Field
+              label="Target user"
+              name="targetUser"
+              type="text"
+              defaultValue={project.targetUser ?? ""}
+            />
+            <TextField
+              label="Desired outcome"
+              name="desiredOutcome"
+              rows={2}
+              defaultValue={project.desiredOutcome ?? ""}
+            />
+            <TextField
+              label="Value proposition"
+              name="valueProposition"
+              rows={2}
+              defaultValue={project.valueProposition ?? ""}
+            />
           </div>
-        </section>
+        </Panel>
 
-        <section className="rounded-2xl border border-line bg-surface p-5">
-          <h2 className="text-sm font-semibold text-foreground">Current state</h2>
-          <div className="mt-4 space-y-4">
-            <TextField label="What already works" name="whatWorks" rows={2} defaultValue={project.whatWorks ?? ""} />
-            <TextField label="Partially built" name="partiallyBuilt" rows={2} defaultValue={project.partiallyBuilt ?? ""} />
-            <TextField label="What's broken" name="whatBroken" rows={2} defaultValue={project.whatIsBroken ?? ""} />
-            <TextField label="Current blocker" name="blocker" rows={1} defaultValue={project.currentBlocker ?? ""} />
-            <TextField label="Current task" name="currentTask" rows={2} defaultValue={project.currentTask ?? ""} />
-            <TextField label="Next task" name="nextTask" rows={2} defaultValue={project.nextTask ?? ""} />
+        <Panel>
+          <PanelHeader
+            title="Current state"
+            description="The part that makes resuming cheap. Keep it honest and current."
+          />
+          <div className="space-y-4">
+            <TextField
+              label="What already works"
+              name="whatWorks"
+              rows={2}
+              defaultValue={project.whatWorks ?? ""}
+            />
+            <TextField
+              label="Partially built"
+              name="partiallyBuilt"
+              rows={2}
+              defaultValue={project.partiallyBuilt ?? ""}
+            />
+            <TextField
+              label="What's broken"
+              name="whatBroken"
+              rows={2}
+              defaultValue={project.whatIsBroken ?? ""}
+            />
+            <TextField
+              label="Current blocker"
+              name="blocker"
+              rows={2}
+              defaultValue={project.currentBlocker ?? ""}
+            />
+            <TextField
+              label="Current task"
+              name="currentTask"
+              rows={2}
+              defaultValue={project.currentTask ?? ""}
+            />
+            <TextField
+              label="Next task"
+              name="nextTask"
+              rows={2}
+              defaultValue={project.nextTask ?? ""}
+            />
           </div>
-        </section>
+        </Panel>
 
-        <section className="rounded-2xl border border-line bg-surface p-5">
-          <h2 className="text-sm font-semibold text-foreground">Links</h2>
-          <div className="mt-4 space-y-4">
-            <Field label="Repository URL" name="repositoryUrl" type="url" defaultValue={project.repositoryUrl ?? ""} />
-            <Field label="Production URL" name="productionUrl" type="url" defaultValue={project.productionUrl ?? ""} />
-            <Field label="Staging URL" name="stagingUrl" type="url" defaultValue={project.stagingUrl ?? ""} />
-            <Field label="Local folder path" name="localPath" type="text" defaultValue={project.localFolderPath ?? ""} placeholder="/Users/me/projects/my-app" />
+        <Panel>
+          <PanelHeader title="Links" />
+          <div className="space-y-4">
+            <Field
+              label="Repository URL"
+              name="repositoryUrl"
+              type="url"
+              defaultValue={project.repositoryUrl ?? ""}
+            />
+            <Field
+              label="Production URL"
+              name="productionUrl"
+              type="url"
+              defaultValue={project.productionUrl ?? ""}
+            />
+            <Field
+              label="Staging URL"
+              name="stagingUrl"
+              type="url"
+              defaultValue={project.stagingUrl ?? ""}
+            />
+            <Field
+              label="Local folder path"
+              name="localPath"
+              type="text"
+              defaultValue={project.localFolderPath ?? ""}
+              placeholder="/Users/me/projects/my-app"
+            />
           </div>
-        </section>
+        </Panel>
 
-        <section className="rounded-2xl border border-line bg-surface p-5">
-          <h2 className="text-sm font-semibold text-foreground">Product boundaries</h2>
-          <p className="mt-1 text-xs text-muted">One item per line. Non-goals prevent agents from expanding scope.</p>
-          <div className="mt-4 space-y-4">
-            <TextField label="Goals" name="boundaryGoals" rows={3} defaultValue={project.boundaries.filter((b) => b.kind === "GOAL").map((b) => b.content).join("\n")} />
-            <TextField label="Non-goals" name="boundaryNonGoals" rows={3} defaultValue={project.boundaries.filter((b) => b.kind === "NON_GOAL").map((b) => b.content).join("\n")} />
-            <TextField label="Constraints" name="boundaryConstraints" rows={3} defaultValue={project.boundaries.filter((b) => b.kind === "CONSTRAINT").map((b) => b.content).join("\n")} />
-            <TextField label="Assumptions" name="boundaryAssumptions" rows={2} defaultValue={project.boundaries.filter((b) => b.kind === "ASSUMPTION").map((b) => b.content).join("\n")} />
-            <TextField label="Future ideas" name="boundaryFuture" rows={2} defaultValue={project.boundaries.filter((b) => b.kind === "FUTURE_IDEA").map((b) => b.content).join("\n")} />
+        <Panel>
+          <PanelHeader
+            title="Product boundaries"
+            description="One item per line. Non-goals are what stop an agent expanding the scope."
+          />
+          <div className="space-y-4">
+            {(
+              [
+                ["Goals", "boundaryGoals", "GOAL", 3],
+                ["Non-goals", "boundaryNonGoals", "NON_GOAL", 3],
+                ["Constraints", "boundaryConstraints", "CONSTRAINT", 3],
+                ["Assumptions", "boundaryAssumptions", "ASSUMPTION", 2],
+                ["Future ideas", "boundaryFuture", "FUTURE_IDEA", 2],
+              ] as const
+            ).map(([label, name, kind, rows]) => (
+              <TextField
+                key={name}
+                label={label}
+                name={name}
+                rows={rows}
+                defaultValue={project.boundaries
+                  .filter((b) => b.kind === kind)
+                  .map((b) => b.content)
+                  .join("\n")}
+              />
+            ))}
           </div>
-        </section>
+        </Panel>
 
-        <div className="flex justify-end gap-3 pt-4">
-          <Link href={`/${project.slug}`}>
-            <Button type="button" variant="secondary">Cancel</Button>
-          </Link>
-          <Button type="submit" variant="primary">Save Project Brain</Button>
+        <div className="flex justify-end gap-2 pt-1">
+          <Button asChild variant="ghost">
+            <Link href={`/${project.slug}`}>Cancel</Link>
+          </Button>
+          <Button type="submit" variant="primary">
+            Save project brain
+          </Button>
         </div>
       </form>
     </div>

@@ -1,2 +1,20 @@
 "use client";
-export default function ErrorBoundary({reset}:{error:Error & {digest?:string};reset:()=>void}) {return <main id="main" className="mx-auto max-w-xl px-6 py-32"><h1 className="text-3xl">Something interrupted your workspace.</h1><p className="my-5 text-slate-400">Your saved work is still there. Try loading this view again.</p><button onClick={reset} className="rounded-xl bg-amber-200 px-5 py-3 text-slate-950">Try again</button></main>;}
+
+import { Button } from "@/components/ui/button";
+
+export default function ErrorBoundary({ reset }: { error: Error & { digest?: string }; reset: () => void }) {
+  return (
+    <main id="main" className="mx-auto flex min-h-dvh max-w-lg flex-col justify-center px-6">
+      <p className="eyebrow">Something interrupted you</p>
+      <h1 className="mt-2 text-title-1 text-foreground">This view didn&apos;t load</h1>
+      <p className="mt-3 text-body text-muted">
+        Nothing was lost — everything you saved is still in the database. Try loading it again.
+      </p>
+      <div className="mt-7">
+        <Button variant="primary" size="lg" onClick={reset}>
+          Try again
+        </Button>
+      </div>
+    </main>
+  );
+}

@@ -49,13 +49,13 @@ test("owner setup → dashboard → project → resume", async ({ page }) => {
 
   // Go to prompts library
   await page.goto("/prompts");
-  await page.getByRole("heading", { name: "Prompt Library" }).waitFor({ timeout: 10_000 });
+  await page.getByRole("heading", { name: "Prompt library" }).waitFor({ timeout: 10_000 });
 
   // Quick capture flow
   await page.goto("/");
-  await page.getByRole("button", { name: "Quick Capture" }).click();
+  await page.getByRole("button", { name: "Capture a thought" }).first().click();
   await page.getByLabel("New thought").fill("Add Stripe customer portal later");
-  await page.getByRole("button", { name: "Save" }).click();
+  await page.getByRole("button", { name: "Capture", exact: true }).click();
   await page.getByText("Captured to inbox").waitFor({ timeout: 10_000 });
 
   // Logout works
