@@ -134,6 +134,30 @@ export default async function ProjectPage({ params }: Props) {
         </div>
       </div>
 
+      {/* Project tabs */}
+      <nav className="mb-8 flex flex-wrap gap-1 rounded-xl bg-surface p-1" aria-label="Project sections">
+        {[
+          { href: `/${project.slug}`, label: "Overview", active: true },
+          { href: `/${project.slug}/queue`, label: `Queue${project._count.queueItems > 0 ? ` · ${project._count.queueItems}` : ""}`, active: false },
+          { href: `/${project.slug}/features`, label: "Features", active: false },
+          { href: `/${project.slug}/decisions`, label: "Decisions", active: false },
+          { href: `/${project.slug}/bugs`, label: `Bugs${project._count.bugs > 0 ? ` · ${project._count.bugs}` : ""}`, active: false },
+          { href: `/${project.slug}/timeline`, label: "Timeline", active: false },
+        ].map((tab) => (
+          <Link
+            key={tab.href}
+            href={tab.href}
+            className={`inline-flex items-center rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+              tab.active
+                ? "bg-cobalt-500/15 text-cobalt-400"
+                : "text-muted hover:bg-surface-raised hover:text-foreground"
+            }`}
+          >
+            {tab.label}
+          </Link>
+        ))}
+      </nav>
+
       {/* Project health + quick stats */}
       <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Features" value={project._count.features} />
