@@ -152,6 +152,8 @@ export default async function ProjectPage({ params }: Props) {
           { href: `/${project.slug}/bugs`, label: `Bugs${project._count.bugs > 0 ? ` · ${project._count.bugs}` : ""}`, active: false },
           { href: `/${project.slug}/notes`, label: "Notes", active: false },
           { href: `/${project.slug}/inspirations`, label: "Inspirations", active: false },
+          { href: `/${project.slug}/commands`, label: "Commands", active: false },
+          { href: `/${project.slug}/env`, label: "Env", active: false },
           { href: `/${project.slug}/milestones`, label: "Milestones", active: false },
           { href: `/${project.slug}/sessions`, label: "Sessions", active: false },
           { href: `/${project.slug}/export`, label: "Export", active: false },
