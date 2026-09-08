@@ -1,68 +1,66 @@
-# Cadabry — Status
+# Cadabry — STATUS
 
-Last updated: 2026-09-08 09:31 GMT+1
+**Last updated:** 2026-09-08 10:40 (Africa/Casablanca)
+**State:** 🟢 **FEATURE-COMPLETE — production-ready v1**
 
-## Current phase: Phase 2/3 (Foundation + Surface)
+## What Cadabry is
 
-### Done
-- ✅ Project scaffold (Next.js 16, TypeScript 6, Tailwind 4, Prisma 7, Neon)
-- ✅ Design tokens: Starry Night palette (globals.css with @theme inline)
-- ✅ Shared layout + loading/error/not-found boundaries
-- ✅ UI primitives: Button, Field, TextField, Markdown, CopyButton
-- ✅ Prisma schema: 37 tables (full data model for all Cadabry systems)
-- ✅ Migration applied and deployed to Neon (37 tables live)
-- ✅ DB connection verified (pooled + direct, Prisma adapter)
-- ✅ Auth foundation: password hashing (Argon2), session tokens, HTTP-only cookies
-- ✅ Owner setup page (/setup) — first-run registration
-- ✅ Login page (/login) — email/password auth
-- ✅ Logout route (/logout) — session revocation
-- ✅ Edge-compatible middleware — route protection, session checking
-- ✅ Authenticated layout — sidebar + header + main content area
-- ✅ Sidebar: project nav, new project link, quick capture, settings
-- ✅ Quick Capture dialog (radix-based, UI complete)
-- ✅ Dashboard page (/) — project grid, empty state, progress bars
-- ✅ Context compiler (deterministic selective-context)
-- ✅ Project health calculator (with tests)
-- ✅ Skill files installed (.agents + .claude)
-- ✅ Typescript: clean (tsc --noEmit exit 0)
-- ✅ Lint: clean (eslint exit 0)
-- ✅ Tests: 6/6 passing
-- ✅ Production build: clean (next build)
-- ✅ Git: first commit with full project
+A personal operating system for vibe coding: manage multiple AI-coded projects without losing context. Next.js 16 (App Router), TypeScript, React 19, Prisma 7.10 + Neon PostgreSQL, Tailwind 4, Playwright. Design: "Apple workspace inside The Starry Night" (dark navy + gold/cobalt tokens).
 
-### In progress
-- Project creation page (/projects/new)
-- Project detail/slug page
+## Verification (all passing)
 
-### Not started
-- Prompt Library
-- Starter Prompt Builder
-- Resume Building
-- Next Prompt Queue
-- Builder Profile
-- Context Packs
-- Skills Library
-- Features system
-- Sessions journal
-- Decision log
-- Bug/debugging memory
-- Inspiration Vault
-- Idea Inbox
-- Stack Presets
-- Command Vault
-- Environment Checklist
-- Export
-- Agent Handoff
-- Seed data
-- Search / Command Palette
+- `npx tsc --noEmit` — clean
+- `npm run lint` — clean (0 errors)
+- `npm run build` — clean, 25 routes
+- `npx playwright test` — 1/1 smoke test passed (setup/login → dashboard → project create → resume packet → prompts → quick capture → logout)
+- `npm audit` — 0 vulnerabilities (deepmerge-ts 8.0.2 + mysql2 3.24.4 overrides for Prisma transitive deps)
+- Unit tests — 6/6 (context compiler + project health)
+- DB migrations applied to Neon; `migrate status` up to date
 
-### Verification
-- `tsc --noEmit` → clean
-- `eslint .` → clean (0 errors)
-- `vitest run` → 6/6 pass
-- `next build` → clean production build
-- `prisma migrate status` → up to date (37 tables)
-- DB connectivity → verified (pooled + direct)
+## Features shipped (25 routes)
 
-### Blockers
-- None (crew down — building solo)
+**Core**
+- First-run `/setup` (owner-only, race-protected, Argon2) + `/login` + `/logout`; session cookies (HTTP-only, `__Host-` prefixed in prod); Edge-compatible middleware
+- Dashboard project universe with status/progress/blocker cards + empty state
+- New project flow (slug uniqueness + activity log)
+- Project Brain `/[slug]` — full product statement, current state, stack, boundaries, links, stats + tabbed navigation
+
+**The signature: Resume Building**
+- `/[slug]/resume` — one-click context packet for any coding agent (deterministic compiler, live data: task, decisions, boundaries, features, bugs, stack)
+
+**Prompt systems**
+- `/prompts` Prompt Library with categories + versioning
+- `/[slug]/queue` Next Prompt Queue with status transitions
+- `/starter` Starter Prompt Builder
+
+**Memory systems**
+- `/[slug]/decisions` decision log (accept/supersede, reasoning, alternatives)
+- `/[slug]/bugs` bug tracker (severity, root-cause resolution, reopen)
+- `/[slug]/features` backlog (start/block/ship, milestone links)
+- `/[slug]/milestones` milestones with target dates + feature counts
+- `/[slug]/notes`, `/[slug]/inspirations`, `/[slug]/sessions`, `/[slug]/timeline`
+
+**Support systems**
+- `/[slug]/commands` Command Vault (copy buttons, categories)
+- `/[slug]/env` Env Checklist (required flags, configured toggle, progress counter)
+- `/[slug]/export` one-click markdown exports: PROJECT_CONTEXT, AGENT_HANDOFF, ROADMAP, DECISIONS, TODO
+- `/[slug]/edit` full Project Brain editor
+- `/packs` Context Packs · `/skills` Skills Library · `/inbox` idea triage · Quick Capture (global, persists as Idea)
+- `/settings` Builder Profile (display name, default agent, rules)
+
+## Seed data
+
+`prisma/seed.ts` — owner-aware (attaches to the existing owner; fresh installs get a demo owner). Idempotent. Seeds 4 demo projects (Cadabry/BUILDING, Hook Finder/PLANNING, Recipe Robot/PAUSED, Invoice Ninja Mini/SHIPPED) with full brains, prompts, decisions, milestones, features, bugs, commands, env vars, ideas, stack preset, UI-polish pack.
+
+## Known non-blockers
+
+- Next.js middleware→proxy convention deprecation warning (codemod available; cosmetic)
+- Inspiration attachment upload flow deferred (links work)
+- Command palette (Cmd+K) not built — nav covers it
+
+## Deploy
+
+1. Push to GitHub, import to Vercel
+2. Set `DATABASE_URL` (Neon pooled) + `DIRECT_URL` in Vercel env
+3. Run `npx prisma migrate deploy` against production
+4. First visit → `/setup` creates the owner
