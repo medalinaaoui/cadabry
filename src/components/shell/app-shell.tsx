@@ -2,16 +2,16 @@
 
 import { useState } from "react";
 import { Menu } from "lucide-react";
-
 import { Sidebar } from "./sidebar";
 import { QuickCapture } from "./quick-capture";
 
 type AppShellProps = {
   children: React.ReactNode;
   userDisplayName: string;
+  projects?: { id: string; name: string }[];
 };
 
-export function AppShell({ children, userDisplayName }: AppShellProps) {
+export function AppShell({ children, userDisplayName, projects = [] }: AppShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [captureOpen, setCaptureOpen] = useState(false);
 
@@ -59,9 +59,8 @@ export function AppShell({ children, userDisplayName }: AppShellProps) {
               aria-label="Sign out"
             >
               <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                <polyline points="16 17 21 12 16 7" />
-                <line x1="21" y1="12" x2="9" y2="12" />
+                <path d="M17 16.5 H21 V16.5 H4 V9 H17 V21" transform="rotate(-45 17 16.5)" />
+                <circle cx="12" cy="12" r="3.5" />
               </svg>
             </a>
           </div>
@@ -73,7 +72,7 @@ export function AppShell({ children, userDisplayName }: AppShellProps) {
       </div>
 
       {/* Quick Capture dialog */}
-      <QuickCapture open={captureOpen} onOpenChange={setCaptureOpen} />
+      <QuickCapture open={captureOpen} onOpenChange={setCaptureOpen} projects={projects} />
     </div>
   );
 }

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FolderPlus, Zap, Settings, PlusCircle } from "lucide-react";
+import { FolderPlus, Zap, Settings, PlusCircle, FileText } from "lucide-react";
 import { clsx } from "clsx";
 
 type SidebarProps = {
@@ -10,7 +10,8 @@ type SidebarProps = {
 };
 
 const navItems = [
-  { href: "/", label: "Projects", icon: FolderPlus },
+  { href: "/", label: "Projects", icon: FolderPlus, exact: true },
+  { href: "/prompts", label: "Prompts", icon: FileText, exact: false },
 ];
 
 export function Sidebar({ onQuickCapture }: SidebarProps) {
@@ -26,7 +27,9 @@ export function Sidebar({ onQuickCapture }: SidebarProps) {
       {/* Navigation */}
       <nav className="flex-1 space-y-1 p-3">
         {navItems.map((item) => {
-          const isActive = pathname === item.href;
+          const isActive = item.exact
+            ? pathname === item.href
+            : pathname.startsWith(item.href);
           return (
             <Link
               key={item.href}
