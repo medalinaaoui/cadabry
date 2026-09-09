@@ -83,8 +83,10 @@ export default async function PromptLibrary({
         projectId,
         status: "READY",
         versions: {
+          // No ownerId here: it is a relation scalar of the prompt→version
+          // relation, so Prisma inherits it from the parent and rejects it
+          // being passed again.
           create: {
-            ownerId: actor.userId,
             versionNumber: 1,
             content,
             createdById: actor.userId,

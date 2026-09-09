@@ -175,8 +175,9 @@ export async function duplicateProject(formData: FormData): Promise<ProjectActio
       progress: 0,
       lastActivityAt: new Date(),
       technologies: {
+        // ownerId is inherited from the parent project relation — passing it
+        // here is a Prisma validation error.
         create: source.technologies.map((row) => ({
-          ownerId: actor.userId,
           technologyId: row.technologyId,
           category: row.category,
           version: row.version,
@@ -186,7 +187,6 @@ export async function duplicateProject(formData: FormData): Promise<ProjectActio
       },
       rules: {
         create: source.rules.map((row) => ({
-          ownerId: actor.userId,
           category: row.category,
           content: row.content,
           priority: row.priority,
@@ -195,7 +195,6 @@ export async function duplicateProject(formData: FormData): Promise<ProjectActio
       },
       boundaries: {
         create: source.boundaries.map((row) => ({
-          ownerId: actor.userId,
           kind: row.kind,
           content: row.content,
           sortOrder: row.sortOrder,
@@ -203,7 +202,6 @@ export async function duplicateProject(formData: FormData): Promise<ProjectActio
       },
       commands: {
         create: source.commands.map((row) => ({
-          ownerId: actor.userId,
           name: row.name,
           commandText: row.commandText,
           description: row.description,
@@ -213,7 +211,6 @@ export async function duplicateProject(formData: FormData): Promise<ProjectActio
       },
       environmentVariables: {
         create: source.environmentVariables.map((row) => ({
-          ownerId: actor.userId,
           name: row.name,
           description: row.description,
           required: row.required,
