@@ -11,6 +11,8 @@ import { Badge } from "@/components/ui/badge";
 import { EmptyState, Row, Stack } from "@/components/ui/page";
 import { CreateDisclosure, FormGrid, RowActions, RowButton } from "@/components/ui/disclosure";
 import { workStatus } from "@/features/projects/display";
+import { RecordControls } from "@/components/ui/record-controls";
+import { deleteFeatureRecord, updateFeatureRecord } from "@/features/projects/record-actions";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -231,6 +233,26 @@ export default async function FeaturesPage({ params }: Props) {
                     </RowActions>
                   </form>
                 )}
+                <RecordControls
+                  id={feature.id}
+                  name={feature.title}
+                  editAction={updateFeatureRecord}
+                  deleteAction={deleteFeatureRecord}
+                >
+                  <Field label="Name" name="title" defaultValue={feature.title} required />
+                  <TextField label="Description" name="body" rows={2} defaultValue={feature.body ?? ""} />
+                  <Field label="Reason" name="reason" defaultValue={feature.reason ?? ""} />
+                  <TextField label="Acceptance criteria" name="criteria" rows={2} defaultValue={feature.acceptanceCriteria ?? ""} />
+                  <FormGrid>
+                    <SelectField label="Milestone" name="milestoneId" defaultValue={feature.milestoneId ?? ""}>
+                      <option value="">No milestone</option>
+                      {project.milestones.map((milestone) => <option key={milestone.id} value={milestone.id}>{milestone.name}</option>)}
+                    </SelectField>
+                    <SelectField label="Priority" name="priority" defaultValue={String(feature.priority)}>
+                      {[0, 1, 2, 3, 4, 5].map((priority) => <option key={priority} value={priority}>{priority}</option>)}
+                    </SelectField>
+                  </FormGrid>
+                </RecordControls>
               </Row>
             );
           })}

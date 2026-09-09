@@ -3,6 +3,9 @@ import { History } from "lucide-react";
 import { db } from "@/server/db";
 import { requireActor } from "@/features/projects/queries";
 import { EmptyState } from "@/components/ui/page";
+import { Field } from "@/components/ui/field";
+import { RecordControls } from "@/components/ui/record-controls";
+import { deleteActivityRecord, updateActivityRecord } from "@/features/projects/record-actions";
 import { humanize } from "@/features/projects/display";
 
 type Props = { params: Promise<{ slug: string }> };
@@ -96,6 +99,14 @@ export default async function TimelinePage({ params }: Props) {
                       </span>
                       {humanize(item.type)}
                     </p>
+                    <RecordControls
+                      id={item.id}
+                      name={item.summary}
+                      editAction={updateActivityRecord}
+                      deleteAction={deleteActivityRecord}
+                    >
+                      <Field label="Summary" name="summary" defaultValue={item.summary} required />
+                    </RecordControls>
                   </li>
                 ))}
               </ol>

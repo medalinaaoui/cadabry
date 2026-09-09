@@ -10,6 +10,8 @@ import { Field, FieldShell, TextField } from "@/components/ui/field";
 import { Badge } from "@/components/ui/badge";
 import { DataList, EmptyState, Row, Stack } from "@/components/ui/page";
 import { CreateDisclosure } from "@/components/ui/disclosure";
+import { RecordControls } from "@/components/ui/record-controls";
+import { deleteSessionRecord, updateSessionRecord } from "@/features/projects/record-actions";
 import { workStatus } from "@/features/projects/display";
 
 type Props = { params: Promise<{ slug: string }> };
@@ -280,6 +282,24 @@ export default async function SessionsPage({ params }: Props) {
                     </form>
                   </details>
                 )}
+
+                <RecordControls
+                  id={session.id}
+                  name={session.objective}
+                  editAction={updateSessionRecord}
+                  deleteAction={deleteSessionRecord}
+                >
+                  <Field label="Objective" name="objective" defaultValue={session.objective} required />
+                  <TextField label="What did we finish?" name="notes" rows={2} defaultValue={session.notes ?? ""} />
+                  <TextField label="What still doesn't work?" name="whatChanged" rows={2} defaultValue={session.whatChanged ?? ""} />
+                  <TextField label="Discoveries" name="discoveries" rows={2} defaultValue={session.discoveries ?? ""} />
+                  <Field
+                    label="What should happen next?"
+                    name="nextTask"
+                    type="text"
+                    defaultValue={session.nextTask ?? ""}
+                  />
+                </RecordControls>
               </Row>
             );
           })}

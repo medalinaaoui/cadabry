@@ -11,6 +11,8 @@ import { Markdown } from "@/components/ui/markdown";
 import { EmptyState, Row, Stack } from "@/components/ui/page";
 import { CreateDisclosure, RowButton } from "@/components/ui/disclosure";
 import { timeAgo } from "@/features/projects/display";
+import { RecordControls } from "@/components/ui/record-controls";
+import { deleteNoteRecord, updateNoteRecord } from "@/features/projects/record-actions";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -137,6 +139,15 @@ export default async function NotesPage({ params }: Props) {
               <div className="mt-3.5 border-t border-line-subtle pt-3.5">
                 <Markdown>{note.body}</Markdown>
               </div>
+              <RecordControls
+                id={note.id}
+                name={note.title}
+                editAction={updateNoteRecord}
+                deleteAction={deleteNoteRecord}
+              >
+                <Field label="Title" name="title" defaultValue={note.title} required />
+                <TextField label="Body" name="body" rows={8} defaultValue={note.body} required hint="Markdown is supported." />
+              </RecordControls>
             </Row>
           ))}
         </Stack>

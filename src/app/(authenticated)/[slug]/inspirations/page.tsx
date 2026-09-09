@@ -10,6 +10,8 @@ import { Field, SelectField, TextField } from "@/components/ui/field";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState, Row, Stack } from "@/components/ui/page";
 import { CreateDisclosure } from "@/components/ui/disclosure";
+import { RecordControls } from "@/components/ui/record-controls";
+import { deleteInspirationRecord, updateInspirationRecord } from "@/features/projects/record-actions";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -146,6 +148,21 @@ export default async function InspirationsPage({ params }: Props) {
               )}
 
               {item.note && <p className="mt-2 text-caption text-subtle">{item.note}</p>}
+              <RecordControls
+                id={item.id}
+                name={item.title}
+                editAction={updateInspirationRecord}
+                deleteAction={deleteInspirationRecord}
+              >
+                <Field label="Title" name="title" defaultValue={item.title} required />
+                <Field label="URL" name="url" type="url" defaultValue={item.canonicalUrl ?? ""} />
+                <SelectField label="Kind" name="kind" defaultValue={item.kind}>
+                  {Object.entries(KIND_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+                </SelectField>
+                <TextField label="What exactly inspired me" name="inspiredDetail" rows={2} defaultValue={item.inspiredDetail ?? ""} />
+                <TextField label="Text snippet" name="textSnippet" rows={2} defaultValue={item.textSnippet ?? ""} />
+                <Field label="Note" name="note" defaultValue={item.note ?? ""} />
+              </RecordControls>
             </Row>
           ))}
         </Stack>

@@ -858,6 +858,14 @@
       border-color: var(--line);
     }
 
+    /* Column + align-items:center sizes children to fit-content, which lets a
+       long nowrap name spill way past the node card. Pin the body to the
+       card's width so the name's ellipsis actually has a box to clip against. */
+    .universe[data-view="map"] .node-body {
+      width: 100%;
+      min-width: 0;
+    }
+
     .universe[data-view="map"] .node-name {
       font-size: var(--text-body);
     }

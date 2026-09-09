@@ -11,6 +11,8 @@ import { Badge } from "@/components/ui/badge";
 import { DataList, EmptyState, Row, Stack } from "@/components/ui/page";
 import { CreateDisclosure, RowActions, RowButton } from "@/components/ui/disclosure";
 import { workStatus } from "@/features/projects/display";
+import { RecordControls } from "@/components/ui/record-controls";
+import { deleteDecisionRecord, updateDecisionRecord } from "@/features/projects/record-actions";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -204,6 +206,24 @@ export default async function DecisionsPage({ params }: Props) {
                     </RowActions>
                   </form>
                 )}
+                <RecordControls
+                  id={decision.id}
+                  name={decision.title}
+                  editAction={updateDecisionRecord}
+                  deleteAction={deleteDecisionRecord}
+                >
+                  <Field label="Title" name="title" defaultValue={decision.title} required />
+                  <TextField label="Decision" name="decision" rows={2} defaultValue={decision.decision} required />
+                  <TextField label="Reasoning" name="reasoning" rows={2} defaultValue={decision.reasoning ?? ""} />
+                  <Field label="Alternatives considered" name="alternatives" defaultValue={decision.alternatives ?? ""} />
+                  <Field label="Affected system" name="affectedSystem" defaultValue={decision.affectedSystem ?? ""} />
+                  <FieldShell label="Reversibility">
+                    <label className="flex items-center gap-2.5 text-body text-muted">
+                      <input type="checkbox" name="reversible" defaultChecked={decision.reversible} className="h-4 w-4 accent-[var(--accent)]" />
+                      This decision can be revisited later
+                    </label>
+                  </FieldShell>
+                </RecordControls>
               </Row>
             );
           })}

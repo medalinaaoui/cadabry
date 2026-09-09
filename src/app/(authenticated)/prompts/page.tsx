@@ -5,12 +5,14 @@ import { FileText, Search } from "lucide-react";
 import { verifySessionToken, SESSION_COOKIE_NAME } from "@/server/auth/session";
 import { db } from "@/server/db";
 import { Button } from "@/components/ui/button";
-import { BareInput, Field, SelectField, TextField } from "@/components/ui/field";
+import { BareInput, Field, FieldShell, SelectField, TextField } from "@/components/ui/field";
 import { CopyButton } from "@/components/ui/copy-button";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState, PageHeader, PageShell, Row, Stack } from "@/components/ui/page";
 import { CreateDisclosure, FormGrid } from "@/components/ui/disclosure";
 import { cn } from "@/lib/cn";
+import { RecordControls } from "@/components/ui/record-controls";
+import { deletePromptRecord, updatePromptRecord } from "@/features/projects/record-actions";
 
 export const metadata = { title: "Prompt library" };
 
@@ -256,6 +258,31 @@ export default async function PromptLibrary({
                   className="shrink-0"
                 />
               </div>
+              <RecordControls
+                id={prompt.id}
+                name={prompt.title}
+                editAction={updatePromptRecord}
+                deleteAction={deletePromptRecord}
+              >
+                <Field label="Title" name="title" defaultValue={prompt.title} required />
+                <TextField label="Content" name="content" rows={8} defaultValue={prompt.currentVersion?.content ?? ""} required className="font-mono text-caption" />
+                <FormGrid>
+                  <SelectField label="Category" name="category" defaultValue={prompt.category ?? "Custom"}>
+                    {PROMPT_CATEGORIES.map((item) => <option key={item} value={item}>{item}</option>)}
+                  </SelectField>
+                  <SelectField label="Project" name="projectId" defaultValue={prompt.projectId ?? ""}>
+                    <option value="">No project (reusable)</option>
+                    {projects.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+                  </SelectField>
+                </FormGrid>
+                <Field label="Notes" name="notes" defaultValue={prompt.notes ?? ""} />
+                <FieldShell label="Library options">
+                  <div className="flex flex-wrap gap-5 text-body text-muted">
+                    <label className="flex items-center gap-2"><input type="checkbox" name="favorite" defaultChecked={prompt.favorite} /> Favorite</label>
+                    <label className="flex items-center gap-2"><input type="checkbox" name="reusable" defaultChecked={prompt.reusable} /> Reusable</label>
+                  </div>
+                </FieldShell>
+              </RecordControls>
             </Row>
           ))}
         </Stack>

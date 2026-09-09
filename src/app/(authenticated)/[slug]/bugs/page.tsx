@@ -11,6 +11,8 @@ import { Badge } from "@/components/ui/badge";
 import { DataList, EmptyState, Row, Stack } from "@/components/ui/page";
 import { CreateDisclosure, FormGrid, RowActions, RowButton } from "@/components/ui/disclosure";
 import { workStatus } from "@/features/projects/display";
+import { RecordControls } from "@/components/ui/record-controls";
+import { deleteBugRecord, updateBugRecord } from "@/features/projects/record-actions";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -233,6 +235,24 @@ export default async function BugsPage({ params }: Props) {
                     </RowActions>
                   </form>
                 ) : null}
+                <RecordControls
+                  id={bug.id}
+                  name={bug.title}
+                  editAction={updateBugRecord}
+                  deleteAction={deleteBugRecord}
+                >
+                  <Field label="Title" name="title" defaultValue={bug.title} required />
+                  <TextField label="Symptoms" name="symptoms" rows={2} defaultValue={bug.symptoms ?? ""} />
+                  <TextField label="Reproduction steps" name="reproduction" rows={2} defaultValue={bug.reproduction ?? ""} />
+                  <FormGrid>
+                    <Field label="Expected" name="expected" defaultValue={bug.expectedBehavior ?? ""} />
+                    <Field label="Actual" name="actual" defaultValue={bug.actualBehavior ?? ""} />
+                  </FormGrid>
+                  <TextField label="Suspected cause" name="suspectedCause" rows={2} defaultValue={bug.suspectedCause ?? ""} />
+                  <SelectField label="Severity" name="severity" defaultValue={String(bug.severity)}>
+                    {[1, 2, 3, 4, 5].map((severity) => <option key={severity} value={severity}>{severity}</option>)}
+                  </SelectField>
+                </RecordControls>
               </Row>
             );
           })}

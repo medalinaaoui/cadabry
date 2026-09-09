@@ -1,0 +1,14 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "bounce-easing",
+        "value": "cubic-bezier(0.34, 1.56, 0.64, 1)",
+        "createdAt": "2026-09-09T06:11:40.452Z",
+        "reason": "Maintainer via design-system doc: --ease-spring is a documented token (docs/design-system.md 'Motion' section) sanctioned for pointer-reactive node feedback only; single-overshoot hover pop at globals.css:810, reduced-motion collapses it"
+      }
+    ]
+  }
+}

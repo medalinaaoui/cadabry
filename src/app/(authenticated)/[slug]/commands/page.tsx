@@ -1,6 +1,6 @@
 import { redirect, notFound } from "next/navigation";
 import { cookies } from "next/headers";
-import { Terminal, Trash2 } from "lucide-react";
+import { Terminal } from "lucide-react";
 import { verifySessionToken, SESSION_COOKIE_NAME } from "@/server/auth/session";
 import { db } from "@/server/db";
 import { requireActor } from "@/features/projects/queries";
@@ -9,7 +9,9 @@ import { Field } from "@/components/ui/field";
 import { CopyButton } from "@/components/ui/copy-button";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState, Row, Stack } from "@/components/ui/page";
-import { CreateDisclosure, FormGrid, RowButton } from "@/components/ui/disclosure";
+import { CreateDisclosure, FormGrid } from "@/components/ui/disclosure";
+import { RecordControls } from "@/components/ui/record-controls";
+import { deleteCommandRecord, updateCommandRecord } from "@/features/projects/record-actions";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -55,20 +57,6 @@ export default async function CommandsPage({ params }: Props) {
         sortOrder: (maxSort._max.sortOrder ?? -1) + 1,
       },
     });
-    redirect(`/${slug}/commands`);
-  }
-
-  async function deleteCommand(formData: FormData) {
-    "use server";
-
-    const cookieStore = await cookies();
-    const token = cookieStore.get(SESSION_COOKIE_NAME)?.value ?? null;
-    if (!token) redirect("/login");
-    const actor = await verifySessionToken(token);
-    if (!actor) redirect("/login");
-
-    const id = formData.get("id") as string;
-    await db.command.deleteMany({ where: { id, ownerId: actor.userId, projectId: project!.id } });
     redirect(`/${slug}/commands`);
   }
 
@@ -139,14 +127,16 @@ export default async function CommandsPage({ params }: Props) {
 
                 <div className="flex shrink-0 items-center gap-2">
                   <CopyButton text={command.commandText} label="Copy" size="sm" />
-                  <form action={deleteCommand}>
-                    <input type="hidden" name="id" value={command.id} />
-                    <RowButton tone="danger" aria-label={`Delete ${command.name}`}>
-                      <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
-                    </RowButton>
-                  </form>
                 </div>
               </div>
+              <RecordControls id={command.id} name={command.name} editAction={updateCommandRecord} deleteAction={deleteCommandRecord}>
+                <FormGrid>
+                  <Field label="Name" name="name" defaultValue={command.name} required />
+                  <Field label="Category" name="category" defaultValue={command.category ?? ""} />
+                </FormGrid>
+                <Field label="Command" name="commandText" defaultValue={command.commandText} required className="font-mono" />
+                <Field label="Description" name="description" defaultValue={command.description ?? ""} />
+              </RecordControls>
             </Row>
           ))}
         </Stack>

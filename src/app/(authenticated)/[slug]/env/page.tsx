@@ -1,6 +1,6 @@
 import { redirect, notFound } from "next/navigation";
 import { cookies } from "next/headers";
-import { Check, KeyRound, Trash2 } from "lucide-react";
+import { Check, KeyRound } from "lucide-react";
 import { verifySessionToken, SESSION_COOKIE_NAME } from "@/server/auth/session";
 import { db } from "@/server/db";
 import { requireActor } from "@/features/projects/queries";
@@ -10,6 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { EmptyState, Row, Stack } from "@/components/ui/page";
 import { CreateDisclosure, FormGrid, RowButton } from "@/components/ui/disclosure";
+import { RecordControls } from "@/components/ui/record-controls";
+import { deleteEnvironmentRecord, updateEnvironmentRecord } from "@/features/projects/record-actions";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -86,20 +88,6 @@ export default async function EnvPage({ params }: Props) {
       where: { id, ownerId: actor.userId },
       data: { configured: !current },
     });
-    redirect(`/${slug}/env`);
-  }
-
-  async function deleteVariable(formData: FormData) {
-    "use server";
-
-    const cookieStore = await cookies();
-    const token = cookieStore.get(SESSION_COOKIE_NAME)?.value ?? null;
-    if (!token) redirect("/login");
-    const actor = await verifySessionToken(token);
-    if (!actor) redirect("/login");
-
-    const id = formData.get("id") as string;
-    await db.environmentVariable.deleteMany({ where: { id, ownerId: actor.userId } });
     redirect(`/${slug}/env`);
   }
 
@@ -226,14 +214,20 @@ export default async function EnvPage({ params }: Props) {
                       {variable.configured ? "Configured" : "Mark configured"}
                     </RowButton>
                   </form>
-                  <form action={deleteVariable}>
-                    <input type="hidden" name="id" value={variable.id} />
-                    <RowButton tone="danger" aria-label={`Delete ${variable.name}`}>
-                      <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
-                    </RowButton>
-                  </form>
                 </div>
               </div>
+              <RecordControls id={variable.id} name={variable.name} editAction={updateEnvironmentRecord} deleteAction={deleteEnvironmentRecord}>
+                <FormGrid>
+                  <Field label="Name" name="name" defaultValue={variable.name} required className="font-mono" />
+                  <SelectField label="Environment" name="environment" defaultValue={variable.environment}>
+                    <option value="local">local</option><option value="staging">staging</option><option value="production">production</option>
+                  </SelectField>
+                </FormGrid>
+                <Field label="What it is" name="description" defaultValue={variable.description ?? ""} />
+                <Field label="Where to get it" name="acquisitionNote" defaultValue={variable.acquisitionNote ?? ""} />
+                <Field label="Note" name="note" defaultValue={variable.note ?? ""} />
+                <FieldShell label="Requirement"><label className="flex items-center gap-2.5 text-body text-muted"><input type="checkbox" name="required" defaultChecked={variable.required} /> Required for the app to work</label></FieldShell>
+              </RecordControls>
             </Row>
           ))}
         </Stack>

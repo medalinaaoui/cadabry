@@ -11,6 +11,8 @@ import { Badge } from "@/components/ui/badge";
 import { EmptyState, Row, Stack } from "@/components/ui/page";
 import { CreateDisclosure, RowActions, RowButton } from "@/components/ui/disclosure";
 import { workStatus } from "@/features/projects/display";
+import { RecordControls } from "@/components/ui/record-controls";
+import { deleteMilestoneRecord, updateMilestoneRecord } from "@/features/projects/record-actions";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -189,6 +191,21 @@ export default async function MilestonesPage({ params }: Props) {
                     </RowActions>
                   </form>
                 )}
+                <RecordControls
+                  id={milestone.id}
+                  name={milestone.name}
+                  editAction={updateMilestoneRecord}
+                  deleteAction={deleteMilestoneRecord}
+                >
+                  <Field label="Name" name="name" defaultValue={milestone.name} required />
+                  <Field label="Description" name="description" defaultValue={milestone.description ?? ""} />
+                  <Field
+                    label="Target date"
+                    name="targetDate"
+                    type="date"
+                    defaultValue={milestone.targetDate?.toISOString().slice(0, 10) ?? ""}
+                  />
+                </RecordControls>
               </Row>
             );
           })}
