@@ -23,25 +23,50 @@ import {
   buildQuestionnaireMarkdown,
   buildStartingPrompt,
   EMPTY_PROJECT_BRIEF,
-  PROJECT_PLATFORMS,
+  platformsForType,
+  presetsForShape,
   PROJECT_STAGES,
   PROJECT_TYPES,
+  prunePlatforms,
+  pruneTechnologies,
   QUALITY_PRIORITIES,
   questionnaireFilename,
-  STACK_PRESETS,
-  TECHNOLOGY_GROUPS,
+  technologyGroupsForShape,
   type ProjectBrief,
 } from "@/features/projects/project-brief";
 
 const STEPS = [
   { label: "The idea", hint: "Name and purpose", icon: Sparkles },
   { label: "Project shape", hint: "Type and platform", icon: Shapes },
-  { label: "First release", hint: "Scope and boundaries", icon: Flag },
   { label: "Technical direction", hint: "Stack and systems", icon: Code2 },
+  { label: "First release", hint: "Scope and boundaries", icon: Flag },
   { label: "Product experience", hint: "Feel and references", icon: Compass },
   { label: "Delivery", hint: "Quality and constraints", icon: Layers3 },
   { label: "Launch brief", hint: "Review and create", icon: Rocket },
 ] as const;
+
+const SHAPE_KEYS = ["projectType", "platforms", "stackPreset"] as const;
+type ShapeKey = (typeof SHAPE_KEYS)[number];
+
+/**
+ * Keeps later answers consistent with earlier ones: platforms follow the project type,
+ * the stack preset follows the platforms, and technologies follow the preset.
+ */
+function reconcileShape(brief: ProjectBrief): ProjectBrief {
+  const platforms = prunePlatforms(brief.projectType, brief.platforms);
+  const stackPreset = presetsForShape(brief.projectType, platforms).some(
+    (preset) => preset.id === brief.stackPreset,
+  )
+    ? brief.stackPreset
+    : "";
+  const technologies = pruneTechnologies({
+    projectType: brief.projectType,
+    platforms,
+    stackPreset,
+    technologies: brief.technologies,
+  });
+  return { ...brief, platforms, stackPreset, technologies };
+}
 
 type StepProps = {
   brief: ProjectBrief;
@@ -64,7 +89,10 @@ export function ProjectWizard({
   const [brief, setBrief] = useState<ProjectBrief>(EMPTY_PROJECT_BRIEF);
 
   const update = <K extends keyof ProjectBrief>(key: K, value: ProjectBrief[K]) => {
-    setBrief((current) => ({ ...current, [key]: value }));
+    setBrief((current) => {
+      const next = { ...current, [key]: value };
+      return SHAPE_KEYS.includes(key as ShapeKey) ? reconcileShape(next) : next;
+    });
   };
 
   const prompt = buildStartingPrompt(brief, defaultAgent, builderRules);
@@ -194,8 +222,7 @@ export function ProjectWizard({
 
           {step === 0 ? <IdeaStep brief={brief} update={update} /> : null}
           {step === 1 ? <ShapeStep brief={brief} update={update} toggle={toggleList} /> : null}
-          {step === 2 ? <ScopeStep brief={brief} update={update} /> : null}
-          {step === 3 ? (
+          {step === 2 ? (
             <StackStep
               brief={brief}
               update={update}
@@ -203,6 +230,7 @@ export function ProjectWizard({
               choosePreset={choosePreset}
             />
           ) : null}
+          {step === 3 ? <ScopeStep brief={brief} update={update} /> : null}
           {step === 4 ? <ExperienceStep brief={brief} update={update} /> : null}
           {step === 5 ? <DeliveryStep brief={brief} update={update} toggle={toggleList} /> : null}
           {isReview ? (
@@ -274,6 +302,7 @@ function IdeaStep({ brief, update }: StepProps) {
 }
 
 function ShapeStep({ brief, update, toggle }: StepProps & { toggle: (key: "platforms", value: string) => void }) {
+  const platforms = platformsForType(brief.projectType);
   return (
     <fieldset>
       <legend className="sr-only">Project shape</legend>
@@ -288,9 +317,14 @@ function ShapeStep({ brief, update, toggle }: StepProps & { toggle: (key: "platf
           {PROJECT_STAGES.map((stage) => <Pill key={stage} label={stage} selected={brief.stage === stage} onClick={() => update("stage", stage)} />)}
         </div>
       </Question>
-      <Question label="Target platforms" hint="Choose every platform the first release must support.">
+      <Question
+        label="Target platforms"
+        hint={brief.projectType
+          ? `Platforms a ${brief.projectType.toLowerCase()} can ship on. Choose every one the first release must support.`
+          : "Choose a project type first to narrow this list, or pick the platforms the first release must support."}
+      >
         <div className="flex flex-wrap gap-2">
-          {PROJECT_PLATFORMS.map((platform) => <Pill key={platform} label={platform} selected={brief.platforms.includes(platform)} onClick={() => toggle("platforms", platform)} />)}
+          {platforms.map((platform) => <Pill key={platform} label={platform} selected={brief.platforms.includes(platform)} onClick={() => toggle("platforms", platform)} />)}
         </div>
       </Question>
     </fieldset>
@@ -315,26 +349,66 @@ function StackStep({ brief, update, toggle, choosePreset }: StepProps & {
   toggle: (key: "technologies", value: string) => void;
   choosePreset: (id: string, technologies: readonly string[]) => void;
 }) {
+  const [showAll, setShowAll] = useState(false);
+  const presets = presetsForShape(brief.projectType, brief.platforms);
+  const groups = technologyGroupsForShape({
+    projectType: brief.projectType,
+    platforms: brief.platforms,
+    stackPreset: brief.stackPreset,
+    selected: brief.technologies,
+    showAll,
+  });
+  const shape = [brief.projectType, ...brief.platforms].filter(Boolean).join(" · ");
+
   return (
     <fieldset>
       <legend className="sr-only">Technical direction</legend>
-      <StepIntro title="Choose a technical starting point" description="Pick a sensible preset, then adjust it. The agent may challenge a choice when the repository or platform makes it unsafe." />
-      <Question label="Stack preset">
-        <OptionGrid columns="two">
-          {STACK_PRESETS.map((preset) => (
-            <Choice
-              key={preset.id}
-              label={preset.label}
-              detail={preset.detail}
-              meta={brief.projectType && (preset.types as readonly string[]).includes(brief.projectType) ? "Recommended" : undefined}
-              selected={brief.stackPreset === preset.id}
-              onClick={() => choosePreset(preset.id, preset.technologies)}
-            />
-          ))}
-        </OptionGrid>
+      <StepIntro
+        title="Choose a technical starting point"
+        description={shape
+          ? `These options are filtered to ${shape}. Pick a preset, then adjust it — the agent may still challenge a choice when the repository makes it unsafe.`
+          : "Pick a sensible preset, then adjust it. The agent may challenge a choice when the repository or platform makes it unsafe."}
+      />
+      <Question
+        label="Stack preset"
+        hint={presets.length === 0 ? undefined : "Selecting a preset fills in the technologies below."}
+      >
+        {presets.length === 0 ? (
+          <p className="rounded-xl border border-line bg-well px-4 py-3 text-caption text-subtle">
+            No preset matches this combination of type and platforms. Go back and adjust the shape, or describe the stack in the notes below.
+          </p>
+        ) : (
+          <OptionGrid columns="two">
+            {presets.map((preset) => (
+              <Choice
+                key={preset.id}
+                label={preset.label}
+                detail={preset.detail}
+                meta={
+                  brief.platforms.length > 0 &&
+                  brief.platforms.every((platform) => (preset.platforms as readonly string[]).includes(platform))
+                    ? "Covers every platform"
+                    : undefined
+                }
+                selected={brief.stackPreset === preset.id}
+                onClick={() => choosePreset(preset.id, preset.technologies)}
+              />
+            ))}
+          </OptionGrid>
+        )}
       </Question>
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <h3 className="text-caption font-semibold text-ink-100">Technologies</h3>
+        <button
+          type="button"
+          onClick={() => setShowAll((current) => !current)}
+          className="text-caption font-semibold text-cobalt-300 underline-offset-4 hover:underline"
+        >
+          {showAll ? "Show matching only" : "Show all options"}
+        </button>
+      </div>
       <div className="space-y-5">
-        {TECHNOLOGY_GROUPS.map((group) => (
+        {groups.map((group) => (
           <Question key={group.label} label={group.label} compact>
             <div className="flex flex-wrap gap-2">
               {group.items.map((technology) => <Pill key={technology} label={technology} selected={brief.technologies.includes(technology)} onClick={() => toggle("technologies", technology)} />)}
