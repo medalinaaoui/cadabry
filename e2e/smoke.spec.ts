@@ -29,23 +29,22 @@ test("owner setup → dashboard → project → resume", async ({ page }) => {
   await page.goto("/projects/new");
   await page.getByLabel("Project name").fill(projectName);
   await page.getByLabel("One-line description").fill("A test project for the smoke flow");
-  await page.getByRole("button", { name: "Create Project" }).click();
+  await page.getByRole("button", { name: "Continue" }).click();
+  for (let step = 0; step < 5; step += 1) {
+    await page.getByRole("button", { name: "Skip for now" }).click();
+  }
+  await page.getByRole("button", { name: "Create project & queue prompt" }).click();
 
-  await page.waitForURL(new RegExp(`/${slug}$`), { timeout: 20_000 });
-  await page.getByRole("heading", { name: projectName }).waitFor({ timeout: 10_000 });
-
-  // Open Resume Building
-  await page.getByRole("link", { name: "Resume Building" }).click();
-  await page.waitForURL(/\/resume$/, { timeout: 10_000 });
+  await page.waitForURL(new RegExp(`/${slug}/resume$`), { timeout: 20_000 });
   await page.getByRole("heading", { name: "Resume Building" }).waitFor({ timeout: 10_000 });
 
-  // Verify a context packet was generated
+  // Verify the launch brief was generated, versioned, and queued first.
   const pre = page.locator("pre");
   await pre.waitFor({ timeout: 10_000 });
   const text = await pre.textContent();
-  expect(text).toContain("# " + projectName);
-  expect(text).toContain("## Current task");
-  expect(text).toContain("## Instructions");
+  expect(text).toContain("# Start " + projectName);
+  expect(text).toContain("## How to begin");
+  expect(text).toContain("## Definition of done");
 
   // Go to prompts library
   await page.goto("/prompts");

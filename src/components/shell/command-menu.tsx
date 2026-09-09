@@ -20,7 +20,6 @@ import {
   Settings,
   Sparkles,
   Terminal,
-  Wand2,
 } from "lucide-react";
 import { Kbd } from "@/components/ui/badge";
 import { projectStatus } from "@/features/projects/display";
@@ -49,7 +48,6 @@ const PROJECT_SECTIONS = [
 const GLOBAL_PAGES = [
   { href: "/", label: "Universe", icon: Orbit },
   { href: "/prompts", label: "Prompt Library", icon: FileText },
-  { href: "/starter", label: "Starter Prompt Builder", icon: Wand2 },
   { href: "/packs", label: "Context Packs", icon: Layers },
   { href: "/skills", label: "Skills", icon: BookOpen },
   { href: "/inbox", label: "Idea Inbox", icon: Inbox },

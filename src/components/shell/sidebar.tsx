@@ -15,7 +15,6 @@ import {
   Plus,
   Search,
   Settings,
-  Wand2,
   Zap,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
@@ -37,7 +36,6 @@ export type SidebarProject = {
 
 const LIBRARY = [
   { href: "/prompts", label: "Prompt Library", icon: FileText },
-  { href: "/starter", label: "Starter Builder", icon: Wand2 },
   { href: "/packs", label: "Context Packs", icon: Layers },
   { href: "/skills", label: "Skills", icon: BookOpen },
 ];

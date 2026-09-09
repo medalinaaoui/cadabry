@@ -37,7 +37,7 @@ A personal operating system for vibe coding: manage multiple AI-coded projects w
 **Core**
 - First-run `/setup` (owner-only, race-protected, Argon2) + `/login` + `/logout`; session cookies (HTTP-only, `__Host-` prefixed in prod); Edge-compatible middleware
 - Dashboard project universe with status/progress/blocker cards + empty state
-- New project flow (slug uniqueness + activity log)
+- Seven-stage new project briefing with skippable steps, project type/platform choices, editable stack presets, scope boundaries, experience and delivery questions; creation persists the project brain, stack and feature backlog, then queues an agent-ready launch prompt
 - Project Brain `/[slug]` — full product statement, current state, stack, boundaries, links, stats + tabbed navigation
 
 **The signature: Resume Building**
@@ -46,7 +46,7 @@ A personal operating system for vibe coding: manage multiple AI-coded projects w
 **Prompt systems**
 - `/prompts` Prompt Library with categories + versioning
 - `/[slug]/queue` Next Prompt Queue with status transitions
-- `/starter` Starter Prompt Builder
+- `/projects/new` integrated launch-brief builder; `/starter` redirects there for old bookmarks
 
 **Memory systems**
 - `/[slug]/decisions` decision log (accept/supersede, reasoning, alternatives)
