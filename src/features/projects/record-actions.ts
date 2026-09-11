@@ -230,6 +230,40 @@ export async function deleteInspirationRecord(data: FormData) {
   refreshAll();
 }
 
+export async function updateSkillRecord(data: FormData) {
+  const actor = await requireActor();
+  const name = text(data, "name");
+  if (!name) return;
+  await db.skill.updateMany({
+    where: { id: text(data, "id"), ownerId: actor.userId },
+    data: {
+      name,
+      description: optional(data, "description"),
+      category: optional(data, "category"),
+      whenToUse: optional(data, "whenToUse"),
+      installationInstructions: optional(data, "installation"),
+      command: optional(data, "command"),
+      url: optional(data, "url"),
+      favorite: data.get("favorite") === "on",
+    },
+  });
+  refreshAll();
+}
+
+export async function deleteSkillRecord(data: FormData) {
+  const actor = await requireActor();
+  const id = text(data, "id");
+  const skill = await db.skill.findFirst({ where: { id, ownerId: actor.userId } });
+  if (!skill) return;
+  await db.$transaction(async (tx) => {
+    await tx.skillProjectType.deleteMany({ where: { ownerId: actor.userId, skillId: id } });
+    await tx.skillTechnology.deleteMany({ where: { ownerId: actor.userId, skillId: id } });
+    await tx.skillUseCase.deleteMany({ where: { ownerId: actor.userId, skillId: id } });
+    await tx.skill.delete({ where: { id } });
+  });
+  refreshAll();
+}
+
 export async function updateCommandRecord(data: FormData) {
   const actor = await requireActor();
   const name = text(data, "name");

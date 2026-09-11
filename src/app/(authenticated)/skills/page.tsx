@@ -5,11 +5,14 @@ import { verifySessionToken, SESSION_COOKIE_NAME } from "@/server/auth/session";
 import { db } from "@/server/db";
 import { requireActor } from "@/features/projects/queries";
 import { Button } from "@/components/ui/button";
-import { Field, TextField } from "@/components/ui/field";
+import { Field, FieldShell, TextField } from "@/components/ui/field";
 import { Badge } from "@/components/ui/badge";
 import { Panel } from "@/components/ui/panel";
+import { CopyButton } from "@/components/ui/copy-button";
 import { EmptyState, PageHeader, PageShell } from "@/components/ui/page";
 import { CreateDisclosure, FormGrid } from "@/components/ui/disclosure";
+import { RecordControls } from "@/components/ui/record-controls";
+import { deleteSkillRecord, updateSkillRecord } from "@/features/projects/record-actions";
 
 export const metadata = { title: "Skills" };
 
@@ -92,7 +95,7 @@ export default async function SkillsPage() {
             placeholder="When touching the database schema"
           />
           <TextField
-            label="Installation instructions"
+            label="Install command"
             name="installation"
             rows={2}
             placeholder="npx skills add …"
@@ -144,6 +147,27 @@ export default async function SkillsPage() {
                   </p>
                 )}
 
+                {skill.installationInstructions && (
+                  <div className="mt-3">
+                    <span className="eyebrow">Install</span>
+                    <div className="mt-1 flex items-start gap-2">
+                      <code
+                        className="block flex-1 overflow-x-auto rounded-lg border border-line-subtle
+                          bg-well px-2.5 py-1.5 font-mono text-caption text-foreground"
+                      >
+                        {skill.installationInstructions}
+                      </code>
+                      <CopyButton
+                        text={skill.installationInstructions}
+                        label="Copy"
+                        size="sm"
+                        variant="quiet"
+                        className="shrink-0"
+                      />
+                    </div>
+                  </div>
+                )}
+
                 {skill.command && (
                   <code
                     className="mt-3 block overflow-x-auto rounded-lg border border-line-subtle
@@ -165,6 +189,66 @@ export default async function SkillsPage() {
                     <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
                   </a>
                 )}
+
+                <div className="mt-auto">
+                  <RecordControls
+                    id={skill.id}
+                    name={skill.name}
+                    editAction={updateSkillRecord}
+                    deleteAction={deleteSkillRecord}
+                  >
+                    <FormGrid>
+                      <Field label="Name" name="name" defaultValue={skill.name} required />
+                      <Field
+                        label="Category"
+                        name="category"
+                        defaultValue={skill.category ?? ""}
+                        placeholder="database / testing / design"
+                      />
+                    </FormGrid>
+                    <Field
+                      label="Description"
+                      name="description"
+                      defaultValue={skill.description ?? ""}
+                      placeholder="What does this skill do?"
+                    />
+                    <Field
+                      label="When to use"
+                      name="whenToUse"
+                      defaultValue={skill.whenToUse ?? ""}
+                      placeholder="When touching the database schema"
+                    />
+                    <TextField
+                      label="Install command"
+                      name="installation"
+                      rows={2}
+                      defaultValue={skill.installationInstructions ?? ""}
+                      placeholder="npx skills add …"
+                    />
+                    <FormGrid>
+                      <Field
+                        label="Command"
+                        name="command"
+                        defaultValue={skill.command ?? ""}
+                        placeholder="prisma db push"
+                        className="font-mono"
+                      />
+                      <Field
+                        label="Repository or link"
+                        name="url"
+                        type="url"
+                        defaultValue={skill.url ?? ""}
+                        placeholder="https://github.com/…"
+                      />
+                    </FormGrid>
+                    <FieldShell label="Library options">
+                      <label className="flex items-center gap-2 text-body text-muted">
+                        <input type="checkbox" name="favorite" defaultChecked={skill.favorite} />
+                        Favorite
+                      </label>
+                    </FieldShell>
+                  </RecordControls>
+                </div>
               </Panel>
             </li>
           ))}
