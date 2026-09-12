@@ -4,7 +4,8 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/server/db";
 import { requireActor } from "./queries";
 
-const text = (data: FormData, key: string) => String(data.get(key) ?? "").trim();
+const text = (data: FormData, key: string) =>
+  String(data.get(key) ?? "").trim();
 const optional = (data: FormData, key: string) => text(data, key) || null;
 const boundedInt = (data: FormData, key: string, min: number, max: number) =>
   Math.min(max, Math.max(min, Number.parseInt(text(data, key), 10) || min));
@@ -22,7 +23,10 @@ export async function updatePromptRecord(data: FormData) {
 
   const prompt = await db.prompt.findFirst({
     where: { id, ownerId: actor.userId },
-    include: { currentVersion: true, versions: { orderBy: { versionNumber: "desc" }, take: 1 } },
+    include: {
+      currentVersion: true,
+      versions: { orderBy: { versionNumber: "desc" }, take: 1 },
+    },
   });
   if (!prompt) return;
 
@@ -59,12 +63,21 @@ export async function updatePromptRecord(data: FormData) {
 
 export async function deletePromptRecord(data: FormData) {
   const actor = await requireActor();
-  const prompt = await db.prompt.findFirst({ where: { id: text(data, "id"), ownerId: actor.userId } });
+  const prompt = await db.prompt.findFirst({
+    where: { id: text(data, "id"), ownerId: actor.userId },
+  });
   if (!prompt) return;
   await db.$transaction(async (tx) => {
-    await tx.codingSessionPrompt.deleteMany({ where: { ownerId: actor.userId, promptId: prompt.id } });
-    await tx.promptQueueItem.deleteMany({ where: { ownerId: actor.userId, promptId: prompt.id } });
-    await tx.prompt.update({ where: { id: prompt.id }, data: { currentVersionId: null } });
+    await tx.codingSessionPrompt.deleteMany({
+      where: { ownerId: actor.userId, promptId: prompt.id },
+    });
+    await tx.promptQueueItem.deleteMany({
+      where: { ownerId: actor.userId, promptId: prompt.id },
+    });
+    await tx.prompt.update({
+      where: { id: prompt.id },
+      data: { currentVersionId: null },
+    });
     await tx.prompt.delete({ where: { id: prompt.id } });
   });
   refreshAll();
@@ -91,14 +104,32 @@ export async function updateFeatureRecord(data: FormData) {
 export async function deleteFeatureRecord(data: FormData) {
   const actor = await requireActor();
   const id = text(data, "id");
-  const feature = await db.feature.findFirst({ where: { id, ownerId: actor.userId } });
+  const feature = await db.feature.findFirst({
+    where: { id, ownerId: actor.userId },
+  });
   if (!feature) return;
   await db.$transaction(async (tx) => {
-    await tx.featureDependency.deleteMany({ where: { ownerId: actor.userId, OR: [{ featureId: id }, { dependsOnFeatureId: id }] } });
-    await tx.codingSessionFeature.deleteMany({ where: { ownerId: actor.userId, featureId: id } });
-    await tx.promptQueueItem.updateMany({ where: { ownerId: actor.userId, featureId: id }, data: { featureId: null } });
-    await tx.bug.updateMany({ where: { ownerId: actor.userId, featureId: id }, data: { featureId: null } });
-    await tx.prompt.updateMany({ where: { ownerId: actor.userId, featureId: id }, data: { featureId: null } });
+    await tx.featureDependency.deleteMany({
+      where: {
+        ownerId: actor.userId,
+        OR: [{ featureId: id }, { dependsOnFeatureId: id }],
+      },
+    });
+    await tx.codingSessionFeature.deleteMany({
+      where: { ownerId: actor.userId, featureId: id },
+    });
+    await tx.promptQueueItem.updateMany({
+      where: { ownerId: actor.userId, featureId: id },
+      data: { featureId: null },
+    });
+    await tx.bug.updateMany({
+      where: { ownerId: actor.userId, featureId: id },
+      data: { featureId: null },
+    });
+    await tx.prompt.updateMany({
+      where: { ownerId: actor.userId, featureId: id },
+      data: { featureId: null },
+    });
     await tx.feature.delete({ where: { id } });
   });
   refreshAll();
@@ -111,7 +142,11 @@ export async function updateMilestoneRecord(data: FormData) {
   const target = optional(data, "targetDate");
   await db.milestone.updateMany({
     where: { id: text(data, "id"), ownerId: actor.userId },
-    data: { name, description: optional(data, "description"), targetDate: target ? new Date(target) : null },
+    data: {
+      name,
+      description: optional(data, "description"),
+      targetDate: target ? new Date(target) : null,
+    },
   });
   refreshAll();
 }
@@ -119,11 +154,19 @@ export async function updateMilestoneRecord(data: FormData) {
 export async function deleteMilestoneRecord(data: FormData) {
   const actor = await requireActor();
   const id = text(data, "id");
-  const milestone = await db.milestone.findFirst({ where: { id, ownerId: actor.userId } });
+  const milestone = await db.milestone.findFirst({
+    where: { id, ownerId: actor.userId },
+  });
   if (!milestone) return;
   await db.$transaction(async (tx) => {
-    await tx.feature.updateMany({ where: { ownerId: actor.userId, milestoneId: id }, data: { milestoneId: null } });
-    await tx.promptQueueItem.updateMany({ where: { ownerId: actor.userId, milestoneId: id }, data: { milestoneId: null } });
+    await tx.feature.updateMany({
+      where: { ownerId: actor.userId, milestoneId: id },
+      data: { milestoneId: null },
+    });
+    await tx.promptQueueItem.updateMany({
+      where: { ownerId: actor.userId, milestoneId: id },
+      data: { milestoneId: null },
+    });
     await tx.milestone.delete({ where: { id } });
   });
   refreshAll();
@@ -154,7 +197,10 @@ export async function deleteBugRecord(data: FormData) {
   const bug = await db.bug.findFirst({ where: { id, ownerId: actor.userId } });
   if (!bug) return;
   await db.$transaction(async (tx) => {
-    await tx.promptQueueItem.updateMany({ where: { ownerId: actor.userId, bugId: id }, data: { bugId: null } });
+    await tx.promptQueueItem.updateMany({
+      where: { ownerId: actor.userId, bugId: id },
+      data: { bugId: null },
+    });
     await tx.bug.delete({ where: { id } });
   });
   refreshAll();
@@ -182,10 +228,15 @@ export async function updateDecisionRecord(data: FormData) {
 export async function deleteDecisionRecord(data: FormData) {
   const actor = await requireActor();
   const id = text(data, "id");
-  const decision = await db.decision.findFirst({ where: { id, ownerId: actor.userId } });
+  const decision = await db.decision.findFirst({
+    where: { id, ownerId: actor.userId },
+  });
   if (!decision) return;
   await db.$transaction(async (tx) => {
-    await tx.decision.updateMany({ where: { ownerId: actor.userId, supersededById: id }, data: { supersededById: null } });
+    await tx.decision.updateMany({
+      where: { ownerId: actor.userId, supersededById: id },
+      data: { supersededById: null },
+    });
     await tx.decision.delete({ where: { id } });
   });
   refreshAll();
@@ -196,13 +247,18 @@ export async function updateNoteRecord(data: FormData) {
   const title = text(data, "title");
   const body = text(data, "body");
   if (!title || !body) return;
-  await db.note.updateMany({ where: { id: text(data, "id"), ownerId: actor.userId }, data: { title, body } });
+  await db.note.updateMany({
+    where: { id: text(data, "id"), ownerId: actor.userId },
+    data: { title, body },
+  });
   refreshAll();
 }
 
 export async function deleteNoteRecord(data: FormData) {
   const actor = await requireActor();
-  await db.note.deleteMany({ where: { id: text(data, "id"), ownerId: actor.userId } });
+  await db.note.deleteMany({
+    where: { id: text(data, "id"), ownerId: actor.userId },
+  });
   refreshAll();
 }
 
@@ -214,7 +270,13 @@ export async function updateInspirationRecord(data: FormData) {
     where: { id: text(data, "id"), ownerId: actor.userId },
     data: {
       title,
-      kind: text(data, "kind") as "LINK" | "IMAGE" | "SCREENSHOT" | "VIDEO" | "TEXT" | "OTHER",
+      kind: text(data, "kind") as
+        | "LINK"
+        | "IMAGE"
+        | "SCREENSHOT"
+        | "VIDEO"
+        | "TEXT"
+        | "OTHER",
       canonicalUrl: optional(data, "url"),
       textSnippet: optional(data, "textSnippet"),
       note: optional(data, "note"),
@@ -226,7 +288,9 @@ export async function updateInspirationRecord(data: FormData) {
 
 export async function deleteInspirationRecord(data: FormData) {
   const actor = await requireActor();
-  await db.inspiration.deleteMany({ where: { id: text(data, "id"), ownerId: actor.userId } });
+  await db.inspiration.deleteMany({
+    where: { id: text(data, "id"), ownerId: actor.userId },
+  });
   refreshAll();
 }
 
@@ -253,13 +317,99 @@ export async function updateSkillRecord(data: FormData) {
 export async function deleteSkillRecord(data: FormData) {
   const actor = await requireActor();
   const id = text(data, "id");
-  const skill = await db.skill.findFirst({ where: { id, ownerId: actor.userId } });
+  const skill = await db.skill.findFirst({
+    where: { id, ownerId: actor.userId },
+  });
   if (!skill) return;
   await db.$transaction(async (tx) => {
-    await tx.skillProjectType.deleteMany({ where: { ownerId: actor.userId, skillId: id } });
-    await tx.skillTechnology.deleteMany({ where: { ownerId: actor.userId, skillId: id } });
-    await tx.skillUseCase.deleteMany({ where: { ownerId: actor.userId, skillId: id } });
+    await tx.skillProjectType.deleteMany({
+      where: { ownerId: actor.userId, skillId: id },
+    });
+    await tx.skillTechnology.deleteMany({
+      where: { ownerId: actor.userId, skillId: id },
+    });
+    await tx.skillUseCase.deleteMany({
+      where: { ownerId: actor.userId, skillId: id },
+    });
     await tx.skill.delete({ where: { id } });
+  });
+  refreshAll();
+}
+
+export async function updatePackRecord(data: FormData) {
+  const actor = await requireActor();
+  const name = text(data, "name");
+  if (!name) return;
+  await db.contextPack.updateMany({
+    where: { id: text(data, "id"), ownerId: actor.userId },
+    data: {
+      name,
+      description: optional(data, "description"),
+      projectId: optional(data, "projectId"),
+      favorite: data.get("favorite") === "on",
+    },
+  });
+  refreshAll();
+}
+
+export async function deletePackRecord(data: FormData) {
+  const actor = await requireActor();
+  const id = text(data, "id");
+  const pack = await db.contextPack.findFirst({
+    where: { id, ownerId: actor.userId },
+  });
+  if (!pack) return;
+  await db.$transaction(async (tx) => {
+    await tx.contextPackRule.deleteMany({
+      where: { ownerId: actor.userId, packId: id },
+    });
+    await tx.contextPack.delete({ where: { id } });
+  });
+  refreshAll();
+}
+
+export async function addPackRule(data: FormData) {
+  const actor = await requireActor();
+  const packId = text(data, "packId");
+  const content = text(data, "content");
+  if (!packId || !content) return;
+  const pack = await db.contextPack.findFirst({
+    where: { id: packId, ownerId: actor.userId },
+  });
+  if (!pack) return;
+  const last = await db.contextPackRule.findFirst({
+    where: { ownerId: actor.userId, packId },
+    orderBy: { sortOrder: "desc" },
+  });
+  await db.contextPackRule.create({
+    data: {
+      ownerId: actor.userId,
+      packId,
+      content,
+      sortOrder: (last?.sortOrder ?? -1) + 1,
+    },
+  });
+  refreshAll();
+}
+
+export async function togglePackRule(data: FormData) {
+  const actor = await requireActor();
+  const id = text(data, "id");
+  const rule = await db.contextPackRule.findFirst({
+    where: { id, ownerId: actor.userId },
+  });
+  if (!rule) return;
+  await db.contextPackRule.update({
+    where: { id },
+    data: { enabled: !rule.enabled },
+  });
+  refreshAll();
+}
+
+export async function deletePackRule(data: FormData) {
+  const actor = await requireActor();
+  await db.contextPackRule.deleteMany({
+    where: { id: text(data, "id"), ownerId: actor.userId },
   });
   refreshAll();
 }
@@ -271,14 +421,21 @@ export async function updateCommandRecord(data: FormData) {
   if (!name || !commandText) return;
   await db.command.updateMany({
     where: { id: text(data, "id"), ownerId: actor.userId },
-    data: { name, commandText, description: optional(data, "description"), category: optional(data, "category") },
+    data: {
+      name,
+      commandText,
+      description: optional(data, "description"),
+      category: optional(data, "category"),
+    },
   });
   refreshAll();
 }
 
 export async function deleteCommandRecord(data: FormData) {
   const actor = await requireActor();
-  await db.command.deleteMany({ where: { id: text(data, "id"), ownerId: actor.userId } });
+  await db.command.deleteMany({
+    where: { id: text(data, "id"), ownerId: actor.userId },
+  });
   refreshAll();
 }
 
@@ -302,7 +459,9 @@ export async function updateEnvironmentRecord(data: FormData) {
 
 export async function deleteEnvironmentRecord(data: FormData) {
   const actor = await requireActor();
-  await db.environmentVariable.deleteMany({ where: { id: text(data, "id"), ownerId: actor.userId } });
+  await db.environmentVariable.deleteMany({
+    where: { id: text(data, "id"), ownerId: actor.userId },
+  });
   refreshAll();
 }
 
@@ -326,12 +485,23 @@ export async function updateSessionRecord(data: FormData) {
 export async function deleteSessionRecord(data: FormData) {
   const actor = await requireActor();
   const id = text(data, "id");
-  const session = await db.codingSession.findFirst({ where: { id, ownerId: actor.userId } });
+  const session = await db.codingSession.findFirst({
+    where: { id, ownerId: actor.userId },
+  });
   if (!session) return;
   await db.$transaction(async (tx) => {
-    await tx.activity.updateMany({ where: { ownerId: actor.userId, codingSessionId: id }, data: { codingSessionId: null } });
-    await tx.bug.updateMany({ where: { ownerId: actor.userId, codingSessionId: id }, data: { codingSessionId: null } });
-    await tx.decision.updateMany({ where: { ownerId: actor.userId, codingSessionId: id }, data: { codingSessionId: null } });
+    await tx.activity.updateMany({
+      where: { ownerId: actor.userId, codingSessionId: id },
+      data: { codingSessionId: null },
+    });
+    await tx.bug.updateMany({
+      where: { ownerId: actor.userId, codingSessionId: id },
+      data: { codingSessionId: null },
+    });
+    await tx.decision.updateMany({
+      where: { ownerId: actor.userId, codingSessionId: id },
+      data: { codingSessionId: null },
+    });
     await tx.codingSession.delete({ where: { id } });
   });
   refreshAll();
@@ -341,12 +511,17 @@ export async function updateActivityRecord(data: FormData) {
   const actor = await requireActor();
   const summary = text(data, "summary");
   if (!summary) return;
-  await db.activity.updateMany({ where: { id: text(data, "id"), ownerId: actor.userId }, data: { summary } });
+  await db.activity.updateMany({
+    where: { id: text(data, "id"), ownerId: actor.userId },
+    data: { summary },
+  });
   refreshAll();
 }
 
 export async function deleteActivityRecord(data: FormData) {
   const actor = await requireActor();
-  await db.activity.deleteMany({ where: { id: text(data, "id"), ownerId: actor.userId } });
+  await db.activity.deleteMany({
+    where: { id: text(data, "id"), ownerId: actor.userId },
+  });
   refreshAll();
 }

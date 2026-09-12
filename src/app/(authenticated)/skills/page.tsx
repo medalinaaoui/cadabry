@@ -12,7 +12,10 @@ import { CopyButton } from "@/components/ui/copy-button";
 import { EmptyState, PageHeader, PageShell } from "@/components/ui/page";
 import { CreateDisclosure, FormGrid } from "@/components/ui/disclosure";
 import { RecordControls } from "@/components/ui/record-controls";
-import { deleteSkillRecord, updateSkillRecord } from "@/features/projects/record-actions";
+import {
+  deleteSkillRecord,
+  updateSkillRecord,
+} from "@/features/projects/record-actions";
 
 export const metadata = { title: "Skills" };
 
@@ -74,7 +77,13 @@ export default async function SkillsPage() {
       <CreateDisclosure label="Add skill" className="mb-6">
         <form action={addSkill} className="space-y-4">
           <FormGrid>
-            <Field label="Name" name="name" type="text" placeholder="Prisma CLI" required />
+            <Field
+              label="Name"
+              name="name"
+              type="text"
+              placeholder="Prisma CLI"
+              required
+            />
             <Field
               label="Category"
               name="category"
@@ -134,11 +143,15 @@ export default async function SkillsPage() {
               <Panel className="flex h-full flex-col">
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <h2 className="text-title-3 text-foreground">{skill.name}</h2>
-                  {skill.category && <Badge tone="cobalt">{skill.category}</Badge>}
+                  {skill.category && (
+                    <Badge tone="cobalt">{skill.category}</Badge>
+                  )}
                 </div>
 
                 {skill.description && (
-                  <p className="mt-2 text-caption text-muted">{skill.description}</p>
+                  <p className="mt-2 text-caption text-muted">
+                    {skill.description}
+                  </p>
                 )}
                 {skill.whenToUse && (
                   <p className="mt-2 text-caption text-subtle">
@@ -198,7 +211,12 @@ export default async function SkillsPage() {
                     deleteAction={deleteSkillRecord}
                   >
                     <FormGrid>
-                      <Field label="Name" name="name" defaultValue={skill.name} required />
+                      <Field
+                        label="Name"
+                        name="name"
+                        defaultValue={skill.name}
+                        required
+                      />
                       <Field
                         label="Category"
                         name="category"
@@ -243,7 +261,11 @@ export default async function SkillsPage() {
                     </FormGrid>
                     <FieldShell label="Library options">
                       <label className="flex items-center gap-2 text-body text-muted">
-                        <input type="checkbox" name="favorite" defaultChecked={skill.favorite} />
+                        <input
+                          type="checkbox"
+                          name="favorite"
+                          defaultChecked={skill.favorite}
+                        />
                         Favorite
                       </label>
                     </FieldShell>

@@ -1,7 +1,7 @@
 "use client";
 
 import { Pencil, Trash2 } from "lucide-react";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 
@@ -21,9 +21,12 @@ export function RecordControls({
   deleteAction: RecordAction;
   children: ReactNode;
 }) {
+  const [editOpen, setEditOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+
   return (
     <div className="mt-4 flex flex-wrap gap-2 border-t border-line-subtle pt-3">
-      <Dialog>
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogTrigger asChild>
           <Button size="sm" variant="quiet">
             <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
@@ -31,22 +34,26 @@ export function RecordControls({
           </Button>
         </DialogTrigger>
         <DialogContent title={`Edit ${name}`} description="Update this record without losing its history.">
-          <form action={editAction} className="space-y-4">
+          <form
+            action={async (formData) => {
+              await editAction(formData);
+              setEditOpen(false);
+            }}
+            className="space-y-4"
+          >
             <input type="hidden" name="id" value={id} />
             {children}
             <div className="flex justify-end gap-2 pt-2">
               <DialogClose asChild>
                 <Button type="button" variant="ghost">Cancel</Button>
               </DialogClose>
-              <DialogClose asChild>
-                <Button type="submit" variant="primary">Save changes</Button>
-              </DialogClose>
+              <Button type="submit" variant="primary">Save changes</Button>
             </div>
           </form>
         </DialogContent>
       </Dialog>
 
-      <Dialog>
+      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <DialogTrigger asChild>
           <Button size="sm" variant="quiet" className="text-danger hover:text-danger">
             <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
@@ -58,15 +65,18 @@ export function RecordControls({
           title={`Delete ${name}?`}
           description="This permanently removes the record. This action cannot be undone."
         >
-          <form action={deleteAction}>
+          <form
+            action={async (formData) => {
+              await deleteAction(formData);
+              setDeleteOpen(false);
+            }}
+          >
             <input type="hidden" name="id" value={id} />
             <div className="flex justify-end gap-2">
               <DialogClose asChild>
                 <Button type="button" variant="ghost">Keep it</Button>
               </DialogClose>
-              <DialogClose asChild>
-                <Button type="submit" variant="danger">Delete permanently</Button>
-              </DialogClose>
+              <Button type="submit" variant="danger">Delete permanently</Button>
             </div>
           </form>
         </DialogContent>
