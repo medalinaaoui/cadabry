@@ -12,7 +12,9 @@ import { EmptyState, Row, Stack } from "@/components/ui/page";
 import { CreateDisclosure, FormGrid, RowActions, RowButton } from "@/components/ui/disclosure";
 import { workStatus } from "@/features/projects/display";
 import { RecordControls } from "@/components/ui/record-controls";
+import { CopyButton } from "@/components/ui/copy-button";
 import { deleteFeatureRecord, updateFeatureRecord } from "@/features/projects/record-actions";
+import { featureToPrompt } from "@/features/projects/prompts";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -213,26 +215,40 @@ export default async function FeaturesPage({ params }: Props) {
                   </p>
                 )}
 
-                {feature.status !== "DONE" && feature.status !== "CANCELLED" && (
-                  <form action={updateFeature}>
-                    <input type="hidden" name="id" value={feature.id} />
-                    <RowActions>
+                <RowActions>
+                  {feature.status !== "DONE" && feature.status !== "CANCELLED" && (
+                    <>
                       {feature.status !== "IN_PROGRESS" && (
-                        <RowButton name="status" value="IN_PROGRESS" tone="accent">
-                          Start building
-                        </RowButton>
+                        <form action={updateFeature}>
+                          <input type="hidden" name="id" value={feature.id} />
+                          <RowButton name="status" value="IN_PROGRESS" tone="accent">
+                            Start building
+                          </RowButton>
+                        </form>
                       )}
                       {feature.status !== "BLOCKED" && (
-                        <RowButton name="status" value="BLOCKED" tone="danger">
-                          Block
-                        </RowButton>
+                        <form action={updateFeature}>
+                          <input type="hidden" name="id" value={feature.id} />
+                          <RowButton name="status" value="BLOCKED" tone="danger">
+                            Block
+                          </RowButton>
+                        </form>
                       )}
-                      <RowButton name="status" value="DONE" tone="success">
-                        Ship
-                      </RowButton>
-                    </RowActions>
-                  </form>
-                )}
+                      <form action={updateFeature}>
+                        <input type="hidden" name="id" value={feature.id} />
+                        <RowButton name="status" value="DONE" tone="success">
+                          Ship
+                        </RowButton>
+                      </form>
+                    </>
+                  )}
+                  <CopyButton
+                    text={featureToPrompt(feature, project.name)}
+                    label="Copy as prompt"
+                    variant="secondary"
+                    size="sm"
+                  />
+                </RowActions>
                 <RecordControls
                   id={feature.id}
                   name={feature.title}
