@@ -68,7 +68,8 @@ export default async function SkillsPage() {
         description="The agent skills you actually use, with the install line attached — so you never go hunting for the same repo twice."
       />
 
-      <CreateDisclosure label="Add skill" className="mb-6">
+      <div className="mb-6 flex flex-wrap items-start gap-2">
+        <CreateDisclosure label="Add skill" className="flex-1">
         <form action={addSkill} className="space-y-4">
           <FormGrid>
             <Field
@@ -101,7 +102,15 @@ export default async function SkillsPage() {
             Add skill
           </Button>
         </form>
-      </CreateDisclosure>
+        </CreateDisclosure>
+        {skills.length > 0 && (
+          <CopyButton
+            text={skills.map((skill) => `- ${skill.name}: ${skill.url ?? ""}`).join("\n")}
+            label="Copy all"
+            variant="secondary"
+          />
+        )}
+      </div>
 
       {skills.length === 0 ? (
         <EmptyState
