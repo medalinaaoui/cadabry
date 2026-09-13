@@ -39,6 +39,7 @@ export const getProjectSummary = cache(async (ownerId: string, slug: string) => 
       progress: true,
       color: true,
       icon: true,
+      productionUrl: true,
       currentTask: true,
       currentBlocker: true,
       lastActivityAt: true,

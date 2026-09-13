@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AlertTriangle, Archive, ArrowRight, ChevronLeft, Pencil } from "lucide-react";
+import { AlertTriangle, Archive, ArrowRight, ArrowUpRight, ChevronLeft, Pencil } from "lucide-react";
 import { requireProject } from "@/features/projects/queries";
 import { ProjectNav } from "@/components/shell/project-nav";
 import { ProjectActions } from "@/components/shell/project-actions";
@@ -103,6 +103,14 @@ export default async function ProjectLayout({
           </div>
 
           <div className="flex shrink-0 flex-wrap items-center gap-2">
+            {project.productionUrl && (
+              <Button asChild variant="ghost">
+                <a href={project.productionUrl} target="_blank" rel="noopener noreferrer">
+                  <ArrowUpRight className="h-4 w-4" />
+                  Live
+                </a>
+              </Button>
+            )}
             <Button asChild variant="ghost">
               <Link href={`/${project.slug}/edit`}>
                 <Pencil className="h-4 w-4" />
