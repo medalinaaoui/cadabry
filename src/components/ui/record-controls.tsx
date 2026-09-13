@@ -13,12 +13,15 @@ export function RecordControls({
   name,
   editAction,
   deleteAction,
+  leading,
   children,
 }: {
   id: string;
   name: string;
   editAction: RecordAction;
   deleteAction: RecordAction;
+  /** Extra controls rendered before Edit, sharing this row (e.g. a copy button). */
+  leading?: ReactNode;
   children: ReactNode;
 }) {
   const [editOpen, setEditOpen] = useState(false);
@@ -26,6 +29,7 @@ export function RecordControls({
 
   return (
     <div className="mt-4 flex flex-wrap gap-2 border-t border-line-subtle pt-3">
+      {leading}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogTrigger asChild>
           <Button size="sm" variant="quiet">

@@ -1,11 +1,11 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import { ArrowUpRight, BookOpen } from "lucide-react";
+import { ArrowUpRight, BookOpen, Heart } from "lucide-react";
 import { verifySessionToken, SESSION_COOKIE_NAME } from "@/server/auth/session";
 import { db } from "@/server/db";
 import { requireActor } from "@/features/projects/queries";
 import { Button } from "@/components/ui/button";
-import { Field, FieldShell, TextField } from "@/components/ui/field";
+import { Field, FieldShell } from "@/components/ui/field";
 import { Badge } from "@/components/ui/badge";
 import { Panel } from "@/components/ui/panel";
 import { CopyButton } from "@/components/ui/copy-button";
@@ -42,12 +42,9 @@ export default async function SkillsPage() {
     if (!actor) redirect("/login");
 
     const name = (formData.get("name") as string).trim();
-    const description = (formData.get("description") as string).trim();
     const category = (formData.get("category") as string).trim();
-    const whenToUse = (formData.get("whenToUse") as string).trim();
-    const installation = (formData.get("installation") as string).trim();
-    const command = (formData.get("command") as string).trim();
     const url = (formData.get("url") as string).trim();
+    const favorite = formData.get("favorite") === "on";
 
     if (!name) redirect("/skills?error=Name+required");
 
@@ -55,12 +52,9 @@ export default async function SkillsPage() {
       data: {
         ownerId: actor.userId,
         name,
-        description: description || null,
         category: category || null,
-        whenToUse: whenToUse || null,
-        installationInstructions: installation || null,
-        command: command || null,
         url: url || null,
+        favorite,
       },
     });
 
@@ -92,38 +86,17 @@ export default async function SkillsPage() {
             />
           </FormGrid>
           <Field
-            label="Description"
-            name="description"
-            type="text"
-            placeholder="What does this skill do?"
+            label="Repository or link"
+            name="url"
+            type="url"
+            placeholder="https://github.com/…"
           />
-          <Field
-            label="When to use"
-            name="whenToUse"
-            type="text"
-            placeholder="When touching the database schema"
-          />
-          <TextField
-            label="Install command"
-            name="installation"
-            rows={2}
-            placeholder="npx skills add …"
-          />
-          <FormGrid>
-            <Field
-              label="Command"
-              name="command"
-              type="text"
-              placeholder="prisma db push"
-              className="font-mono"
-            />
-            <Field
-              label="Repository or link"
-              name="url"
-              type="url"
-              placeholder="https://github.com/…"
-            />
-          </FormGrid>
+          <FieldShell label="Library options">
+            <label className="flex items-center gap-2 text-body text-muted">
+              <input type="checkbox" name="favorite" />
+              Favorite
+            </label>
+          </FieldShell>
           <Button type="submit" variant="primary">
             Add skill
           </Button>
@@ -142,53 +115,19 @@ export default async function SkillsPage() {
             <li key={skill.id}>
               <Panel className="flex h-full flex-col">
                 <div className="flex flex-wrap items-start justify-between gap-2">
-                  <h2 className="text-title-3 text-foreground">{skill.name}</h2>
+                  <h2 className="flex items-center gap-1.5 text-title-3 text-foreground">
+                    {skill.favorite && (
+                      <Heart
+                        className="h-4 w-4 shrink-0 fill-danger text-danger"
+                        aria-label="Favorite"
+                      />
+                    )}
+                    {skill.name}
+                  </h2>
                   {skill.category && (
                     <Badge tone="cobalt">{skill.category}</Badge>
                   )}
                 </div>
-
-                {skill.description && (
-                  <p className="mt-2 text-caption text-muted">
-                    {skill.description}
-                  </p>
-                )}
-                {skill.whenToUse && (
-                  <p className="mt-2 text-caption text-subtle">
-                    <span className="eyebrow mr-1.5">Use when</span>
-                    {skill.whenToUse}
-                  </p>
-                )}
-
-                {skill.installationInstructions && (
-                  <div className="mt-3">
-                    <span className="eyebrow">Install</span>
-                    <div className="mt-1 flex items-start gap-2">
-                      <code
-                        className="block flex-1 overflow-x-auto rounded-lg border border-line-subtle
-                          bg-well px-2.5 py-1.5 font-mono text-caption text-foreground"
-                      >
-                        {skill.installationInstructions}
-                      </code>
-                      <CopyButton
-                        text={skill.installationInstructions}
-                        label="Copy"
-                        size="sm"
-                        variant="quiet"
-                        className="shrink-0"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {skill.command && (
-                  <code
-                    className="mt-3 block overflow-x-auto rounded-lg border border-line-subtle
-                      bg-well px-2.5 py-1.5 font-mono text-caption text-gold-300"
-                  >
-                    {skill.command}
-                  </code>
-                )}
 
                 {skill.url && (
                   <a
@@ -209,6 +148,14 @@ export default async function SkillsPage() {
                     name={skill.name}
                     editAction={updateSkillRecord}
                     deleteAction={deleteSkillRecord}
+                    leading={
+                      <CopyButton
+                        text={`install ${skill.name}: ${skill.url ?? ""}`}
+                        label="Copy prompt"
+                        size="sm"
+                        variant="quiet"
+                      />
+                    }
                   >
                     <FormGrid>
                       <Field
@@ -225,40 +172,12 @@ export default async function SkillsPage() {
                       />
                     </FormGrid>
                     <Field
-                      label="Description"
-                      name="description"
-                      defaultValue={skill.description ?? ""}
-                      placeholder="What does this skill do?"
+                      label="Repository or link"
+                      name="url"
+                      type="url"
+                      defaultValue={skill.url ?? ""}
+                      placeholder="https://github.com/…"
                     />
-                    <Field
-                      label="When to use"
-                      name="whenToUse"
-                      defaultValue={skill.whenToUse ?? ""}
-                      placeholder="When touching the database schema"
-                    />
-                    <TextField
-                      label="Install command"
-                      name="installation"
-                      rows={2}
-                      defaultValue={skill.installationInstructions ?? ""}
-                      placeholder="npx skills add …"
-                    />
-                    <FormGrid>
-                      <Field
-                        label="Command"
-                        name="command"
-                        defaultValue={skill.command ?? ""}
-                        placeholder="prisma db push"
-                        className="font-mono"
-                      />
-                      <Field
-                        label="Repository or link"
-                        name="url"
-                        type="url"
-                        defaultValue={skill.url ?? ""}
-                        placeholder="https://github.com/…"
-                      />
-                    </FormGrid>
                     <FieldShell label="Library options">
                       <label className="flex items-center gap-2 text-body text-muted">
                         <input
