@@ -13,19 +13,20 @@ import { CreateDisclosure, FormGrid } from "@/components/ui/disclosure";
 import { cn } from "@/lib/cn";
 import { RecordControls } from "@/components/ui/record-controls";
 import { deletePromptRecord, updatePromptRecord } from "@/features/projects/record-actions";
+import { PROMPT_CATEGORIES } from "@/features/projects/prompt-categories";
 
 export const metadata = { title: "Prompt library" };
 
-const PROMPT_CATEGORIES = [
-  "Starter", "Feature", "Debug", "Refactor", "UI", "Database", "Security",
-  "Performance", "Testing", "Deployment", "Architecture", "Code Review",
-  "Research", "Custom",
-];
+const STATUS_FILTERS = [
+  { value: "active", label: "Active" },
+  { value: "completed", label: "Completed" },
+  { value: "all", label: "All" },
+] as const;
 
 export default async function PromptLibrary({
   searchParams,
 }: {
-  searchParams: Promise<{ category?: string; q?: string; project?: string }>;
+  searchParams: Promise<{ category?: string; status?: string; q?: string; project?: string }>;
 }) {
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE_NAME)?.value ?? null;
@@ -34,7 +35,8 @@ export default async function PromptLibrary({
   const actor = await verifySessionToken(token);
   if (!actor) redirect("/login");
 
-  const { category, q, project } = await searchParams;
+  const { category, q, project, status: rawStatus } = await searchParams;
+  const status = STATUS_FILTERS.some((s) => s.value === rawStatus) ? rawStatus! : "active";
 
   const where = {
     ownerId: actor.userId,
@@ -44,16 +46,32 @@ export default async function PromptLibrary({
     ...(q ? { title: { contains: q, mode: "insensitive" as const } } : {}),
   };
 
-  const prompts = await db.prompt.findMany({
+  // "Completed" is derived from the prompt's most recent queue item, not a
+  // field on Prompt itself, so status filtering happens after the fetch.
+  const fetched = await db.prompt.findMany({
     where,
     include: {
       project: { select: { name: true } },
       currentVersion: { select: { content: true, versionNumber: true } },
       _count: { select: { queueItems: true } },
+      queueItems: { orderBy: { createdAt: "desc" }, take: 1, select: { status: true } },
     },
     orderBy: [{ favorite: "desc" }, { updatedAt: "desc" }],
-    take: 100,
+    take: 300,
   });
+
+  const withCompletion = fetched.map((prompt) => ({
+    ...prompt,
+    isCompleted: prompt.queueItems[0]?.status === "COMPLETED",
+  }));
+
+  const prompts = withCompletion
+    .filter((prompt) => {
+      if (status === "completed") return prompt.isCompleted;
+      if (status === "active") return !prompt.isCompleted;
+      return true;
+    })
+    .slice(0, 100);
 
   const projects = await db.project.findMany({
     where: { ownerId: actor.userId, archivedAt: null },
@@ -188,19 +206,48 @@ export default async function PromptLibrary({
           />
         </div>
         {category && <input type="hidden" name="category" value={category} />}
+        {status !== "active" && <input type="hidden" name="status" value={status} />}
         <Button type="submit">Search</Button>
-        {(q || category) && (
+        {(q || category || status !== "active") && (
           <Button asChild variant="ghost">
             <Link href="/prompts">Clear</Link>
           </Button>
         )}
       </form>
 
+      <div className="mb-2 flex flex-wrap gap-1.5">
+        {STATUS_FILTERS.map((s) => {
+          const active = s.value === status;
+          const params = new URLSearchParams();
+          if (s.value !== "active") params.set("status", s.value);
+          if (category) params.set("category", category);
+          if (q) params.set("q", q);
+          const query = params.toString();
+          return (
+            <Link
+              key={s.value}
+              href={query ? `/prompts?${query}` : "/prompts"}
+              aria-current={active ? "true" : undefined}
+              className={cn(
+                "press inline-flex h-8 items-center rounded-full px-3 text-caption font-semibold",
+                "transition-colors duration-(--duration-fast)",
+                active
+                  ? "bg-cobalt-500/18 text-cobalt-300"
+                  : "border border-line text-muted hover:bg-surface-raised hover:text-foreground",
+              )}
+            >
+              {s.label}
+            </Link>
+          );
+        })}
+      </div>
+
       <div className="mb-6 flex flex-wrap gap-1.5">
         {[null, ...PROMPT_CATEGORIES].map((c) => {
           const active = c === (category ?? null);
           const params = new URLSearchParams();
           if (c) params.set("category", c);
+          if (status !== "active") params.set("status", status);
           if (q) params.set("q", q);
           const query = params.toString();
           return (
@@ -225,9 +272,9 @@ export default async function PromptLibrary({
       {prompts.length === 0 ? (
         <EmptyState
           icon={<FileText className="h-5 w-5" />}
-          title={q || category ? "No prompts match" : "No prompts yet"}
+          title={q || category || status !== "active" ? "No prompts match" : "No prompts yet"}
           description={
-            q || category
+            q || category || status !== "active"
               ? "Try a different search, or clear the filters."
               : "Save the prompts that actually worked. Future you will not remember them."
           }
@@ -245,6 +292,7 @@ export default async function PromptLibrary({
                     {prompt._count.queueItems > 0 && (
                       <Badge tone="gold">Queued ×{prompt._count.queueItems}</Badge>
                     )}
+                    {prompt.isCompleted && <Badge tone="success">Completed</Badge>}
                   </div>
 
                   <p className="mt-2 line-clamp-2 max-w-(--reading-max) text-caption text-subtle">

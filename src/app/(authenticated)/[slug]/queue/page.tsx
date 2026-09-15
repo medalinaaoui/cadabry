@@ -13,6 +13,8 @@ import { CopyButton } from "@/components/ui/copy-button";
 import { EmptyState, Row, Stack } from "@/components/ui/page";
 import { CreateDisclosure, RowButton } from "@/components/ui/disclosure";
 import { workStatus } from "@/features/projects/display";
+import { Field, TextField } from "@/components/ui/field";
+import { PROMPT_CATEGORIES } from "@/features/projects/prompt-categories";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -84,6 +86,85 @@ export default async function QueuePage({ params }: Props) {
     redirect(`/${slug}/queue`);
   }
 
+  async function createPromptAndEnqueue(formData: FormData) {
+    "use server";
+
+    const cookieStore = await cookies();
+    const token = cookieStore.get(SESSION_COOKIE_NAME)?.value ?? null;
+    if (!token) redirect("/login");
+    const actor = await verifySessionToken(token);
+    if (!actor) redirect("/login");
+
+    const title = (formData.get("title") as string).trim();
+    const content = (formData.get("content") as string).trim();
+    const category = (formData.get("category") as string) || "Custom";
+
+    if (!title || !content) redirect(`/${slug}/queue?error=Title+and+content+are+required`);
+
+    const prompt = await db.prompt.create({
+      data: {
+        ownerId: actor.userId,
+        title,
+        category,
+        projectId: project!.id,
+        status: "READY",
+        versions: {
+          create: {
+            versionNumber: 1,
+            content,
+            createdById: actor.userId,
+          },
+        },
+      },
+      select: { id: true },
+    });
+
+    await db.prompt.update({
+      where: { id: prompt.id },
+      data: { currentVersion: { connect: { promptId_versionNumber: { promptId: prompt.id, versionNumber: 1 } } } },
+    });
+
+    const version = await db.promptVersion.findUniqueOrThrow({
+      where: { promptId_versionNumber: { promptId: prompt.id, versionNumber: 1 } },
+      select: { id: true },
+    });
+
+    const maxPos = await db.promptQueueItem.aggregate({
+      where: { ownerId: actor.userId, projectId: project!.id },
+      _max: { position: true },
+    });
+
+    await db.promptQueueItem.create({
+      data: {
+        ownerId: actor.userId,
+        projectId: project!.id,
+        promptId: prompt.id,
+        promptVersionId: version.id,
+        status: "QUEUED",
+        position: (maxPos._max.position ?? 0) + 1,
+      },
+    });
+
+    await db.activity.create({
+      data: {
+        ownerId: actor.userId,
+        actorUserId: actor.userId,
+        projectId: project!.id,
+        type: "PROMPT_CREATED",
+        subjectKind: "PROMPT",
+        subjectId: prompt.id,
+        summary: `Created prompt "${title}"`,
+      },
+    });
+
+    await db.project.update({
+      where: { id: project!.id },
+      data: { lastActivityAt: new Date() },
+    });
+
+    redirect(`/${slug}/queue`);
+  }
+
   async function updateQueueStatus(formData: FormData) {
     "use server";
 
@@ -130,41 +211,105 @@ export default async function QueuePage({ params }: Props) {
       </div>
 
       <CreateDisclosure label="Queue a prompt">
-        <form action={enqueuePrompt} className="space-y-4">
-          <SelectField
-            label="Prompt"
-            name="promptId"
-            required
-            defaultValue=""
-            disabled={project.prompts.length === 0}
-            hint={
-              project.prompts.length === 0
-                ? "No ready prompts on this project yet."
-                : undefined
-            }
-          >
-            <option value="">Select a saved prompt…</option>
-            {project.prompts.map((prompt) => (
-              <option key={prompt.id} value={prompt.id}>
-                {prompt.title}
-              </option>
-            ))}
-          </SelectField>
+        <div className="space-y-5">
+          <input
+            type="radio"
+            id="queue-mode-existing"
+            name="queueMode"
+            defaultChecked
+            className="peer/existing sr-only"
+          />
+          <input type="radio" id="queue-mode-new" name="queueMode" className="peer/new sr-only" />
 
-          {project.prompts.length === 0 && (
-            <p className="text-caption text-subtle">
-              Save one in the{" "}
-              <Link href="/prompts" className="text-cobalt-400 underline underline-offset-2 hover:text-cobalt-300">
-                Prompt Library
-              </Link>{" "}
-              and mark it Ready, then it shows up here.
-            </p>
-          )}
+          <div className="flex gap-1.5" role="tablist">
+            <label
+              htmlFor="queue-mode-existing"
+              className="press cursor-pointer rounded-full border border-line px-3 py-1.5 text-caption
+                font-semibold text-muted transition-colors duration-(--duration-fast)
+                hover:text-foreground peer-checked/existing:border-transparent
+                peer-checked/existing:bg-cobalt-500/18 peer-checked/existing:text-cobalt-300"
+            >
+              Existing prompt
+            </label>
+            <label
+              htmlFor="queue-mode-new"
+              className="press cursor-pointer rounded-full border border-line px-3 py-1.5 text-caption
+                font-semibold text-muted transition-colors duration-(--duration-fast)
+                hover:text-foreground peer-checked/new:border-transparent
+                peer-checked/new:bg-cobalt-500/18 peer-checked/new:text-cobalt-300"
+            >
+              New prompt
+            </label>
+          </div>
 
-          <Button type="submit" variant="primary" disabled={project.prompts.length === 0}>
-            Add to queue
-          </Button>
-        </form>
+          <div className="hidden peer-checked/existing:block">
+            <form action={enqueuePrompt} className="space-y-4">
+              <SelectField
+                label="Prompt"
+                name="promptId"
+                required
+                defaultValue=""
+                disabled={project.prompts.length === 0}
+                hint={
+                  project.prompts.length === 0
+                    ? "No ready prompts on this project yet."
+                    : undefined
+                }
+              >
+                <option value="">Select a saved prompt…</option>
+                {project.prompts.map((prompt) => (
+                  <option key={prompt.id} value={prompt.id}>
+                    {prompt.title}
+                  </option>
+                ))}
+              </SelectField>
+
+              {project.prompts.length === 0 && (
+                <p className="text-caption text-subtle">
+                  Save one in the{" "}
+                  <Link href="/prompts" className="text-cobalt-400 underline underline-offset-2 hover:text-cobalt-300">
+                    Prompt Library
+                  </Link>{" "}
+                  and mark it Ready, then it shows up here.
+                </p>
+              )}
+
+              <Button type="submit" variant="primary" disabled={project.prompts.length === 0}>
+                Add to queue
+              </Button>
+            </form>
+          </div>
+
+          <div className="hidden peer-checked/new:block">
+            <form action={createPromptAndEnqueue} className="space-y-4">
+              <Field
+                label="Title"
+                name="title"
+                type="text"
+                placeholder="Add a Stripe customer portal"
+                required
+              />
+              <TextField
+                label="Content"
+                name="content"
+                placeholder="Paste the prompt here…"
+                rows={7}
+                required
+                className="font-mono text-caption"
+              />
+              <SelectField label="Category" name="category" defaultValue="Custom">
+                {PROMPT_CATEGORIES.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </SelectField>
+              <Button type="submit" variant="primary">
+                Create and queue
+              </Button>
+            </form>
+          </div>
+        </div>
       </CreateDisclosure>
 
       {project.queueItems.length === 0 ? (
