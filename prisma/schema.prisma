@@ -177,6 +177,7 @@ model Project {
   packs                ContextPack[]
   ideas                Idea[]
   notes                Note[]
+  todos                Todo[]
   bugs                 Bug[]
   decisions            Decision[]            @relation("ProjectDecisions")
   codingSessions       CodingSession[]
@@ -577,6 +578,24 @@ model Note {
   @@unique([ownerId, id])
   @@index([ownerId, projectId, pinned])
   @@map("notes")
+}
+
+model Todo {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId     String    @map("owner_id") @db.Uuid
+  projectId   String    @map("project_id") @db.Uuid
+  title       String
+  note        String?
+  done        Boolean   @default(false)
+  sortOrder   Int       @default(0) @map("sort_order")
+  completedAt DateTime? @map("completed_at") @db.Timestamptz
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+  project     Project   @relation(fields: [ownerId, projectId], references: [ownerId, id], onDelete: Cascade)
+
+  @@unique([ownerId, id])
+  @@index([ownerId, projectId, done, sortOrder])
+  @@map("todos")
 }
 
 model Bug {

@@ -148,6 +148,11 @@ export type Idea = Prisma.IdeaModel
  */
 export type Note = Prisma.NoteModel
 /**
+ * Model Todo
+ * 
+ */
+export type Todo = Prisma.TodoModel
+/**
  * Model Bug
  * 
  */

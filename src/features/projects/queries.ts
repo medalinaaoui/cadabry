@@ -52,6 +52,7 @@ export const getProjectSummary = cache(async (ownerId: string, slug: string) => 
           decisions: true,
           milestones: true,
           notes: true,
+          todos: { where: { done: false } },
           inspirations: true,
           commands: true,
           environmentVariables: true,

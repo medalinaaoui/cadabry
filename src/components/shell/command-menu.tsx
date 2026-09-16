@@ -12,6 +12,7 @@ import {
   GitBranch,
   Inbox,
   Layers,
+  ListChecks,
   LogOut,
   Lightbulb,
   Orbit,
@@ -32,6 +33,7 @@ const PROJECT_SECTIONS = [
   { path: "resume", label: "Resume Building", icon: PlayCircle },
   { path: "features", label: "Features", icon: Sparkles },
   { path: "queue", label: "Prompt Queue", icon: Layers },
+  { path: "todos", label: "To-Dos", icon: ListChecks },
   { path: "bugs", label: "Bugs", icon: Bug },
   { path: "decisions", label: "Decisions", icon: GitBranch },
   { path: "milestones", label: "Milestones", icon: Orbit },
@@ -48,6 +50,7 @@ const PROJECT_SECTIONS = [
 const GLOBAL_PAGES = [
   { href: "/", label: "Universe", icon: Orbit },
   { href: "/prompts", label: "Prompt Library", icon: FileText },
+  { href: "/todos", label: "To-Dos", icon: ListChecks },
   { href: "/packs", label: "Context Packs", icon: Layers },
   { href: "/skills", label: "Skills", icon: BookOpen },
   { href: "/inbox", label: "Idea Inbox", icon: Inbox },

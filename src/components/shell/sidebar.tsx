@@ -10,6 +10,7 @@ import {
   FileText,
   Inbox,
   Layers,
+  ListChecks,
   LogOut,
   Orbit,
   Plus,
@@ -36,6 +37,7 @@ export type SidebarProject = {
 
 const LIBRARY = [
   { href: "/prompts", label: "Prompt Library", icon: FileText },
+  { href: "/todos", label: "To-Dos", icon: ListChecks },
   { href: "/packs", label: "Context Packs", icon: Layers },
   { href: "/skills", label: "Skills", icon: BookOpen },
 ];

@@ -447,6 +447,7 @@ export type ProjectWhereInput = {
   packs?: Prisma.ContextPackListRelationFilter
   ideas?: Prisma.IdeaListRelationFilter
   notes?: Prisma.NoteListRelationFilter
+  todos?: Prisma.TodoListRelationFilter
   bugs?: Prisma.BugListRelationFilter
   decisions?: Prisma.DecisionListRelationFilter
   codingSessions?: Prisma.CodingSessionListRelationFilter
@@ -500,6 +501,7 @@ export type ProjectOrderByWithRelationInput = {
   packs?: Prisma.ContextPackOrderByRelationAggregateInput
   ideas?: Prisma.IdeaOrderByRelationAggregateInput
   notes?: Prisma.NoteOrderByRelationAggregateInput
+  todos?: Prisma.TodoOrderByRelationAggregateInput
   bugs?: Prisma.BugOrderByRelationAggregateInput
   decisions?: Prisma.DecisionOrderByRelationAggregateInput
   codingSessions?: Prisma.CodingSessionOrderByRelationAggregateInput
@@ -558,6 +560,7 @@ export type ProjectWhereUniqueInput = Prisma.AtLeast<{
   packs?: Prisma.ContextPackListRelationFilter
   ideas?: Prisma.IdeaListRelationFilter
   notes?: Prisma.NoteListRelationFilter
+  todos?: Prisma.TodoListRelationFilter
   bugs?: Prisma.BugListRelationFilter
   decisions?: Prisma.DecisionListRelationFilter
   codingSessions?: Prisma.CodingSessionListRelationFilter
@@ -688,6 +691,7 @@ export type ProjectCreateInput = {
   packs?: Prisma.ContextPackCreateNestedManyWithoutProjectInput
   ideas?: Prisma.IdeaCreateNestedManyWithoutProjectInput
   notes?: Prisma.NoteCreateNestedManyWithoutProjectInput
+  todos?: Prisma.TodoCreateNestedManyWithoutProjectInput
   bugs?: Prisma.BugCreateNestedManyWithoutProjectInput
   decisions?: Prisma.DecisionCreateNestedManyWithoutProjectInput
   codingSessions?: Prisma.CodingSessionCreateNestedManyWithoutProjectInput
@@ -740,6 +744,7 @@ export type ProjectUncheckedCreateInput = {
   packs?: Prisma.ContextPackUncheckedCreateNestedManyWithoutProjectInput
   ideas?: Prisma.IdeaUncheckedCreateNestedManyWithoutProjectInput
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutProjectInput
+  todos?: Prisma.TodoUncheckedCreateNestedManyWithoutProjectInput
   bugs?: Prisma.BugUncheckedCreateNestedManyWithoutProjectInput
   decisions?: Prisma.DecisionUncheckedCreateNestedManyWithoutProjectInput
   codingSessions?: Prisma.CodingSessionUncheckedCreateNestedManyWithoutProjectInput
@@ -792,6 +797,7 @@ export type ProjectUpdateInput = {
   packs?: Prisma.ContextPackUpdateManyWithoutProjectNestedInput
   ideas?: Prisma.IdeaUpdateManyWithoutProjectNestedInput
   notes?: Prisma.NoteUpdateManyWithoutProjectNestedInput
+  todos?: Prisma.TodoUpdateManyWithoutProjectNestedInput
   bugs?: Prisma.BugUpdateManyWithoutProjectNestedInput
   decisions?: Prisma.DecisionUpdateManyWithoutProjectNestedInput
   codingSessions?: Prisma.CodingSessionUpdateManyWithoutProjectNestedInput
@@ -844,6 +850,7 @@ export type ProjectUncheckedUpdateInput = {
   packs?: Prisma.ContextPackUncheckedUpdateManyWithoutProjectNestedInput
   ideas?: Prisma.IdeaUncheckedUpdateManyWithoutProjectNestedInput
   notes?: Prisma.NoteUncheckedUpdateManyWithoutProjectNestedInput
+  todos?: Prisma.TodoUncheckedUpdateManyWithoutProjectNestedInput
   bugs?: Prisma.BugUncheckedUpdateManyWithoutProjectNestedInput
   decisions?: Prisma.DecisionUncheckedUpdateManyWithoutProjectNestedInput
   codingSessions?: Prisma.CodingSessionUncheckedUpdateManyWithoutProjectNestedInput
@@ -1304,6 +1311,20 @@ export type ProjectUpdateOneWithoutNotesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ProjectUpdateToOneWithWhereWithoutNotesInput, Prisma.ProjectUpdateWithoutNotesInput>, Prisma.ProjectUncheckedUpdateWithoutNotesInput>
 }
 
+export type ProjectCreateNestedOneWithoutTodosInput = {
+  create?: Prisma.XOR<Prisma.ProjectCreateWithoutTodosInput, Prisma.ProjectUncheckedCreateWithoutTodosInput>
+  connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutTodosInput
+  connect?: Prisma.ProjectWhereUniqueInput
+}
+
+export type ProjectUpdateOneRequiredWithoutTodosNestedInput = {
+  create?: Prisma.XOR<Prisma.ProjectCreateWithoutTodosInput, Prisma.ProjectUncheckedCreateWithoutTodosInput>
+  connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutTodosInput
+  upsert?: Prisma.ProjectUpsertWithoutTodosInput
+  connect?: Prisma.ProjectWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ProjectUpdateToOneWithWhereWithoutTodosInput, Prisma.ProjectUpdateWithoutTodosInput>, Prisma.ProjectUncheckedUpdateWithoutTodosInput>
+}
+
 export type ProjectCreateNestedOneWithoutBugsInput = {
   create?: Prisma.XOR<Prisma.ProjectCreateWithoutBugsInput, Prisma.ProjectUncheckedCreateWithoutBugsInput>
   connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutBugsInput
@@ -1448,6 +1469,7 @@ export type ProjectCreateWithoutOwnerInput = {
   packs?: Prisma.ContextPackCreateNestedManyWithoutProjectInput
   ideas?: Prisma.IdeaCreateNestedManyWithoutProjectInput
   notes?: Prisma.NoteCreateNestedManyWithoutProjectInput
+  todos?: Prisma.TodoCreateNestedManyWithoutProjectInput
   bugs?: Prisma.BugCreateNestedManyWithoutProjectInput
   decisions?: Prisma.DecisionCreateNestedManyWithoutProjectInput
   codingSessions?: Prisma.CodingSessionCreateNestedManyWithoutProjectInput
@@ -1499,6 +1521,7 @@ export type ProjectUncheckedCreateWithoutOwnerInput = {
   packs?: Prisma.ContextPackUncheckedCreateNestedManyWithoutProjectInput
   ideas?: Prisma.IdeaUncheckedCreateNestedManyWithoutProjectInput
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutProjectInput
+  todos?: Prisma.TodoUncheckedCreateNestedManyWithoutProjectInput
   bugs?: Prisma.BugUncheckedCreateNestedManyWithoutProjectInput
   decisions?: Prisma.DecisionUncheckedCreateNestedManyWithoutProjectInput
   codingSessions?: Prisma.CodingSessionUncheckedCreateNestedManyWithoutProjectInput
@@ -1614,6 +1637,7 @@ export type ProjectCreateWithoutTechnologiesInput = {
   packs?: Prisma.ContextPackCreateNestedManyWithoutProjectInput
   ideas?: Prisma.IdeaCreateNestedManyWithoutProjectInput
   notes?: Prisma.NoteCreateNestedManyWithoutProjectInput
+  todos?: Prisma.TodoCreateNestedManyWithoutProjectInput
   bugs?: Prisma.BugCreateNestedManyWithoutProjectInput
   decisions?: Prisma.DecisionCreateNestedManyWithoutProjectInput
   codingSessions?: Prisma.CodingSessionCreateNestedManyWithoutProjectInput
@@ -1665,6 +1689,7 @@ export type ProjectUncheckedCreateWithoutTechnologiesInput = {
   packs?: Prisma.ContextPackUncheckedCreateNestedManyWithoutProjectInput
   ideas?: Prisma.IdeaUncheckedCreateNestedManyWithoutProjectInput
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutProjectInput
+  todos?: Prisma.TodoUncheckedCreateNestedManyWithoutProjectInput
   bugs?: Prisma.BugUncheckedCreateNestedManyWithoutProjectInput
   decisions?: Prisma.DecisionUncheckedCreateNestedManyWithoutProjectInput
   codingSessions?: Prisma.CodingSessionUncheckedCreateNestedManyWithoutProjectInput
@@ -1732,6 +1757,7 @@ export type ProjectUpdateWithoutTechnologiesInput = {
   packs?: Prisma.ContextPackUpdateManyWithoutProjectNestedInput
   ideas?: Prisma.IdeaUpdateManyWithoutProjectNestedInput
   notes?: Prisma.NoteUpdateManyWithoutProjectNestedInput
+  todos?: Prisma.TodoUpdateManyWithoutProjectNestedInput
   bugs?: Prisma.BugUpdateManyWithoutProjectNestedInput
   decisions?: Prisma.DecisionUpdateManyWithoutProjectNestedInput
   codingSessions?: Prisma.CodingSessionUpdateManyWithoutProjectNestedInput
@@ -1783,6 +1809,7 @@ export type ProjectUncheckedUpdateWithoutTechnologiesInput = {
   packs?: Prisma.ContextPackUncheckedUpdateManyWithoutProjectNestedInput
   ideas?: Prisma.IdeaUncheckedUpdateManyWithoutProjectNestedInput
   notes?: Prisma.NoteUncheckedUpdateManyWithoutProjectNestedInput
+  todos?: Prisma.TodoUncheckedUpdateManyWithoutProjectNestedInput
   bugs?: Prisma.BugUncheckedUpdateManyWithoutProjectNestedInput
   decisions?: Prisma.DecisionUncheckedUpdateManyWithoutProjectNestedInput
   codingSessions?: Prisma.CodingSessionUncheckedUpdateManyWithoutProjectNestedInput
@@ -1834,6 +1861,7 @@ export type ProjectCreateWithoutRulesInput = {
   packs?: Prisma.ContextPackCreateNestedManyWithoutProjectInput
   ideas?: Prisma.IdeaCreateNestedManyWithoutProjectInput
   notes?: Prisma.NoteCreateNestedManyWithoutProjectInput
+  todos?: Prisma.TodoCreateNestedManyWithoutProjectInput
   bugs?: Prisma.BugCreateNestedManyWithoutProjectInput
   decisions?: Prisma.DecisionCreateNestedManyWithoutProjectInput
   codingSessions?: Prisma.CodingSessionCreateNestedManyWithoutProjectInput
@@ -1885,6 +1913,7 @@ export type ProjectUncheckedCreateWithoutRulesInput = {
   packs?: Prisma.ContextPackUncheckedCreateNestedManyWithoutProjectInput
   ideas?: Prisma.IdeaUncheckedCreateNestedManyWithoutProjectInput
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutProjectInput
+  todos?: Prisma.TodoUncheckedCreateNestedManyWithoutProjectInput
   bugs?: Prisma.BugUncheckedCreateNestedManyWithoutProjectInput
   decisions?: Prisma.DecisionUncheckedCreateNestedManyWithoutProjectInput
   codingSessions?: Prisma.CodingSessionUncheckedCreateNestedManyWithoutProjectInput
@@ -1952,6 +1981,7 @@ export type ProjectUpdateWithoutRulesInput = {
   packs?: Prisma.ContextPackUpdateManyWithoutProjectNestedInput
   ideas?: Prisma.IdeaUpdateManyWithoutProjectNestedInput
   notes?: Prisma.NoteUpdateManyWithoutProjectNestedInput
+  todos?: Prisma.TodoUpdateManyWithoutProjectNestedInput
   bugs?: Prisma.BugUpdateManyWithoutProjectNestedInput
   decisions?: Prisma.DecisionUpdateManyWithoutProjectNestedInput
   codingSessions?: Prisma.CodingSessionUpdateManyWithoutProjectNestedInput
@@ -2003,6 +2033,7 @@ export type ProjectUncheckedUpdateWithoutRulesInput = {
   packs?: Prisma.ContextPackUncheckedUpdateManyWithoutProjectNestedInput
   ideas?: Prisma.IdeaUncheckedUpdateManyWithoutProjectNestedInput
   notes?: Prisma.NoteUncheckedUpdateManyWithoutProjectNestedInput
+  todos?: Prisma.TodoUncheckedUpdateManyWithoutProjectNestedInput
   bugs?: Prisma.BugUncheckedUpdateManyWithoutProjectNestedInput
   decisions?: Prisma.DecisionUncheckedUpdateManyWithoutProjectNestedInput
   codingSessions?: Prisma.CodingSessionUncheckedUpdateManyWithoutProjectNestedInput
@@ -2054,6 +2085,7 @@ export type ProjectCreateWithoutBoundariesInput = {
   packs?: Prisma.ContextPackCreateNestedManyWithoutProjectInput
   ideas?: Prisma.IdeaCreateNestedManyWithoutProjectInput
   notes?: Prisma.NoteCreateNestedManyWithoutProjectInput
+  todos?: Prisma.TodoCreateNestedManyWithoutProjectInput
   bugs?: Prisma.BugCreateNestedManyWithoutProjectInput
   decisions?: Prisma.DecisionCreateNestedManyWithoutProjectInput
   codingSessions?: Prisma.CodingSessionCreateNestedManyWithoutProjectInput
@@ -2105,6 +2137,7 @@ export type ProjectUncheckedCreateWithoutBoundariesInput = {
   packs?: Prisma.ContextPackUncheckedCreateNestedManyWithoutProjectInput
   ideas?: Prisma.IdeaUncheckedCreateNestedManyWithoutProjectInput
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutProjectInput
+  todos?: Prisma.TodoUncheckedCreateNestedManyWithoutProjectInput
   bugs?: Prisma.BugUncheckedCreateNestedManyWithoutProjectInput
   decisions?: Prisma.DecisionUncheckedCreateNestedManyWithoutProjectInput
   codingSessions?: Prisma.CodingSessionUncheckedCreateNestedManyWithoutProjectInput
@@ -2172,6 +2205,7 @@ export type ProjectUpdateWithoutBoundariesInput = {
   packs?: Prisma.ContextPackUpdateManyWithoutProjectNestedInput
   ideas?: Prisma.IdeaUpdateManyWithoutProjectNestedInput
   notes?: Prisma.NoteUpdateManyWithoutProjectNestedInput
+  todos?: Prisma.TodoUpdateManyWithoutProjectNestedInput
   bugs?: Prisma.BugUpdateManyWithoutProjectNestedInput
   decisions?: Prisma.DecisionUpdateManyWithoutProjectNestedInput
   codingSessions?: Prisma.CodingSessionUpdateManyWithoutProjectNestedInput
@@ -2223,6 +2257,7 @@ export type ProjectUncheckedUpdateWithoutBoundariesInput = {
   packs?: Prisma.ContextPackUncheckedUpdateManyWithoutProjectNestedInput
   ideas?: Prisma.IdeaUncheckedUpdateManyWithoutProjectNestedInput
   notes?: Prisma.NoteUncheckedUpdateManyWithoutProjectNestedInput
+  todos?: Prisma.TodoUncheckedUpdateManyWithoutProjectNestedInput
   bugs?: Prisma.BugUncheckedUpdateManyWithoutProjectNestedInput
   decisions?: Prisma.DecisionUncheckedUpdateManyWithoutProjectNestedInput
   codingSessions?: Prisma.CodingSessionUncheckedUpdateManyWithoutProjectNestedInput
@@ -2274,6 +2309,7 @@ export type ProjectCreateWithoutMilestonesInput = {
   packs?: Prisma.ContextPackCreateNestedManyWithoutProjectInput
   ideas?: Prisma.IdeaCreateNestedManyWithoutProjectInput
   notes?: Prisma.NoteCreateNestedManyWithoutProjectInput
+  todos?: Prisma.TodoCreateNestedManyWithoutProjectInput
   bugs?: Prisma.BugCreateNestedManyWithoutProjectInput
   decisions?: Prisma.DecisionCreateNestedManyWithoutProjectInput
   codingSessions?: Prisma.CodingSessionCreateNestedManyWithoutProjectInput
@@ -2325,6 +2361,7 @@ export type ProjectUncheckedCreateWithoutMilestonesInput = {
   packs?: Prisma.ContextPackUncheckedCreateNestedManyWithoutProjectInput
   ideas?: Prisma.IdeaUncheckedCreateNestedManyWithoutProjectInput
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutProjectInput
+  todos?: Prisma.TodoUncheckedCreateNestedManyWithoutProjectInput
   bugs?: Prisma.BugUncheckedCreateNestedManyWithoutProjectInput
   decisions?: Prisma.DecisionUncheckedCreateNestedManyWithoutProjectInput
   codingSessions?: Prisma.CodingSessionUncheckedCreateNestedManyWithoutProjectInput
@@ -2392,6 +2429,7 @@ export type ProjectUpdateWithoutMilestonesInput = {
   packs?: Prisma.ContextPackUpdateManyWithoutProjectNestedInput
   ideas?: Prisma.IdeaUpdateManyWithoutProjectNestedInput
   notes?: Prisma.NoteUpdateManyWithoutProjectNestedInput
+  todos?: Prisma.TodoUpdateManyWithoutProjectNestedInput
   bugs?: Prisma.BugUpdateManyWithoutProjectNestedInput
   decisions?: Prisma.DecisionUpdateManyWithoutProjectNestedInput
   codingSessions?: Prisma.CodingSessionUpdateManyWithoutProjectNestedInput
@@ -2443,6 +2481,7 @@ export type ProjectUncheckedUpdateWithoutMilestonesInput = {
   packs?: Prisma.ContextPackUncheckedUpdateManyWithoutProjectNestedInput
   ideas?: Prisma.IdeaUncheckedUpdateManyWithoutProjectNestedInput
   notes?: Prisma.NoteUncheckedUpdateManyWithoutProjectNestedInput
+  todos?: Prisma.TodoUncheckedUpdateManyWithoutProjectNestedInput
   bugs?: Prisma.BugUncheckedUpdateManyWithoutProjectNestedInput
   decisions?: Prisma.DecisionUncheckedUpdateManyWithoutProjectNestedInput
   codingSessions?: Prisma.CodingSessionUncheckedUpdateManyWithoutProjectNestedInput
@@ -2494,6 +2533,7 @@ export type ProjectCreateWithoutFeaturesInput = {
   packs?: Prisma.ContextPackCreateNestedManyWithoutProjectInput
   ideas?: Prisma.IdeaCreateNestedManyWithoutProjectInput
   notes?: Prisma.NoteCreateNestedManyWithoutProjectInput
+  todos?: Prisma.TodoCreateNestedManyWithoutProjectInput
   bugs?: Prisma.BugCreateNestedManyWithoutProjectInput
   decisions?: Prisma.DecisionCreateNestedManyWithoutProjectInput
   codingSessions?: Prisma.CodingSessionCreateNestedManyWithoutProjectInput
@@ -2545,6 +2585,7 @@ export type ProjectUncheckedCreateWithoutFeaturesInput = {
   packs?: Prisma.ContextPackUncheckedCreateNestedManyWithoutProjectInput
   ideas?: Prisma.IdeaUncheckedCreateNestedManyWithoutProjectInput
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutProjectInput
+  todos?: Prisma.TodoUncheckedCreateNestedManyWithoutProjectInput
   bugs?: Prisma.BugUncheckedCreateNestedManyWithoutProjectInput
   decisions?: Prisma.DecisionUncheckedCreateNestedManyWithoutProjectInput
   codingSessions?: Prisma.CodingSessionUncheckedCreateNestedManyWithoutProjectInput
@@ -2612,6 +2653,7 @@ export type ProjectUpdateWithoutFeaturesInput = {
   packs?: Prisma.ContextPackUpdateManyWithoutProjectNestedInput
   ideas?: Prisma.IdeaUpdateManyWithoutProjectNestedInput
   notes?: Prisma.NoteUpdateManyWithoutProjectNestedInput
+  todos?: Prisma.TodoUpdateManyWithoutProjectNestedInput
   bugs?: Prisma.BugUpdateManyWithoutProjectNestedInput
   decisions?: Prisma.DecisionUpdateManyWithoutProjectNestedInput
   codingSessions?: Prisma.CodingSessionUpdateManyWithoutProjectNestedInput
@@ -2663,6 +2705,7 @@ export type ProjectUncheckedUpdateWithoutFeaturesInput = {
   packs?: Prisma.ContextPackUncheckedUpdateManyWithoutProjectNestedInput
   ideas?: Prisma.IdeaUncheckedUpdateManyWithoutProjectNestedInput
   notes?: Prisma.NoteUncheckedUpdateManyWithoutProjectNestedInput
+  todos?: Prisma.TodoUncheckedUpdateManyWithoutProjectNestedInput
   bugs?: Prisma.BugUncheckedUpdateManyWithoutProjectNestedInput
   decisions?: Prisma.DecisionUncheckedUpdateManyWithoutProjectNestedInput
   codingSessions?: Prisma.CodingSessionUncheckedUpdateManyWithoutProjectNestedInput
@@ -2714,6 +2757,7 @@ export type ProjectCreateWithoutPromptsInput = {
   packs?: Prisma.ContextPackCreateNestedManyWithoutProjectInput
   ideas?: Prisma.IdeaCreateNestedManyWithoutProjectInput
   notes?: Prisma.NoteCreateNestedManyWithoutProjectInput
+  todos?: Prisma.TodoCreateNestedManyWithoutProjectInput
   bugs?: Prisma.BugCreateNestedManyWithoutProjectInput
   decisions?: Prisma.DecisionCreateNestedManyWithoutProjectInput
   codingSessions?: Prisma.CodingSessionCreateNestedManyWithoutProjectInput
@@ -2765,6 +2809,7 @@ export type ProjectUncheckedCreateWithoutPromptsInput = {
   packs?: Prisma.ContextPackUncheckedCreateNestedManyWithoutProjectInput
   ideas?: Prisma.IdeaUncheckedCreateNestedManyWithoutProjectInput
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutProjectInput
+  todos?: Prisma.TodoUncheckedCreateNestedManyWithoutProjectInput
   bugs?: Prisma.BugUncheckedCreateNestedManyWithoutProjectInput
   decisions?: Prisma.DecisionUncheckedCreateNestedManyWithoutProjectInput
   codingSessions?: Prisma.CodingSessionUncheckedCreateNestedManyWithoutProjectInput
@@ -2832,6 +2877,7 @@ export type ProjectUpdateWithoutPromptsInput = {
   packs?: Prisma.ContextPackUpdateManyWithoutProjectNestedInput
   ideas?: Prisma.IdeaUpdateManyWithoutProjectNestedInput
   notes?: Prisma.NoteUpdateManyWithoutProjectNestedInput
+  todos?: Prisma.TodoUpdateManyWithoutProjectNestedInput
   bugs?: Prisma.BugUpdateManyWithoutProjectNestedInput
   decisions?: Prisma.DecisionUpdateManyWithoutProjectNestedInput
   codingSessions?: Prisma.CodingSessionUpdateManyWithoutProjectNestedInput
@@ -2883,6 +2929,7 @@ export type ProjectUncheckedUpdateWithoutPromptsInput = {
   packs?: Prisma.ContextPackUncheckedUpdateManyWithoutProjectNestedInput
   ideas?: Prisma.IdeaUncheckedUpdateManyWithoutProjectNestedInput
   notes?: Prisma.NoteUncheckedUpdateManyWithoutProjectNestedInput
+  todos?: Prisma.TodoUncheckedUpdateManyWithoutProjectNestedInput
   bugs?: Prisma.BugUncheckedUpdateManyWithoutProjectNestedInput
   decisions?: Prisma.DecisionUncheckedUpdateManyWithoutProjectNestedInput
   codingSessions?: Prisma.CodingSessionUncheckedUpdateManyWithoutProjectNestedInput
@@ -2934,6 +2981,7 @@ export type ProjectCreateWithoutQueueItemsInput = {
   packs?: Prisma.ContextPackCreateNestedManyWithoutProjectInput
   ideas?: Prisma.IdeaCreateNestedManyWithoutProjectInput
   notes?: Prisma.NoteCreateNestedManyWithoutProjectInput
+  todos?: Prisma.TodoCreateNestedManyWithoutProjectInput
   bugs?: Prisma.BugCreateNestedManyWithoutProjectInput
   decisions?: Prisma.DecisionCreateNestedManyWithoutProjectInput
   codingSessions?: Prisma.CodingSessionCreateNestedManyWithoutProjectInput
@@ -2985,6 +3033,7 @@ export type ProjectUncheckedCreateWithoutQueueItemsInput = {
   packs?: Prisma.ContextPackUncheckedCreateNestedManyWithoutProjectInput
   ideas?: Prisma.IdeaUncheckedCreateNestedManyWithoutProjectInput
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutProjectInput
+  todos?: Prisma.TodoUncheckedCreateNestedManyWithoutProjectInput
   bugs?: Prisma.BugUncheckedCreateNestedManyWithoutProjectInput
   decisions?: Prisma.DecisionUncheckedCreateNestedManyWithoutProjectInput
   codingSessions?: Prisma.CodingSessionUncheckedCreateNestedManyWithoutProjectInput
@@ -3052,6 +3101,7 @@ export type ProjectUpdateWithoutQueueItemsInput = {
   packs?: Prisma.ContextPackUpdateManyWithoutProjectNestedInput
   ideas?: Prisma.IdeaUpdateManyWithoutProjectNestedInput
   notes?: Prisma.NoteUpdateManyWithoutProjectNestedInput
+  todos?: Prisma.TodoUpdateManyWithoutProjectNestedInput
   bugs?: Prisma.BugUpdateManyWithoutProjectNestedInput
   decisions?: Prisma.DecisionUpdateManyWithoutProjectNestedInput
   codingSessions?: Prisma.CodingSessionUpdateManyWithoutProjectNestedInput
@@ -3103,6 +3153,7 @@ export type ProjectUncheckedUpdateWithoutQueueItemsInput = {
   packs?: Prisma.ContextPackUncheckedUpdateManyWithoutProjectNestedInput
   ideas?: Prisma.IdeaUncheckedUpdateManyWithoutProjectNestedInput
   notes?: Prisma.NoteUncheckedUpdateManyWithoutProjectNestedInput
+  todos?: Prisma.TodoUncheckedUpdateManyWithoutProjectNestedInput
   bugs?: Prisma.BugUncheckedUpdateManyWithoutProjectNestedInput
   decisions?: Prisma.DecisionUncheckedUpdateManyWithoutProjectNestedInput
   codingSessions?: Prisma.CodingSessionUncheckedUpdateManyWithoutProjectNestedInput
@@ -3154,6 +3205,7 @@ export type ProjectCreateWithoutPacksInput = {
   queueItems?: Prisma.PromptQueueItemCreateNestedManyWithoutProjectInput
   ideas?: Prisma.IdeaCreateNestedManyWithoutProjectInput
   notes?: Prisma.NoteCreateNestedManyWithoutProjectInput
+  todos?: Prisma.TodoCreateNestedManyWithoutProjectInput
   bugs?: Prisma.BugCreateNestedManyWithoutProjectInput
   decisions?: Prisma.DecisionCreateNestedManyWithoutProjectInput
   codingSessions?: Prisma.CodingSessionCreateNestedManyWithoutProjectInput
@@ -3205,6 +3257,7 @@ export type ProjectUncheckedCreateWithoutPacksInput = {
   queueItems?: Prisma.PromptQueueItemUncheckedCreateNestedManyWithoutProjectInput
   ideas?: Prisma.IdeaUncheckedCreateNestedManyWithoutProjectInput
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutProjectInput
+  todos?: Prisma.TodoUncheckedCreateNestedManyWithoutProjectInput
   bugs?: Prisma.BugUncheckedCreateNestedManyWithoutProjectInput
   decisions?: Prisma.DecisionUncheckedCreateNestedManyWithoutProjectInput
   codingSessions?: Prisma.CodingSessionUncheckedCreateNestedManyWithoutProjectInput
@@ -3272,6 +3325,7 @@ export type ProjectUpdateWithoutPacksInput = {
   queueItems?: Prisma.PromptQueueItemUpdateManyWithoutProjectNestedInput
   ideas?: Prisma.IdeaUpdateManyWithoutProjectNestedInput
   notes?: Prisma.NoteUpdateManyWithoutProjectNestedInput
+  todos?: Prisma.TodoUpdateManyWithoutProjectNestedInput
   bugs?: Prisma.BugUpdateManyWithoutProjectNestedInput
   decisions?: Prisma.DecisionUpdateManyWithoutProjectNestedInput
   codingSessions?: Prisma.CodingSessionUpdateManyWithoutProjectNestedInput
@@ -3323,6 +3377,7 @@ export type ProjectUncheckedUpdateWithoutPacksInput = {
   queueItems?: Prisma.PromptQueueItemUncheckedUpdateManyWithoutProjectNestedInput
   ideas?: Prisma.IdeaUncheckedUpdateManyWithoutProjectNestedInput
   notes?: Prisma.NoteUncheckedUpdateManyWithoutProjectNestedInput
+  todos?: Prisma.TodoUncheckedUpdateManyWithoutProjectNestedInput
   bugs?: Prisma.BugUncheckedUpdateManyWithoutProjectNestedInput
   decisions?: Prisma.DecisionUncheckedUpdateManyWithoutProjectNestedInput
   codingSessions?: Prisma.CodingSessionUncheckedUpdateManyWithoutProjectNestedInput
@@ -3374,6 +3429,7 @@ export type ProjectCreateWithoutIdeasInput = {
   queueItems?: Prisma.PromptQueueItemCreateNestedManyWithoutProjectInput
   packs?: Prisma.ContextPackCreateNestedManyWithoutProjectInput
   notes?: Prisma.NoteCreateNestedManyWithoutProjectInput
+  todos?: Prisma.TodoCreateNestedManyWithoutProjectInput
   bugs?: Prisma.BugCreateNestedManyWithoutProjectInput
   decisions?: Prisma.DecisionCreateNestedManyWithoutProjectInput
   codingSessions?: Prisma.CodingSessionCreateNestedManyWithoutProjectInput
@@ -3425,6 +3481,7 @@ export type ProjectUncheckedCreateWithoutIdeasInput = {
   queueItems?: Prisma.PromptQueueItemUncheckedCreateNestedManyWithoutProjectInput
   packs?: Prisma.ContextPackUncheckedCreateNestedManyWithoutProjectInput
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutProjectInput
+  todos?: Prisma.TodoUncheckedCreateNestedManyWithoutProjectInput
   bugs?: Prisma.BugUncheckedCreateNestedManyWithoutProjectInput
   decisions?: Prisma.DecisionUncheckedCreateNestedManyWithoutProjectInput
   codingSessions?: Prisma.CodingSessionUncheckedCreateNestedManyWithoutProjectInput
@@ -3492,6 +3549,7 @@ export type ProjectUpdateWithoutIdeasInput = {
   queueItems?: Prisma.PromptQueueItemUpdateManyWithoutProjectNestedInput
   packs?: Prisma.ContextPackUpdateManyWithoutProjectNestedInput
   notes?: Prisma.NoteUpdateManyWithoutProjectNestedInput
+  todos?: Prisma.TodoUpdateManyWithoutProjectNestedInput
   bugs?: Prisma.BugUpdateManyWithoutProjectNestedInput
   decisions?: Prisma.DecisionUpdateManyWithoutProjectNestedInput
   codingSessions?: Prisma.CodingSessionUpdateManyWithoutProjectNestedInput
@@ -3543,6 +3601,7 @@ export type ProjectUncheckedUpdateWithoutIdeasInput = {
   queueItems?: Prisma.PromptQueueItemUncheckedUpdateManyWithoutProjectNestedInput
   packs?: Prisma.ContextPackUncheckedUpdateManyWithoutProjectNestedInput
   notes?: Prisma.NoteUncheckedUpdateManyWithoutProjectNestedInput
+  todos?: Prisma.TodoUncheckedUpdateManyWithoutProjectNestedInput
   bugs?: Prisma.BugUncheckedUpdateManyWithoutProjectNestedInput
   decisions?: Prisma.DecisionUncheckedUpdateManyWithoutProjectNestedInput
   codingSessions?: Prisma.CodingSessionUncheckedUpdateManyWithoutProjectNestedInput
@@ -3594,6 +3653,7 @@ export type ProjectCreateWithoutNotesInput = {
   queueItems?: Prisma.PromptQueueItemCreateNestedManyWithoutProjectInput
   packs?: Prisma.ContextPackCreateNestedManyWithoutProjectInput
   ideas?: Prisma.IdeaCreateNestedManyWithoutProjectInput
+  todos?: Prisma.TodoCreateNestedManyWithoutProjectInput
   bugs?: Prisma.BugCreateNestedManyWithoutProjectInput
   decisions?: Prisma.DecisionCreateNestedManyWithoutProjectInput
   codingSessions?: Prisma.CodingSessionCreateNestedManyWithoutProjectInput
@@ -3645,6 +3705,7 @@ export type ProjectUncheckedCreateWithoutNotesInput = {
   queueItems?: Prisma.PromptQueueItemUncheckedCreateNestedManyWithoutProjectInput
   packs?: Prisma.ContextPackUncheckedCreateNestedManyWithoutProjectInput
   ideas?: Prisma.IdeaUncheckedCreateNestedManyWithoutProjectInput
+  todos?: Prisma.TodoUncheckedCreateNestedManyWithoutProjectInput
   bugs?: Prisma.BugUncheckedCreateNestedManyWithoutProjectInput
   decisions?: Prisma.DecisionUncheckedCreateNestedManyWithoutProjectInput
   codingSessions?: Prisma.CodingSessionUncheckedCreateNestedManyWithoutProjectInput
@@ -3712,6 +3773,7 @@ export type ProjectUpdateWithoutNotesInput = {
   queueItems?: Prisma.PromptQueueItemUpdateManyWithoutProjectNestedInput
   packs?: Prisma.ContextPackUpdateManyWithoutProjectNestedInput
   ideas?: Prisma.IdeaUpdateManyWithoutProjectNestedInput
+  todos?: Prisma.TodoUpdateManyWithoutProjectNestedInput
   bugs?: Prisma.BugUpdateManyWithoutProjectNestedInput
   decisions?: Prisma.DecisionUpdateManyWithoutProjectNestedInput
   codingSessions?: Prisma.CodingSessionUpdateManyWithoutProjectNestedInput
@@ -3763,6 +3825,231 @@ export type ProjectUncheckedUpdateWithoutNotesInput = {
   queueItems?: Prisma.PromptQueueItemUncheckedUpdateManyWithoutProjectNestedInput
   packs?: Prisma.ContextPackUncheckedUpdateManyWithoutProjectNestedInput
   ideas?: Prisma.IdeaUncheckedUpdateManyWithoutProjectNestedInput
+  todos?: Prisma.TodoUncheckedUpdateManyWithoutProjectNestedInput
+  bugs?: Prisma.BugUncheckedUpdateManyWithoutProjectNestedInput
+  decisions?: Prisma.DecisionUncheckedUpdateManyWithoutProjectNestedInput
+  codingSessions?: Prisma.CodingSessionUncheckedUpdateManyWithoutProjectNestedInput
+  inspirations?: Prisma.InspirationUncheckedUpdateManyWithoutProjectNestedInput
+  commands?: Prisma.CommandUncheckedUpdateManyWithoutProjectNestedInput
+  environmentVariables?: Prisma.EnvironmentVariableUncheckedUpdateManyWithoutProjectNestedInput
+  activities?: Prisma.ActivityUncheckedUpdateManyWithoutProjectNestedInput
+}
+
+export type ProjectCreateWithoutTodosInput = {
+  id?: string
+  name: string
+  slug: string
+  oneLineDescription?: string | null
+  description?: string | null
+  icon?: string | null
+  color?: string | null
+  projectType?: string | null
+  repositoryUrl?: string | null
+  productionUrl?: string | null
+  stagingUrl?: string | null
+  localFolderPath?: string | null
+  productStatement?: string | null
+  problem?: string | null
+  targetUser?: string | null
+  desiredOutcome?: string | null
+  valueProposition?: string | null
+  whatWorks?: string | null
+  partiallyBuilt?: string | null
+  whatIsBroken?: string | null
+  currentBlocker?: string | null
+  currentTask?: string | null
+  nextTask?: string | null
+  status?: $Enums.ProjectStatus
+  importance?: number
+  progress?: number
+  healthOverride?: string | null
+  lastActivityAt?: Date | string | null
+  archivedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  owner: Prisma.UserCreateNestedOneWithoutProjectsInput
+  technologies?: Prisma.ProjectTechnologyCreateNestedManyWithoutProjectInput
+  rules?: Prisma.ProjectRuleCreateNestedManyWithoutProjectInput
+  boundaries?: Prisma.ProjectBoundaryCreateNestedManyWithoutProjectInput
+  milestones?: Prisma.MilestoneCreateNestedManyWithoutProjectInput
+  features?: Prisma.FeatureCreateNestedManyWithoutProjectInput
+  prompts?: Prisma.PromptCreateNestedManyWithoutProjectInput
+  queueItems?: Prisma.PromptQueueItemCreateNestedManyWithoutProjectInput
+  packs?: Prisma.ContextPackCreateNestedManyWithoutProjectInput
+  ideas?: Prisma.IdeaCreateNestedManyWithoutProjectInput
+  notes?: Prisma.NoteCreateNestedManyWithoutProjectInput
+  bugs?: Prisma.BugCreateNestedManyWithoutProjectInput
+  decisions?: Prisma.DecisionCreateNestedManyWithoutProjectInput
+  codingSessions?: Prisma.CodingSessionCreateNestedManyWithoutProjectInput
+  inspirations?: Prisma.InspirationCreateNestedManyWithoutProjectInput
+  commands?: Prisma.CommandCreateNestedManyWithoutProjectInput
+  environmentVariables?: Prisma.EnvironmentVariableCreateNestedManyWithoutProjectInput
+  activities?: Prisma.ActivityCreateNestedManyWithoutProjectInput
+}
+
+export type ProjectUncheckedCreateWithoutTodosInput = {
+  id?: string
+  ownerId: string
+  name: string
+  slug: string
+  oneLineDescription?: string | null
+  description?: string | null
+  icon?: string | null
+  color?: string | null
+  projectType?: string | null
+  repositoryUrl?: string | null
+  productionUrl?: string | null
+  stagingUrl?: string | null
+  localFolderPath?: string | null
+  productStatement?: string | null
+  problem?: string | null
+  targetUser?: string | null
+  desiredOutcome?: string | null
+  valueProposition?: string | null
+  whatWorks?: string | null
+  partiallyBuilt?: string | null
+  whatIsBroken?: string | null
+  currentBlocker?: string | null
+  currentTask?: string | null
+  nextTask?: string | null
+  status?: $Enums.ProjectStatus
+  importance?: number
+  progress?: number
+  healthOverride?: string | null
+  lastActivityAt?: Date | string | null
+  archivedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  technologies?: Prisma.ProjectTechnologyUncheckedCreateNestedManyWithoutProjectInput
+  rules?: Prisma.ProjectRuleUncheckedCreateNestedManyWithoutProjectInput
+  boundaries?: Prisma.ProjectBoundaryUncheckedCreateNestedManyWithoutProjectInput
+  milestones?: Prisma.MilestoneUncheckedCreateNestedManyWithoutProjectInput
+  features?: Prisma.FeatureUncheckedCreateNestedManyWithoutProjectInput
+  prompts?: Prisma.PromptUncheckedCreateNestedManyWithoutProjectInput
+  queueItems?: Prisma.PromptQueueItemUncheckedCreateNestedManyWithoutProjectInput
+  packs?: Prisma.ContextPackUncheckedCreateNestedManyWithoutProjectInput
+  ideas?: Prisma.IdeaUncheckedCreateNestedManyWithoutProjectInput
+  notes?: Prisma.NoteUncheckedCreateNestedManyWithoutProjectInput
+  bugs?: Prisma.BugUncheckedCreateNestedManyWithoutProjectInput
+  decisions?: Prisma.DecisionUncheckedCreateNestedManyWithoutProjectInput
+  codingSessions?: Prisma.CodingSessionUncheckedCreateNestedManyWithoutProjectInput
+  inspirations?: Prisma.InspirationUncheckedCreateNestedManyWithoutProjectInput
+  commands?: Prisma.CommandUncheckedCreateNestedManyWithoutProjectInput
+  environmentVariables?: Prisma.EnvironmentVariableUncheckedCreateNestedManyWithoutProjectInput
+  activities?: Prisma.ActivityUncheckedCreateNestedManyWithoutProjectInput
+}
+
+export type ProjectCreateOrConnectWithoutTodosInput = {
+  where: Prisma.ProjectWhereUniqueInput
+  create: Prisma.XOR<Prisma.ProjectCreateWithoutTodosInput, Prisma.ProjectUncheckedCreateWithoutTodosInput>
+}
+
+export type ProjectUpsertWithoutTodosInput = {
+  update: Prisma.XOR<Prisma.ProjectUpdateWithoutTodosInput, Prisma.ProjectUncheckedUpdateWithoutTodosInput>
+  create: Prisma.XOR<Prisma.ProjectCreateWithoutTodosInput, Prisma.ProjectUncheckedCreateWithoutTodosInput>
+  where?: Prisma.ProjectWhereInput
+}
+
+export type ProjectUpdateToOneWithWhereWithoutTodosInput = {
+  where?: Prisma.ProjectWhereInput
+  data: Prisma.XOR<Prisma.ProjectUpdateWithoutTodosInput, Prisma.ProjectUncheckedUpdateWithoutTodosInput>
+}
+
+export type ProjectUpdateWithoutTodosInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  oneLineDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  color?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  projectType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  repositoryUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  productionUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stagingUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  localFolderPath?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  productStatement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  problem?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  targetUser?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  desiredOutcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  valueProposition?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatWorks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  partiallyBuilt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatIsBroken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currentBlocker?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currentTask?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nextTask?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
+  importance?: Prisma.IntFieldUpdateOperationsInput | number
+  progress?: Prisma.IntFieldUpdateOperationsInput | number
+  healthOverride?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastActivityAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  owner?: Prisma.UserUpdateOneRequiredWithoutProjectsNestedInput
+  technologies?: Prisma.ProjectTechnologyUpdateManyWithoutProjectNestedInput
+  rules?: Prisma.ProjectRuleUpdateManyWithoutProjectNestedInput
+  boundaries?: Prisma.ProjectBoundaryUpdateManyWithoutProjectNestedInput
+  milestones?: Prisma.MilestoneUpdateManyWithoutProjectNestedInput
+  features?: Prisma.FeatureUpdateManyWithoutProjectNestedInput
+  prompts?: Prisma.PromptUpdateManyWithoutProjectNestedInput
+  queueItems?: Prisma.PromptQueueItemUpdateManyWithoutProjectNestedInput
+  packs?: Prisma.ContextPackUpdateManyWithoutProjectNestedInput
+  ideas?: Prisma.IdeaUpdateManyWithoutProjectNestedInput
+  notes?: Prisma.NoteUpdateManyWithoutProjectNestedInput
+  bugs?: Prisma.BugUpdateManyWithoutProjectNestedInput
+  decisions?: Prisma.DecisionUpdateManyWithoutProjectNestedInput
+  codingSessions?: Prisma.CodingSessionUpdateManyWithoutProjectNestedInput
+  inspirations?: Prisma.InspirationUpdateManyWithoutProjectNestedInput
+  commands?: Prisma.CommandUpdateManyWithoutProjectNestedInput
+  environmentVariables?: Prisma.EnvironmentVariableUpdateManyWithoutProjectNestedInput
+  activities?: Prisma.ActivityUpdateManyWithoutProjectNestedInput
+}
+
+export type ProjectUncheckedUpdateWithoutTodosInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  ownerId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  oneLineDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  icon?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  color?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  projectType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  repositoryUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  productionUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stagingUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  localFolderPath?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  productStatement?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  problem?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  targetUser?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  desiredOutcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  valueProposition?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatWorks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  partiallyBuilt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatIsBroken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currentBlocker?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currentTask?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nextTask?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
+  importance?: Prisma.IntFieldUpdateOperationsInput | number
+  progress?: Prisma.IntFieldUpdateOperationsInput | number
+  healthOverride?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastActivityAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  technologies?: Prisma.ProjectTechnologyUncheckedUpdateManyWithoutProjectNestedInput
+  rules?: Prisma.ProjectRuleUncheckedUpdateManyWithoutProjectNestedInput
+  boundaries?: Prisma.ProjectBoundaryUncheckedUpdateManyWithoutProjectNestedInput
+  milestones?: Prisma.MilestoneUncheckedUpdateManyWithoutProjectNestedInput
+  features?: Prisma.FeatureUncheckedUpdateManyWithoutProjectNestedInput
+  prompts?: Prisma.PromptUncheckedUpdateManyWithoutProjectNestedInput
+  queueItems?: Prisma.PromptQueueItemUncheckedUpdateManyWithoutProjectNestedInput
+  packs?: Prisma.ContextPackUncheckedUpdateManyWithoutProjectNestedInput
+  ideas?: Prisma.IdeaUncheckedUpdateManyWithoutProjectNestedInput
+  notes?: Prisma.NoteUncheckedUpdateManyWithoutProjectNestedInput
   bugs?: Prisma.BugUncheckedUpdateManyWithoutProjectNestedInput
   decisions?: Prisma.DecisionUncheckedUpdateManyWithoutProjectNestedInput
   codingSessions?: Prisma.CodingSessionUncheckedUpdateManyWithoutProjectNestedInput
@@ -3815,6 +4102,7 @@ export type ProjectCreateWithoutBugsInput = {
   packs?: Prisma.ContextPackCreateNestedManyWithoutProjectInput
   ideas?: Prisma.IdeaCreateNestedManyWithoutProjectInput
   notes?: Prisma.NoteCreateNestedManyWithoutProjectInput
+  todos?: Prisma.TodoCreateNestedManyWithoutProjectInput
   decisions?: Prisma.DecisionCreateNestedManyWithoutProjectInput
   codingSessions?: Prisma.CodingSessionCreateNestedManyWithoutProjectInput
   inspirations?: Prisma.InspirationCreateNestedManyWithoutProjectInput
@@ -3866,6 +4154,7 @@ export type ProjectUncheckedCreateWithoutBugsInput = {
   packs?: Prisma.ContextPackUncheckedCreateNestedManyWithoutProjectInput
   ideas?: Prisma.IdeaUncheckedCreateNestedManyWithoutProjectInput
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutProjectInput
+  todos?: Prisma.TodoUncheckedCreateNestedManyWithoutProjectInput
   decisions?: Prisma.DecisionUncheckedCreateNestedManyWithoutProjectInput
   codingSessions?: Prisma.CodingSessionUncheckedCreateNestedManyWithoutProjectInput
   inspirations?: Prisma.InspirationUncheckedCreateNestedManyWithoutProjectInput
@@ -3933,6 +4222,7 @@ export type ProjectUpdateWithoutBugsInput = {
   packs?: Prisma.ContextPackUpdateManyWithoutProjectNestedInput
   ideas?: Prisma.IdeaUpdateManyWithoutProjectNestedInput
   notes?: Prisma.NoteUpdateManyWithoutProjectNestedInput
+  todos?: Prisma.TodoUpdateManyWithoutProjectNestedInput
   decisions?: Prisma.DecisionUpdateManyWithoutProjectNestedInput
   codingSessions?: Prisma.CodingSessionUpdateManyWithoutProjectNestedInput
   inspirations?: Prisma.InspirationUpdateManyWithoutProjectNestedInput
@@ -3984,6 +4274,7 @@ export type ProjectUncheckedUpdateWithoutBugsInput = {
   packs?: Prisma.ContextPackUncheckedUpdateManyWithoutProjectNestedInput
   ideas?: Prisma.IdeaUncheckedUpdateManyWithoutProjectNestedInput
   notes?: Prisma.NoteUncheckedUpdateManyWithoutProjectNestedInput
+  todos?: Prisma.TodoUncheckedUpdateManyWithoutProjectNestedInput
   decisions?: Prisma.DecisionUncheckedUpdateManyWithoutProjectNestedInput
   codingSessions?: Prisma.CodingSessionUncheckedUpdateManyWithoutProjectNestedInput
   inspirations?: Prisma.InspirationUncheckedUpdateManyWithoutProjectNestedInput
@@ -4035,6 +4326,7 @@ export type ProjectCreateWithoutDecisionsInput = {
   packs?: Prisma.ContextPackCreateNestedManyWithoutProjectInput
   ideas?: Prisma.IdeaCreateNestedManyWithoutProjectInput
   notes?: Prisma.NoteCreateNestedManyWithoutProjectInput
+  todos?: Prisma.TodoCreateNestedManyWithoutProjectInput
   bugs?: Prisma.BugCreateNestedManyWithoutProjectInput
   codingSessions?: Prisma.CodingSessionCreateNestedManyWithoutProjectInput
   inspirations?: Prisma.InspirationCreateNestedManyWithoutProjectInput
@@ -4086,6 +4378,7 @@ export type ProjectUncheckedCreateWithoutDecisionsInput = {
   packs?: Prisma.ContextPackUncheckedCreateNestedManyWithoutProjectInput
   ideas?: Prisma.IdeaUncheckedCreateNestedManyWithoutProjectInput
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutProjectInput
+  todos?: Prisma.TodoUncheckedCreateNestedManyWithoutProjectInput
   bugs?: Prisma.BugUncheckedCreateNestedManyWithoutProjectInput
   codingSessions?: Prisma.CodingSessionUncheckedCreateNestedManyWithoutProjectInput
   inspirations?: Prisma.InspirationUncheckedCreateNestedManyWithoutProjectInput
@@ -4153,6 +4446,7 @@ export type ProjectUpdateWithoutDecisionsInput = {
   packs?: Prisma.ContextPackUpdateManyWithoutProjectNestedInput
   ideas?: Prisma.IdeaUpdateManyWithoutProjectNestedInput
   notes?: Prisma.NoteUpdateManyWithoutProjectNestedInput
+  todos?: Prisma.TodoUpdateManyWithoutProjectNestedInput
   bugs?: Prisma.BugUpdateManyWithoutProjectNestedInput
   codingSessions?: Prisma.CodingSessionUpdateManyWithoutProjectNestedInput
   inspirations?: Prisma.InspirationUpdateManyWithoutProjectNestedInput
@@ -4204,6 +4498,7 @@ export type ProjectUncheckedUpdateWithoutDecisionsInput = {
   packs?: Prisma.ContextPackUncheckedUpdateManyWithoutProjectNestedInput
   ideas?: Prisma.IdeaUncheckedUpdateManyWithoutProjectNestedInput
   notes?: Prisma.NoteUncheckedUpdateManyWithoutProjectNestedInput
+  todos?: Prisma.TodoUncheckedUpdateManyWithoutProjectNestedInput
   bugs?: Prisma.BugUncheckedUpdateManyWithoutProjectNestedInput
   codingSessions?: Prisma.CodingSessionUncheckedUpdateManyWithoutProjectNestedInput
   inspirations?: Prisma.InspirationUncheckedUpdateManyWithoutProjectNestedInput
@@ -4255,6 +4550,7 @@ export type ProjectCreateWithoutCodingSessionsInput = {
   packs?: Prisma.ContextPackCreateNestedManyWithoutProjectInput
   ideas?: Prisma.IdeaCreateNestedManyWithoutProjectInput
   notes?: Prisma.NoteCreateNestedManyWithoutProjectInput
+  todos?: Prisma.TodoCreateNestedManyWithoutProjectInput
   bugs?: Prisma.BugCreateNestedManyWithoutProjectInput
   decisions?: Prisma.DecisionCreateNestedManyWithoutProjectInput
   inspirations?: Prisma.InspirationCreateNestedManyWithoutProjectInput
@@ -4306,6 +4602,7 @@ export type ProjectUncheckedCreateWithoutCodingSessionsInput = {
   packs?: Prisma.ContextPackUncheckedCreateNestedManyWithoutProjectInput
   ideas?: Prisma.IdeaUncheckedCreateNestedManyWithoutProjectInput
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutProjectInput
+  todos?: Prisma.TodoUncheckedCreateNestedManyWithoutProjectInput
   bugs?: Prisma.BugUncheckedCreateNestedManyWithoutProjectInput
   decisions?: Prisma.DecisionUncheckedCreateNestedManyWithoutProjectInput
   inspirations?: Prisma.InspirationUncheckedCreateNestedManyWithoutProjectInput
@@ -4373,6 +4670,7 @@ export type ProjectUpdateWithoutCodingSessionsInput = {
   packs?: Prisma.ContextPackUpdateManyWithoutProjectNestedInput
   ideas?: Prisma.IdeaUpdateManyWithoutProjectNestedInput
   notes?: Prisma.NoteUpdateManyWithoutProjectNestedInput
+  todos?: Prisma.TodoUpdateManyWithoutProjectNestedInput
   bugs?: Prisma.BugUpdateManyWithoutProjectNestedInput
   decisions?: Prisma.DecisionUpdateManyWithoutProjectNestedInput
   inspirations?: Prisma.InspirationUpdateManyWithoutProjectNestedInput
@@ -4424,6 +4722,7 @@ export type ProjectUncheckedUpdateWithoutCodingSessionsInput = {
   packs?: Prisma.ContextPackUncheckedUpdateManyWithoutProjectNestedInput
   ideas?: Prisma.IdeaUncheckedUpdateManyWithoutProjectNestedInput
   notes?: Prisma.NoteUncheckedUpdateManyWithoutProjectNestedInput
+  todos?: Prisma.TodoUncheckedUpdateManyWithoutProjectNestedInput
   bugs?: Prisma.BugUncheckedUpdateManyWithoutProjectNestedInput
   decisions?: Prisma.DecisionUncheckedUpdateManyWithoutProjectNestedInput
   inspirations?: Prisma.InspirationUncheckedUpdateManyWithoutProjectNestedInput
@@ -4475,6 +4774,7 @@ export type ProjectCreateWithoutInspirationsInput = {
   packs?: Prisma.ContextPackCreateNestedManyWithoutProjectInput
   ideas?: Prisma.IdeaCreateNestedManyWithoutProjectInput
   notes?: Prisma.NoteCreateNestedManyWithoutProjectInput
+  todos?: Prisma.TodoCreateNestedManyWithoutProjectInput
   bugs?: Prisma.BugCreateNestedManyWithoutProjectInput
   decisions?: Prisma.DecisionCreateNestedManyWithoutProjectInput
   codingSessions?: Prisma.CodingSessionCreateNestedManyWithoutProjectInput
@@ -4526,6 +4826,7 @@ export type ProjectUncheckedCreateWithoutInspirationsInput = {
   packs?: Prisma.ContextPackUncheckedCreateNestedManyWithoutProjectInput
   ideas?: Prisma.IdeaUncheckedCreateNestedManyWithoutProjectInput
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutProjectInput
+  todos?: Prisma.TodoUncheckedCreateNestedManyWithoutProjectInput
   bugs?: Prisma.BugUncheckedCreateNestedManyWithoutProjectInput
   decisions?: Prisma.DecisionUncheckedCreateNestedManyWithoutProjectInput
   codingSessions?: Prisma.CodingSessionUncheckedCreateNestedManyWithoutProjectInput
@@ -4593,6 +4894,7 @@ export type ProjectUpdateWithoutInspirationsInput = {
   packs?: Prisma.ContextPackUpdateManyWithoutProjectNestedInput
   ideas?: Prisma.IdeaUpdateManyWithoutProjectNestedInput
   notes?: Prisma.NoteUpdateManyWithoutProjectNestedInput
+  todos?: Prisma.TodoUpdateManyWithoutProjectNestedInput
   bugs?: Prisma.BugUpdateManyWithoutProjectNestedInput
   decisions?: Prisma.DecisionUpdateManyWithoutProjectNestedInput
   codingSessions?: Prisma.CodingSessionUpdateManyWithoutProjectNestedInput
@@ -4644,6 +4946,7 @@ export type ProjectUncheckedUpdateWithoutInspirationsInput = {
   packs?: Prisma.ContextPackUncheckedUpdateManyWithoutProjectNestedInput
   ideas?: Prisma.IdeaUncheckedUpdateManyWithoutProjectNestedInput
   notes?: Prisma.NoteUncheckedUpdateManyWithoutProjectNestedInput
+  todos?: Prisma.TodoUncheckedUpdateManyWithoutProjectNestedInput
   bugs?: Prisma.BugUncheckedUpdateManyWithoutProjectNestedInput
   decisions?: Prisma.DecisionUncheckedUpdateManyWithoutProjectNestedInput
   codingSessions?: Prisma.CodingSessionUncheckedUpdateManyWithoutProjectNestedInput
@@ -4695,6 +4998,7 @@ export type ProjectCreateWithoutCommandsInput = {
   packs?: Prisma.ContextPackCreateNestedManyWithoutProjectInput
   ideas?: Prisma.IdeaCreateNestedManyWithoutProjectInput
   notes?: Prisma.NoteCreateNestedManyWithoutProjectInput
+  todos?: Prisma.TodoCreateNestedManyWithoutProjectInput
   bugs?: Prisma.BugCreateNestedManyWithoutProjectInput
   decisions?: Prisma.DecisionCreateNestedManyWithoutProjectInput
   codingSessions?: Prisma.CodingSessionCreateNestedManyWithoutProjectInput
@@ -4746,6 +5050,7 @@ export type ProjectUncheckedCreateWithoutCommandsInput = {
   packs?: Prisma.ContextPackUncheckedCreateNestedManyWithoutProjectInput
   ideas?: Prisma.IdeaUncheckedCreateNestedManyWithoutProjectInput
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutProjectInput
+  todos?: Prisma.TodoUncheckedCreateNestedManyWithoutProjectInput
   bugs?: Prisma.BugUncheckedCreateNestedManyWithoutProjectInput
   decisions?: Prisma.DecisionUncheckedCreateNestedManyWithoutProjectInput
   codingSessions?: Prisma.CodingSessionUncheckedCreateNestedManyWithoutProjectInput
@@ -4813,6 +5118,7 @@ export type ProjectUpdateWithoutCommandsInput = {
   packs?: Prisma.ContextPackUpdateManyWithoutProjectNestedInput
   ideas?: Prisma.IdeaUpdateManyWithoutProjectNestedInput
   notes?: Prisma.NoteUpdateManyWithoutProjectNestedInput
+  todos?: Prisma.TodoUpdateManyWithoutProjectNestedInput
   bugs?: Prisma.BugUpdateManyWithoutProjectNestedInput
   decisions?: Prisma.DecisionUpdateManyWithoutProjectNestedInput
   codingSessions?: Prisma.CodingSessionUpdateManyWithoutProjectNestedInput
@@ -4864,6 +5170,7 @@ export type ProjectUncheckedUpdateWithoutCommandsInput = {
   packs?: Prisma.ContextPackUncheckedUpdateManyWithoutProjectNestedInput
   ideas?: Prisma.IdeaUncheckedUpdateManyWithoutProjectNestedInput
   notes?: Prisma.NoteUncheckedUpdateManyWithoutProjectNestedInput
+  todos?: Prisma.TodoUncheckedUpdateManyWithoutProjectNestedInput
   bugs?: Prisma.BugUncheckedUpdateManyWithoutProjectNestedInput
   decisions?: Prisma.DecisionUncheckedUpdateManyWithoutProjectNestedInput
   codingSessions?: Prisma.CodingSessionUncheckedUpdateManyWithoutProjectNestedInput
@@ -4915,6 +5222,7 @@ export type ProjectCreateWithoutEnvironmentVariablesInput = {
   packs?: Prisma.ContextPackCreateNestedManyWithoutProjectInput
   ideas?: Prisma.IdeaCreateNestedManyWithoutProjectInput
   notes?: Prisma.NoteCreateNestedManyWithoutProjectInput
+  todos?: Prisma.TodoCreateNestedManyWithoutProjectInput
   bugs?: Prisma.BugCreateNestedManyWithoutProjectInput
   decisions?: Prisma.DecisionCreateNestedManyWithoutProjectInput
   codingSessions?: Prisma.CodingSessionCreateNestedManyWithoutProjectInput
@@ -4966,6 +5274,7 @@ export type ProjectUncheckedCreateWithoutEnvironmentVariablesInput = {
   packs?: Prisma.ContextPackUncheckedCreateNestedManyWithoutProjectInput
   ideas?: Prisma.IdeaUncheckedCreateNestedManyWithoutProjectInput
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutProjectInput
+  todos?: Prisma.TodoUncheckedCreateNestedManyWithoutProjectInput
   bugs?: Prisma.BugUncheckedCreateNestedManyWithoutProjectInput
   decisions?: Prisma.DecisionUncheckedCreateNestedManyWithoutProjectInput
   codingSessions?: Prisma.CodingSessionUncheckedCreateNestedManyWithoutProjectInput
@@ -5033,6 +5342,7 @@ export type ProjectUpdateWithoutEnvironmentVariablesInput = {
   packs?: Prisma.ContextPackUpdateManyWithoutProjectNestedInput
   ideas?: Prisma.IdeaUpdateManyWithoutProjectNestedInput
   notes?: Prisma.NoteUpdateManyWithoutProjectNestedInput
+  todos?: Prisma.TodoUpdateManyWithoutProjectNestedInput
   bugs?: Prisma.BugUpdateManyWithoutProjectNestedInput
   decisions?: Prisma.DecisionUpdateManyWithoutProjectNestedInput
   codingSessions?: Prisma.CodingSessionUpdateManyWithoutProjectNestedInput
@@ -5084,6 +5394,7 @@ export type ProjectUncheckedUpdateWithoutEnvironmentVariablesInput = {
   packs?: Prisma.ContextPackUncheckedUpdateManyWithoutProjectNestedInput
   ideas?: Prisma.IdeaUncheckedUpdateManyWithoutProjectNestedInput
   notes?: Prisma.NoteUncheckedUpdateManyWithoutProjectNestedInput
+  todos?: Prisma.TodoUncheckedUpdateManyWithoutProjectNestedInput
   bugs?: Prisma.BugUncheckedUpdateManyWithoutProjectNestedInput
   decisions?: Prisma.DecisionUncheckedUpdateManyWithoutProjectNestedInput
   codingSessions?: Prisma.CodingSessionUncheckedUpdateManyWithoutProjectNestedInput
@@ -5135,6 +5446,7 @@ export type ProjectCreateWithoutActivitiesInput = {
   packs?: Prisma.ContextPackCreateNestedManyWithoutProjectInput
   ideas?: Prisma.IdeaCreateNestedManyWithoutProjectInput
   notes?: Prisma.NoteCreateNestedManyWithoutProjectInput
+  todos?: Prisma.TodoCreateNestedManyWithoutProjectInput
   bugs?: Prisma.BugCreateNestedManyWithoutProjectInput
   decisions?: Prisma.DecisionCreateNestedManyWithoutProjectInput
   codingSessions?: Prisma.CodingSessionCreateNestedManyWithoutProjectInput
@@ -5186,6 +5498,7 @@ export type ProjectUncheckedCreateWithoutActivitiesInput = {
   packs?: Prisma.ContextPackUncheckedCreateNestedManyWithoutProjectInput
   ideas?: Prisma.IdeaUncheckedCreateNestedManyWithoutProjectInput
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutProjectInput
+  todos?: Prisma.TodoUncheckedCreateNestedManyWithoutProjectInput
   bugs?: Prisma.BugUncheckedCreateNestedManyWithoutProjectInput
   decisions?: Prisma.DecisionUncheckedCreateNestedManyWithoutProjectInput
   codingSessions?: Prisma.CodingSessionUncheckedCreateNestedManyWithoutProjectInput
@@ -5253,6 +5566,7 @@ export type ProjectUpdateWithoutActivitiesInput = {
   packs?: Prisma.ContextPackUpdateManyWithoutProjectNestedInput
   ideas?: Prisma.IdeaUpdateManyWithoutProjectNestedInput
   notes?: Prisma.NoteUpdateManyWithoutProjectNestedInput
+  todos?: Prisma.TodoUpdateManyWithoutProjectNestedInput
   bugs?: Prisma.BugUpdateManyWithoutProjectNestedInput
   decisions?: Prisma.DecisionUpdateManyWithoutProjectNestedInput
   codingSessions?: Prisma.CodingSessionUpdateManyWithoutProjectNestedInput
@@ -5304,6 +5618,7 @@ export type ProjectUncheckedUpdateWithoutActivitiesInput = {
   packs?: Prisma.ContextPackUncheckedUpdateManyWithoutProjectNestedInput
   ideas?: Prisma.IdeaUncheckedUpdateManyWithoutProjectNestedInput
   notes?: Prisma.NoteUncheckedUpdateManyWithoutProjectNestedInput
+  todos?: Prisma.TodoUncheckedUpdateManyWithoutProjectNestedInput
   bugs?: Prisma.BugUncheckedUpdateManyWithoutProjectNestedInput
   decisions?: Prisma.DecisionUncheckedUpdateManyWithoutProjectNestedInput
   codingSessions?: Prisma.CodingSessionUncheckedUpdateManyWithoutProjectNestedInput
@@ -5388,6 +5703,7 @@ export type ProjectUpdateWithoutOwnerInput = {
   packs?: Prisma.ContextPackUpdateManyWithoutProjectNestedInput
   ideas?: Prisma.IdeaUpdateManyWithoutProjectNestedInput
   notes?: Prisma.NoteUpdateManyWithoutProjectNestedInput
+  todos?: Prisma.TodoUpdateManyWithoutProjectNestedInput
   bugs?: Prisma.BugUpdateManyWithoutProjectNestedInput
   decisions?: Prisma.DecisionUpdateManyWithoutProjectNestedInput
   codingSessions?: Prisma.CodingSessionUpdateManyWithoutProjectNestedInput
@@ -5439,6 +5755,7 @@ export type ProjectUncheckedUpdateWithoutOwnerInput = {
   packs?: Prisma.ContextPackUncheckedUpdateManyWithoutProjectNestedInput
   ideas?: Prisma.IdeaUncheckedUpdateManyWithoutProjectNestedInput
   notes?: Prisma.NoteUncheckedUpdateManyWithoutProjectNestedInput
+  todos?: Prisma.TodoUncheckedUpdateManyWithoutProjectNestedInput
   bugs?: Prisma.BugUncheckedUpdateManyWithoutProjectNestedInput
   decisions?: Prisma.DecisionUncheckedUpdateManyWithoutProjectNestedInput
   codingSessions?: Prisma.CodingSessionUncheckedUpdateManyWithoutProjectNestedInput
@@ -5498,6 +5815,7 @@ export type ProjectCountOutputType = {
   packs: number
   ideas: number
   notes: number
+  todos: number
   bugs: number
   decisions: number
   codingSessions: number
@@ -5518,6 +5836,7 @@ export type ProjectCountOutputTypeSelect<ExtArgs extends runtime.Types.Extension
   packs?: boolean | ProjectCountOutputTypeCountPacksArgs
   ideas?: boolean | ProjectCountOutputTypeCountIdeasArgs
   notes?: boolean | ProjectCountOutputTypeCountNotesArgs
+  todos?: boolean | ProjectCountOutputTypeCountTodosArgs
   bugs?: boolean | ProjectCountOutputTypeCountBugsArgs
   decisions?: boolean | ProjectCountOutputTypeCountDecisionsArgs
   codingSessions?: boolean | ProjectCountOutputTypeCountCodingSessionsArgs
@@ -5605,6 +5924,13 @@ export type ProjectCountOutputTypeCountIdeasArgs<ExtArgs extends runtime.Types.E
  */
 export type ProjectCountOutputTypeCountNotesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.NoteWhereInput
+}
+
+/**
+ * ProjectCountOutputType without action
+ */
+export type ProjectCountOutputTypeCountTodosArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TodoWhereInput
 }
 
 /**
@@ -5701,6 +6027,7 @@ export type ProjectSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   packs?: boolean | Prisma.Project$packsArgs<ExtArgs>
   ideas?: boolean | Prisma.Project$ideasArgs<ExtArgs>
   notes?: boolean | Prisma.Project$notesArgs<ExtArgs>
+  todos?: boolean | Prisma.Project$todosArgs<ExtArgs>
   bugs?: boolean | Prisma.Project$bugsArgs<ExtArgs>
   decisions?: boolean | Prisma.Project$decisionsArgs<ExtArgs>
   codingSessions?: boolean | Prisma.Project$codingSessionsArgs<ExtArgs>
@@ -5831,6 +6158,7 @@ export type ProjectInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs
   packs?: boolean | Prisma.Project$packsArgs<ExtArgs>
   ideas?: boolean | Prisma.Project$ideasArgs<ExtArgs>
   notes?: boolean | Prisma.Project$notesArgs<ExtArgs>
+  todos?: boolean | Prisma.Project$todosArgs<ExtArgs>
   bugs?: boolean | Prisma.Project$bugsArgs<ExtArgs>
   decisions?: boolean | Prisma.Project$decisionsArgs<ExtArgs>
   codingSessions?: boolean | Prisma.Project$codingSessionsArgs<ExtArgs>
@@ -5861,6 +6189,7 @@ export type $ProjectPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     packs: Prisma.$ContextPackPayload<ExtArgs>[]
     ideas: Prisma.$IdeaPayload<ExtArgs>[]
     notes: Prisma.$NotePayload<ExtArgs>[]
+    todos: Prisma.$TodoPayload<ExtArgs>[]
     bugs: Prisma.$BugPayload<ExtArgs>[]
     decisions: Prisma.$DecisionPayload<ExtArgs>[]
     codingSessions: Prisma.$CodingSessionPayload<ExtArgs>[]
@@ -6307,6 +6636,7 @@ export interface Prisma__ProjectClient<T, Null = never, ExtArgs extends runtime.
   packs<T extends Prisma.Project$packsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$packsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ContextPackPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   ideas<T extends Prisma.Project$ideasArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$ideasArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$IdeaPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   notes<T extends Prisma.Project$notesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$notesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NotePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  todos<T extends Prisma.Project$todosArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$todosArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TodoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   bugs<T extends Prisma.Project$bugsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$bugsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BugPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   decisions<T extends Prisma.Project$decisionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$decisionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DecisionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   codingSessions<T extends Prisma.Project$codingSessionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$codingSessionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CodingSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -7013,6 +7343,30 @@ export type Project$notesArgs<ExtArgs extends runtime.Types.Extensions.InternalA
   take?: number
   skip?: number
   distinct?: Prisma.NoteScalarFieldEnum | Prisma.NoteScalarFieldEnum[]
+}
+
+/**
+ * Project.todos
+ */
+export type Project$todosArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Todo
+   */
+  select?: Prisma.TodoSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Todo
+   */
+  omit?: Prisma.TodoOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TodoInclude<ExtArgs> | null
+  where?: Prisma.TodoWhereInput
+  orderBy?: Prisma.TodoOrderByWithRelationInput | Prisma.TodoOrderByWithRelationInput[]
+  cursor?: Prisma.TodoWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TodoScalarFieldEnum | Prisma.TodoScalarFieldEnum[]
 }
 
 /**

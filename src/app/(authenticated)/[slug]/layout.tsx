@@ -40,6 +40,7 @@ export default async function ProjectLayout({
     { path: "resume", label: "Resume" },
     { path: "queue", label: "Queue", count: counts.queueItems },
     { path: "features", label: "Features", count: counts.features },
+    { path: "todos", label: "To-Dos", count: counts.todos },
     { path: "milestones", label: "Milestones", count: counts.milestones },
     { path: "bugs", label: "Bugs", count: counts.bugs },
     { path: "decisions", label: "Decisions", count: counts.decisions },

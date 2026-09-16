@@ -262,6 +262,41 @@ export async function deleteNoteRecord(data: FormData) {
   refreshAll();
 }
 
+export async function updateTodoRecord(data: FormData) {
+  const actor = await requireActor();
+  const title = text(data, "title");
+  if (!title) return;
+  await db.todo.updateMany({
+    where: { id: text(data, "id"), ownerId: actor.userId },
+    data: {
+      title,
+      note: optional(data, "note"),
+    },
+  });
+  refreshAll();
+}
+
+export async function deleteTodoRecord(data: FormData) {
+  const actor = await requireActor();
+  await db.todo.deleteMany({
+    where: { id: text(data, "id"), ownerId: actor.userId },
+  });
+  refreshAll();
+}
+
+export async function toggleTodoRecord(data: FormData) {
+  const actor = await requireActor();
+  const id = text(data, "id");
+  const todo = await db.todo.findFirst({ where: { id, ownerId: actor.userId } });
+  if (!todo) return;
+  const done = !todo.done;
+  await db.todo.update({
+    where: { id },
+    data: { done, completedAt: done ? new Date() : null },
+  });
+  refreshAll();
+}
+
 export async function updateInspirationRecord(data: FormData) {
   const actor = await requireActor();
   const title = text(data, "title");

@@ -77,6 +77,7 @@ export const ModelName = {
   StackPresetTechnology: 'StackPresetTechnology',
   Idea: 'Idea',
   Note: 'Note',
+  Todo: 'Todo',
   Bug: 'Bug',
   Decision: 'Decision',
   CodingSession: 'CodingSession',
@@ -490,6 +491,22 @@ export const NoteScalarFieldEnum = {
 } as const
 
 export type NoteScalarFieldEnum = (typeof NoteScalarFieldEnum)[keyof typeof NoteScalarFieldEnum]
+
+
+export const TodoScalarFieldEnum = {
+  id: 'id',
+  ownerId: 'ownerId',
+  projectId: 'projectId',
+  title: 'title',
+  note: 'note',
+  done: 'done',
+  sortOrder: 'sortOrder',
+  completedAt: 'completedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TodoScalarFieldEnum = (typeof TodoScalarFieldEnum)[keyof typeof TodoScalarFieldEnum]
 
 
 export const BugScalarFieldEnum = {

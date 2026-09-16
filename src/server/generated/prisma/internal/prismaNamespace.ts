@@ -423,6 +423,7 @@ export const ModelName = {
   StackPresetTechnology: 'StackPresetTechnology',
   Idea: 'Idea',
   Note: 'Note',
+  Todo: 'Todo',
   Bug: 'Bug',
   Decision: 'Decision',
   CodingSession: 'CodingSession',
@@ -448,7 +449,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "appInstallation" | "authSession" | "project" | "technology" | "projectTechnology" | "projectRule" | "projectBoundary" | "milestone" | "feature" | "featureDependency" | "prompt" | "promptVersion" | "promptQueueItem" | "builderProfile" | "builderRule" | "contextPack" | "contextPackRule" | "skill" | "skillProjectType" | "skillTechnology" | "skillUseCase" | "stackPreset" | "stackPresetTechnology" | "idea" | "note" | "bug" | "decision" | "codingSession" | "codingSessionPrompt" | "codingSessionFeature" | "inspiration" | "inspirationAttachment" | "command" | "environmentVariable" | "activity"
+    modelProps: "user" | "appInstallation" | "authSession" | "project" | "technology" | "projectTechnology" | "projectRule" | "projectBoundary" | "milestone" | "feature" | "featureDependency" | "prompt" | "promptVersion" | "promptQueueItem" | "builderProfile" | "builderRule" | "contextPack" | "contextPackRule" | "skill" | "skillProjectType" | "skillTechnology" | "skillUseCase" | "stackPreset" | "stackPresetTechnology" | "idea" | "note" | "todo" | "bug" | "decision" | "codingSession" | "codingSessionPrompt" | "codingSessionFeature" | "inspiration" | "inspirationAttachment" | "command" | "environmentVariable" | "activity"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2376,6 +2377,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Todo: {
+      payload: Prisma.$TodoPayload<ExtArgs>
+      fields: Prisma.TodoFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TodoFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TodoPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TodoFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TodoPayload>
+        }
+        findFirst: {
+          args: Prisma.TodoFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TodoPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TodoFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TodoPayload>
+        }
+        findMany: {
+          args: Prisma.TodoFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TodoPayload>[]
+        }
+        create: {
+          args: Prisma.TodoCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TodoPayload>
+        }
+        createMany: {
+          args: Prisma.TodoCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TodoCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TodoPayload>[]
+        }
+        delete: {
+          args: Prisma.TodoDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TodoPayload>
+        }
+        update: {
+          args: Prisma.TodoUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TodoPayload>
+        }
+        deleteMany: {
+          args: Prisma.TodoDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TodoUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TodoUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TodoPayload>[]
+        }
+        upsert: {
+          args: Prisma.TodoUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TodoPayload>
+        }
+        aggregate: {
+          args: Prisma.TodoAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTodo>
+        }
+        groupBy: {
+          args: Prisma.TodoGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TodoGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TodoCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TodoCountAggregateOutputType> | number
+        }
+      }
+    }
     Bug: {
       payload: Prisma.$BugPayload<ExtArgs>
       fields: Prisma.BugFieldRefs
@@ -3542,6 +3617,22 @@ export const NoteScalarFieldEnum = {
 export type NoteScalarFieldEnum = (typeof NoteScalarFieldEnum)[keyof typeof NoteScalarFieldEnum]
 
 
+export const TodoScalarFieldEnum = {
+  id: 'id',
+  ownerId: 'ownerId',
+  projectId: 'projectId',
+  title: 'title',
+  note: 'note',
+  done: 'done',
+  sortOrder: 'sortOrder',
+  completedAt: 'completedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TodoScalarFieldEnum = (typeof TodoScalarFieldEnum)[keyof typeof TodoScalarFieldEnum]
+
+
 export const BugScalarFieldEnum = {
   id: 'id',
   ownerId: 'ownerId',
@@ -4173,6 +4264,7 @@ export type GlobalOmitConfig = {
   stackPresetTechnology?: Prisma.StackPresetTechnologyOmit
   idea?: Prisma.IdeaOmit
   note?: Prisma.NoteOmit
+  todo?: Prisma.TodoOmit
   bug?: Prisma.BugOmit
   decision?: Prisma.DecisionOmit
   codingSession?: Prisma.CodingSessionOmit
