@@ -25,12 +25,14 @@ export function AppShell({
   userDisplayName,
   projects = [],
   archivedCount = 0,
+  ideaInboxCount = 0,
   defaultCollapsed = false,
 }: {
   children: React.ReactNode;
   userDisplayName: string;
   projects?: SidebarProject[];
   archivedCount?: number;
+  ideaInboxCount?: number;
   defaultCollapsed?: boolean;
 }) {
   const [commandOpen, setCommandOpen] = useState(false);
@@ -87,6 +89,7 @@ export function AppShell({
     userDisplayName,
     projects,
     archivedCount,
+    ideaInboxCount,
     collapsed,
     onToggleCollapsed: toggleCollapsed,
     onOpenCommand: openCommand,

@@ -19,7 +19,7 @@ export default async function AuthenticatedLayout({
 
   // Loaded once for the shell so the sidebar and the command menu can route
   // anywhere without a round trip on open.
-  const [projects, archivedCount] = await Promise.all([
+  const [projects, archivedCount, ideaInboxCount] = await Promise.all([
     db.project.findMany({
       where: { ownerId: actor.userId, archivedAt: null },
       select: {
@@ -28,12 +28,18 @@ export default async function AuthenticatedLayout({
         slug: true,
         status: true,
         icon: true,
-        _count: { select: { queueItems: { where: { status: "QUEUED" } } } },
+        _count: {
+          select: {
+            queueItems: { where: { status: "QUEUED" } },
+            todos: { where: { done: false } },
+          },
+        },
       },
       orderBy: [{ lastActivityAt: "desc" }, { updatedAt: "desc" }],
       take: 50,
     }),
     db.project.count({ where: { ownerId: actor.userId, archivedAt: { not: null } } }),
+    db.idea.count({ where: { ownerId: actor.userId, status: "INBOX" } }),
   ]);
 
   // The rail's width preference is a cookie so the first server render already
@@ -49,9 +55,10 @@ export default async function AuthenticatedLayout({
         slug: project.slug,
         status: project.status,
         icon: project.icon,
-        queuedCount: project._count.queueItems,
+        queuedCount: project._count.queueItems + project._count.todos,
       }))}
       archivedCount={archivedCount}
+      ideaInboxCount={ideaInboxCount}
       defaultCollapsed={collapsed}
     >
       {children}

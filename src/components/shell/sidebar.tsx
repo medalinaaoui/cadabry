@@ -58,6 +58,7 @@ export function Sidebar({
   userDisplayName,
   projects,
   archivedCount,
+  ideaInboxCount = 0,
   collapsed,
   onToggleCollapsed,
   onOpenCommand,
@@ -68,6 +69,7 @@ export function Sidebar({
   userDisplayName: string;
   projects: SidebarProject[];
   archivedCount: number;
+  ideaInboxCount?: number;
   collapsed: boolean;
   onToggleCollapsed: () => void;
   onOpenCommand: () => void;
@@ -162,6 +164,7 @@ export function Sidebar({
           href="/inbox"
           icon={Inbox}
           label="Idea Inbox"
+          count={ideaInboxCount}
           active={pathname.startsWith("/inbox")}
           shrunk={shrunk}
           onNavigate={onNavigate}
@@ -513,7 +516,7 @@ function ProjectItem({
           <span className="min-w-0 flex-1 truncate">{project.name}</span>
           {project.queuedCount ? (
             <span
-              title={`${project.queuedCount} queued`}
+              title={`${project.queuedCount} queued prompt${project.queuedCount === 1 ? "" : "s"}/to-dos`}
               className="tabular rounded-full bg-cobalt-500/18 px-1.5 text-micro font-semibold text-cobalt-300"
             >
               {project.queuedCount}
