@@ -171,7 +171,13 @@ export default async function PacksPage() {
                     </p>
                   )}
 
-                  <ul className="mt-3 space-y-1.5">
+                  <ul
+                    className={cn(
+                      "mt-3 space-y-1.5",
+                      pack.rules.length > 4 &&
+                        "max-h-[260px] overflow-y-auto pr-1 pb-4 [mask-image:linear-gradient(to_bottom,black_calc(100%-32px),transparent)]",
+                    )}
+                  >
                     {pack.rules.map((rule) => (
                       <li
                         key={rule.id}
