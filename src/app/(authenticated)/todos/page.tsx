@@ -5,7 +5,7 @@ import { Check, ListChecks } from "lucide-react";
 import { verifySessionToken, SESSION_COOKIE_NAME } from "@/server/auth/session";
 import { db } from "@/server/db";
 import { Button } from "@/components/ui/button";
-import { Field, SelectField } from "@/components/ui/field";
+import { Field, SelectField, TextField } from "@/components/ui/field";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState, PageHeader, PageShell, Row, Stack } from "@/components/ui/page";
 import { FormGrid } from "@/components/ui/disclosure";
@@ -68,6 +68,7 @@ export default async function TodosLibrary({
     if (!actor) redirect("/login");
 
     const title = (formData.get("title") as string).trim();
+    const note = (formData.get("note") as string).trim();
     const projectId = (formData.get("projectId") as string) || "";
     if (!title || !projectId) redirect("/todos?error=Title+and+project+are+required");
 
@@ -86,6 +87,7 @@ export default async function TodosLibrary({
         ownerId: actor.userId,
         projectId,
         title,
+        note: note || null,
         sortOrder: (last?.sortOrder ?? -1) + 1,
       },
     });
@@ -112,6 +114,13 @@ export default async function TodosLibrary({
             ))}
           </SelectField>
         </FormGrid>
+        <TextField
+          label="Description"
+          labelHidden
+          name="note"
+          rows={3}
+          placeholder="Optional — add more context (script outline, links, notes…)"
+        />
         <Button type="submit" variant="primary">
           Add to-do
         </Button>
@@ -209,11 +218,13 @@ export default async function TodosLibrary({
                       <Badge tone="quiet">{todo.project.name}</Badge>
                     </Link>
                   </div>
-                  {todo.note && <p className="mt-1 text-caption text-muted">{todo.note}</p>}
+                  {todo.note && (
+                    <p className="mt-1 whitespace-pre-wrap text-caption text-muted">{todo.note}</p>
+                  )}
 
                   <RecordControls id={todo.id} name={todo.title} editAction={updateTodoRecord} deleteAction={deleteTodoRecord}>
                     <Field label="Title" name="title" defaultValue={todo.title} required />
-                    <Field label="Note" name="note" defaultValue={todo.note ?? ""} />
+                    <TextField label="Description" name="note" rows={4} defaultValue={todo.note ?? ""} />
                   </RecordControls>
                 </div>
 

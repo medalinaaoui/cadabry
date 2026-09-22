@@ -6,7 +6,7 @@ import { verifySessionToken, SESSION_COOKIE_NAME } from "@/server/auth/session";
 import { db } from "@/server/db";
 import { requireActor } from "@/features/projects/queries";
 import { Button } from "@/components/ui/button";
-import { Field } from "@/components/ui/field";
+import { Field, TextField } from "@/components/ui/field";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState, Row, Stack } from "@/components/ui/page";
 import { RecordControls } from "@/components/ui/record-controls";
@@ -42,6 +42,7 @@ export default async function TodosPage({ params }: Props) {
     if (!actor) redirect("/login");
 
     const title = (formData.get("title") as string).trim();
+    const note = (formData.get("note") as string).trim();
     if (!title) redirect(`/${slug}/todos?error=Title+required`);
 
     const last = await db.todo.findFirst({
@@ -54,6 +55,7 @@ export default async function TodosPage({ params }: Props) {
         ownerId: actor.userId,
         projectId: project!.id,
         title,
+        note: note || null,
         sortOrder: (last?.sortOrder ?? -1) + 1,
       },
     });
@@ -71,13 +73,20 @@ export default async function TodosPage({ params }: Props) {
         </p>
       </div>
 
-      <form action={addTodo} className="flex gap-2">
-        <div className="flex-1">
-          <Field label="Add a to-do" labelHidden name="title" placeholder="Record the tutorial YouTube video" required />
+      <form action={addTodo} className="space-y-3 rounded-2xl border border-line bg-surface p-4">
+        <Field label="Add a to-do" labelHidden name="title" placeholder="Record the tutorial YouTube video" required />
+        <TextField
+          label="Description"
+          labelHidden
+          name="note"
+          rows={3}
+          placeholder="Optional — add more context (script outline, links, notes…)"
+        />
+        <div className="flex justify-end">
+          <Button type="submit" variant="primary">
+            Add
+          </Button>
         </div>
-        <Button type="submit" variant="primary">
-          Add
-        </Button>
       </form>
 
       {project.todos.length === 0 ? (
@@ -138,11 +147,13 @@ function TodoRow({
           <p className={cn("text-body", todo.done ? "text-subtle line-through" : "text-foreground")}>
             {todo.title}
           </p>
-          {todo.note && <p className="mt-1 text-caption text-muted">{todo.note}</p>}
+          {todo.note && (
+            <p className="mt-1 whitespace-pre-wrap text-caption text-muted">{todo.note}</p>
+          )}
 
           <RecordControls id={todo.id} name={todo.title} editAction={updateTodoRecord} deleteAction={deleteTodoRecord}>
             <Field label="Title" name="title" defaultValue={todo.title} required />
-            <Field label="Note" name="note" defaultValue={todo.note ?? ""} />
+            <TextField label="Description" name="note" rows={4} defaultValue={todo.note ?? ""} />
           </RecordControls>
         </div>
 
